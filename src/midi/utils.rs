@@ -20,7 +20,7 @@ use crate::ym2151::note_table::NOTE_TABLE;
 /// assert_eq!(kf, 0);
 /// ```
 pub fn midi_to_kc_kf(midi_note: u8) -> (u8, u8) {
-    // Adjust MIDI note by -1 to align octaves (prevent underflow)
+    // Adjust MIDI note by -1 to align octaves between MIDI and YM2151 numbering
     let adjusted_midi = if midi_note > 0 { midi_note - 1 } else { 0 };
     let mut midi_octave = (adjusted_midi / 12).saturating_sub(1);
 
@@ -150,8 +150,10 @@ mod tests {
     #[test]
     fn test_midi_to_kc_kf_all_notes_in_octave() {
         // Test all 12 notes within an octave (using octave 4 as example)
+        // MIDI notes 60-71 map to: C, C#, D, D#, E, F, F#, G, G#, A, A#, B
+        // YM2151 note table values for these notes in order
         let base_midi = 60; // C4
-        let expected_ym_notes = [14, 0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13]; // C, C#, D, D#, E, F, F#, G, G#, A, A#, B
+        let expected_ym_notes = [14, 0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13];
 
         for (i, &expected_note) in expected_ym_notes.iter().enumerate() {
             let (kc, kf) = midi_to_kc_kf(base_midi + i as u8);
