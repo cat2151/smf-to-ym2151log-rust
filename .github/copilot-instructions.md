@@ -95,7 +95,8 @@ cargo audit
 - Follow standard Rust formatting (`cargo fmt`)
 - Use `clippy` for linting (no warnings allowed in CI)
 - Prefer explicit types over inference when it improves readability
-- Use descriptive variable names (both English and Japanese comments are acceptable in the codebase)
+- Use descriptive variable names
+- **Comments**: English preferred for code comments and documentation to support international collaboration; Japanese is acceptable for domain-specific terms or in bilingual documentation files
 
 ### Error Handling
 - Use `anyhow::Result` for application-level errors in binaries
@@ -149,13 +150,13 @@ Final output format (must be compatible with ym2151-zig-cc):
   ]
 }
 ```
-- `time`: Sample time at 55930 Hz sample rate
+- `time`: Sample time at 55930Hz sample rate
 - `addr`: YM2151 register address (hex string)
 - `data`: Data to write (hex string)
 
 ## Important References
 
-- [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf) - Official chip specification
+- [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf) - Official chip specification (Note: HTTP link, no HTTPS version available)
 - [Python version](https://github.com/cat2151/smf-to-ym2151log) - Reference implementation
 - [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) - Output format specification
 
