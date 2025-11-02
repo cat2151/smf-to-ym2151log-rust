@@ -51,8 +51,10 @@ pub fn initialize_channel_events(channel: u8, time: u32) -> Vec<Ym2151Event> {
         });
 
         // TL: Total Level (volume)
-        // Operator 0 (carrier) = max volume (0x00)
-        // Other operators (modulators) = silent (0x7F)
+        // For simplicity, operator 0 is set to max volume (0x00) to be audible
+        // Other operators are set to silent (0x7F)
+        // Note: In algorithm 7, the carrier is actually operator 3, but this
+        // configuration works for basic monophonic output
         let tl_value = if op == 0 { 0x00 } else { 0x7F };
         events.push(Ym2151Event {
             time,
