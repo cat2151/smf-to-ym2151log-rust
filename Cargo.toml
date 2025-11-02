@@ -1,0 +1,28 @@
+[package]
+name = "smf-to-ym2151log-rust"
+version = "0.1.0"
+edition = "2021"
+authors = ["cat2151"]
+license = "MIT"
+description = "Convert Standard MIDI Files to YM2151 register write log in JSON format"
+repository = "https://github.com/cat2151/smf-to-ym2151log-rust"
+readme = "README.md"
+keywords = ["midi", "ym2151", "fm-synthesis", "audio", "converter"]
+categories = ["multimedia", "command-line-utilities"]
+
+[dependencies]
+midly = "0.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+
+[[bin]]
+name = "smf-to-ym2151log-rust"
+path = "src/main.rs"
+
+[lib]
+name = "smf_to_ym2151log"
+path = "src/lib.rs"
