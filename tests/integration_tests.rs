@@ -76,7 +76,10 @@ fn test_parse_tempo_change() {
         .filter(|e| matches!(e, MidiEvent::Tempo { .. }))
         .collect();
 
-    assert!(!tempo_events.is_empty(), "Expected at least one tempo event");
+    assert!(
+        !tempo_events.is_empty(),
+        "Expected at least one tempo event"
+    );
 
     // First tempo event should be 120 BPM
     if let MidiEvent::Tempo { tempo_bpm, .. } = tempo_events[0] {
@@ -135,13 +138,15 @@ fn test_parse_multi_track() {
 #[test]
 fn test_save_midi_events_json() {
     use std::env;
-    
+
     let midi_path = "tests/test_data/simple_melody.mid";
-    
+
     // Use system temp directory for cross-platform compatibility
     let temp_dir = env::temp_dir();
     let output_path = temp_dir.join("test_output_events.json");
-    let output_path_str = output_path.to_str().expect("Failed to convert path to string");
+    let output_path_str = output_path
+        .to_str()
+        .expect("Failed to convert path to string");
 
     // Parse MIDI file
     let midi_data = parse_midi_file(midi_path).expect("Failed to parse MIDI file");
@@ -151,10 +156,7 @@ fn test_save_midi_events_json() {
     assert!(result.is_ok(), "Failed to save JSON: {:?}", result.err());
 
     // Verify file exists
-    assert!(
-        output_path.exists(),
-        "Output JSON file was not created"
-    );
+    assert!(output_path.exists(), "Output JSON file was not created");
 
     // Read and verify it's valid JSON
     let json_content = fs::read_to_string(&output_path).expect("Failed to read output JSON");
