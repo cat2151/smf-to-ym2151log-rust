@@ -94,7 +94,5 @@ fn main() {
     println!("  Phase 1-3: Foundation & MIDI Parser (COMPLETED)");
     println!("  Phase 4: YM2151 Converter (COMPLETED)");
     println!("  Phase 5: Main Program Integration (COMPLETED)");
-    println!();
-    println!("Next phase:");
-    println!("  Phase 6: Documentation and Polish (TODO)");
+    println!("  Phase 6: Documentation and Polish (COMPLETED)");
 }
