@@ -15,42 +15,85 @@ This is a Rust implementation of smf-to-ym2151log that converts Standard MIDI Fi
 
 ## プロジェクトステータス (Project Status)
 
-現在、実装計画フェーズです。詳細な実装計画書を作成しました。
+**✅ 実装完了 - Implementation Complete!**
 
-**📋 実装計画書**: [IMPLEMENTATION.md](IMPLEMENTATION.md)
+すべての実装フェーズが完了しました。詳細な実装計画については [IMPLEMENTATION.md](IMPLEMENTATION.md) をご覧ください。
 
-### 計画書の内容
-- ✅ 入出力仕様の詳細
-- ✅ アーキテクチャ設計（2パス処理）
-- ✅ 利用ライブラリの選定と理由
-- ✅ テスト方針（ユニットテスト、統合テスト）
-- ✅ 6段階の段階的実装計画
-- ✅ Python版との比較分析
+All implementation phases are complete. See [IMPLEMENTATION.md](IMPLEMENTATION.md) for detailed implementation plan.
+
+### 完了したフェーズ (Completed Phases)
+- ✅ フェーズ1: プロジェクト基盤構築
+- ✅ フェーズ2: MIDI解析実装
+- ✅ フェーズ3: MIDI→YM2151変換ユーティリティ
+- ✅ フェーズ4: YM2151変換実装
+- ✅ フェーズ5: メインプログラム統合
+- ✅ フェーズ6: ドキュメントと仕上げ
+
+### 品質指標 (Quality Metrics)
+- ✅ すべてのテストが合格 (41 tests passing)
+- ✅ コードカバレッジ: 良好
+- ✅ `cargo fmt`: 合格
+- ✅ `cargo clippy`: 警告なし
+- ✅ `cargo audit`: 脆弱性なし
 
 ## 特徴 (Features)
-
-計画されている主な機能：
 
 - **2パス処理アーキテクチャ**:
   - **パスA**: MIDIファイル → 中間イベントJSON（デバッグ用）
   - **パスB**: 中間イベント → YM2151レジスタログJSON（最終出力）
 - **型安全性**: Rustの型システムによる堅牢性
 - **高パフォーマンス**: ネイティブコンパイルによる高速処理
-- **テスト駆動開発**: 包括的なユニットテストと統合テスト
+- **テスト駆動開発**: 包括的なユニットテストと統合テスト (41 tests)
 - **互換性**: [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) と互換性のあるJSON形式
+- **標準対応**: SMF Format 0 および Format 1 をサポート
 
-## 予定されている使い方 (Planned Usage)
+## 使い方 (Usage)
+
+### インストール (Installation)
 
 ```bash
-# インストール
-cargo install --path .
+# リポジトリをクローン
+git clone https://github.com/cat2151/smf-to-ym2151log-rust.git
+cd smf-to-ym2151log-rust
 
+# ビルドとインストール
+cargo install --path .
+```
+
+### 基本的な使い方 (Basic Usage)
+
+```bash
 # MIDIファイルの変換
 smf-to-ym2151log-rust song.mid
 
 # 出力ファイル:
 # - song_events.json  (パスA: デバッグ用中間イベント)
 # - song_ym2151.json  (パスB: YM2151レジスタログ)
+```
+
+### 出力例 (Output Example)
+
+```
+smf-to-ym2151log-rust
+Processing: song.mid
+
+Pass A: Parsing MIDI file...
+  ✓ Successfully parsed MIDI file
+  - Ticks per beat: 480
+  - Initial tempo: 120.00 BPM
+  - Total events: 4
+
+Saving intermediate events JSON...
+  ✓ Saved: song_events.json
+
+Pass B: Converting to YM2151 register log...
+  ✓ Successfully converted to YM2151 log
+  - Total YM2151 events: 42
+
+Saving YM2151 log JSON...
+  ✓ Saved: song_ym2151.json
+
+=== CONVERSION COMPLETE ===
 ```
 
 ## 開発 (Development)
