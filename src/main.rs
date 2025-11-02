@@ -90,9 +90,11 @@ fn main() {
     println!("  Events JSON: {}", events_json_path.display());
     println!("  YM2151 log:  {}", ym2151_json_path.display());
     println!();
-    println!("Phase 4 (YM2151 Converter) COMPLETED");
-    println!();
-    println!("Next phases:");
+    println!("Implementation Status:");
+    println!("  Phase 1-3: Foundation & MIDI Parser (COMPLETED)");
+    println!("  Phase 4: YM2151 Converter (COMPLETED)");
     println!("  Phase 5: Main Program Integration (COMPLETED)");
+    println!();
+    println!("Next phase:");
     println!("  Phase 6: Documentation and Polish (TODO)");
 }
