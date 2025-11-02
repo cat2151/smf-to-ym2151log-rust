@@ -420,19 +420,27 @@ fn test_ym2151_log_time_values() {
     let midi_data = parse_midi_file(midi_path).expect("Failed to parse MIDI file");
     let ym2151_log = convert_to_ym2151_log(&midi_data).expect("Failed to convert to YM2151 log");
 
-    // Check that times are monotonically increasing (or at least non-decreasing)
+    // Check that times are non-decreasing (equal values are allowed, e.g., for simultaneous events)
     let mut prev_time = 0;
     for event in &ym2151_log.events {
         assert!(
             event.time >= prev_time,
-            "Time should be monotonically increasing or equal"
+            "Time should be non-decreasing (event.time={}, prev_time={})",
+            event.time,
+            prev_time
         );
         prev_time = event.time;
     }
 
-    // All events should have valid time values (>= 0)
-    for event in &ym2151_log.events {
-        assert!(event.time < u32::MAX, "Time value should be valid");
+    // Verify at least one event has non-zero time (unless empty)
+    if !ym2151_log.events.is_empty() {
+        let has_nonzero = ym2151_log.events.iter().any(|e| e.time > 0);
+        // For non-empty MIDI files with notes, we should have some non-zero times
+        // (Only all-zero times would be unusual for actual note events)
+        assert!(
+            ym2151_log.events.is_empty() || has_nonzero || ym2151_log.events.len() <= 32,
+            "Expected at least some non-zero time values for events beyond initialization"
+        );
     }
 }
 
