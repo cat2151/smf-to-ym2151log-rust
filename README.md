@@ -30,7 +30,7 @@ All implementation phases are complete. See [IMPLEMENTATION.md](IMPLEMENTATION.m
 - ✅ フェーズ6: ドキュメントと仕上げ
 
 ### 品質指標 (Quality Metrics)
-- ✅ すべてのテストが合格 (41 tests passing)
+- ✅ すべてのテストが合格 (48 tests passing: 28 unit + 13 integration + 7 doc tests)
 - ✅ コードカバレッジ: 良好
 - ✅ `cargo fmt`: 合格
 - ✅ `cargo clippy`: 警告なし
@@ -43,7 +43,7 @@ All implementation phases are complete. See [IMPLEMENTATION.md](IMPLEMENTATION.m
   - **パスB**: 中間イベント → YM2151レジスタログJSON（最終出力）
 - **型安全性**: Rustの型システムによる堅牢性
 - **高パフォーマンス**: ネイティブコンパイルによる高速処理
-- **テスト駆動開発**: 包括的なユニットテストと統合テスト (41 tests)
+- **テスト駆動開発**: 包括的なユニットテストと統合テスト (48 tests)
 - **互換性**: [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) と互換性のあるJSON形式
 - **標準対応**: SMF Format 0 および Format 1 をサポート
 

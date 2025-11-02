@@ -3,7 +3,7 @@
 //! A library for converting Standard MIDI Files (SMF) to YM2151 register write logs.
 //!
 //! This library provides a 2-pass conversion process:
-//! - **Pass A**: Parse MIDI file to intermediate events JSON (debugging aid)
+//! - **Pass A**: Parse MIDI file to intermediate events JSON (intermediate representation)
 //! - **Pass B**: Convert events to YM2151 register write log JSON (final output)
 //!
 //! ## Features
