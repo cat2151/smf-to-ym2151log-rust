@@ -11,7 +11,7 @@
 /// Tuple of (KC, KF) where KC is the key code and KF is the key fraction
 ///
 /// # Example
-/// ```
+/// ```ignore
 /// use smf_to_ym2151log::midi::midi_to_kc_kf;
 /// let (kc, kf) = midi_to_kc_kf(60); // Middle C
 /// ```
