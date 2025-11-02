@@ -6,6 +6,7 @@
 //!     smf-to-ym2151log-rust <midi_file>
 
 use smf_to_ym2151log::midi::{parse_midi_file, save_midi_events_json};
+use smf_to_ym2151log::ym2151::{convert_to_ym2151_log, save_ym2151_log};
 use std::env;
 use std::path::Path;
 use std::process;
@@ -25,11 +26,12 @@ fn main() {
     println!("Processing: {}", midi_filename);
     println!();
 
-    // Determine output filename (replace extension with _events.json)
+    // Determine output filenames
     let path = Path::new(midi_filename);
     let base_name = path.file_stem().unwrap_or_default().to_string_lossy();
     let output_dir = path.parent().unwrap_or_else(|| Path::new("."));
     let events_json_path = output_dir.join(format!("{}_events.json", base_name));
+    let ym2151_json_path = output_dir.join(format!("{}_ym2151.json", base_name));
 
     // Pass A: Parse MIDI file
     println!("Pass A: Parsing MIDI file...");
@@ -56,12 +58,41 @@ fn main() {
     }
     println!("  ✓ Saved: {}", events_json_path.display());
 
+    // Pass B: Convert to YM2151 log
     println!();
-    println!("Phase 2 (MIDI Parser) COMPLETED");
+    println!("Pass B: Converting to YM2151 register log...");
+    let ym2151_log = match convert_to_ym2151_log(&midi_data) {
+        Ok(log) => {
+            println!("  ✓ Successfully converted to YM2151 log");
+            println!("  - Total YM2151 events: {}", log.event_count);
+            log
+        }
+        Err(e) => {
+            eprintln!("Error converting to YM2151 log: {}", e);
+            process::exit(1);
+        }
+    };
+
+    // Save YM2151 log JSON
+    println!();
+    println!("Saving YM2151 log JSON...");
+    if let Err(e) = save_ym2151_log(&ym2151_log, ym2151_json_path.to_str().unwrap()) {
+        eprintln!("Error saving YM2151 log: {}", e);
+        process::exit(1);
+    }
+    println!("  ✓ Saved: {}", ym2151_json_path.display());
+
+    println!();
+    println!("=== CONVERSION COMPLETE ===");
+    println!();
+    println!("Summary:");
+    println!("  Input file:  {}", midi_filename);
+    println!("  Events JSON: {}", events_json_path.display());
+    println!("  YM2151 log:  {}", ym2151_json_path.display());
+    println!();
+    println!("Phase 4 (YM2151 Converter) COMPLETED");
     println!();
     println!("Next phases:");
-    println!("  Phase 3: MIDI to YM2151 Utilities (TODO)");
-    println!("  Phase 4: YM2151 Converter Implementation (TODO)");
-    println!("  Phase 5: Main Program Integration (TODO)");
+    println!("  Phase 5: Main Program Integration (COMPLETED)");
     println!("  Phase 6: Documentation and Polish (TODO)");
 }
