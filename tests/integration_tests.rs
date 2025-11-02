@@ -2,7 +2,6 @@
 
 use smf_to_ym2151log::midi::{parse_midi_file, save_midi_events_json, MidiEvent};
 use std::fs;
-use std::path::Path;
 
 #[test]
 fn test_parse_simple_melody() {
@@ -135,24 +134,30 @@ fn test_parse_multi_track() {
 
 #[test]
 fn test_save_midi_events_json() {
+    use std::env;
+    
     let midi_path = "tests/test_data/simple_melody.mid";
-    let output_path = "/tmp/test_output_events.json";
+    
+    // Use system temp directory for cross-platform compatibility
+    let temp_dir = env::temp_dir();
+    let output_path = temp_dir.join("test_output_events.json");
+    let output_path_str = output_path.to_str().expect("Failed to convert path to string");
 
     // Parse MIDI file
     let midi_data = parse_midi_file(midi_path).expect("Failed to parse MIDI file");
 
     // Save to JSON
-    let result = save_midi_events_json(&midi_data, output_path);
+    let result = save_midi_events_json(&midi_data, output_path_str);
     assert!(result.is_ok(), "Failed to save JSON: {:?}", result.err());
 
     // Verify file exists
     assert!(
-        Path::new(output_path).exists(),
+        output_path.exists(),
         "Output JSON file was not created"
     );
 
     // Read and verify it's valid JSON
-    let json_content = fs::read_to_string(output_path).expect("Failed to read output JSON");
+    let json_content = fs::read_to_string(&output_path).expect("Failed to read output JSON");
 
     let parsed: serde_json::Value =
         serde_json::from_str(&json_content).expect("Output is not valid JSON");
@@ -163,7 +168,7 @@ fn test_save_midi_events_json() {
     assert!(parsed.get("events").is_some());
 
     // Clean up
-    let _ = fs::remove_file(output_path);
+    let _ = fs::remove_file(&output_path);
 }
 
 #[test]

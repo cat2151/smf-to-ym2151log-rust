@@ -10,6 +10,9 @@ use std::fs;
 /// Default tempo in microseconds per quarter note (120 BPM)
 const DEFAULT_TEMPO_USPQN: u32 = 500_000;
 
+/// Microseconds per minute (for tempo conversion)
+const MICROSECONDS_PER_MINUTE: f64 = 60_000_000.0;
+
 /// Parse a MIDI file and extract events
 ///
 /// # Arguments
@@ -99,7 +102,7 @@ pub fn parse_midi_file(path: &str) -> Result<MidiData> {
                 }
                 TrackEventKind::Meta(midly::MetaMessage::Tempo(tempo)) => {
                     let tempo_uspqn = tempo.as_int();
-                    let tempo_bpm = 60_000_000.0 / tempo_uspqn as f64;
+                    let tempo_bpm = MICROSECONDS_PER_MINUTE / tempo_uspqn as f64;
                     events.push(MidiEvent::Tempo {
                         ticks: absolute_ticks,
                         tempo_bpm,
@@ -124,7 +127,7 @@ pub fn parse_midi_file(path: &str) -> Result<MidiData> {
     });
 
     // Calculate initial tempo in BPM
-    let initial_tempo_bpm = 60_000_000.0 / DEFAULT_TEMPO_USPQN as f64;
+    let initial_tempo_bpm = MICROSECONDS_PER_MINUTE / DEFAULT_TEMPO_USPQN as f64;
 
     Ok(MidiData {
         ticks_per_beat,
@@ -154,7 +157,7 @@ mod tests {
     #[test]
     fn test_default_tempo_conversion() {
         // 120 BPM = 500,000 microseconds per quarter note
-        let bpm = 60_000_000.0 / DEFAULT_TEMPO_USPQN as f64;
+        let bpm = MICROSECONDS_PER_MINUTE / DEFAULT_TEMPO_USPQN as f64;
         assert_eq!(bpm, 120.0);
     }
 }
