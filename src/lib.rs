@@ -6,12 +6,10 @@
 //! - **Pass A**: Parse MIDI file to intermediate events JSON
 //! - **Pass B**: Convert events to YM2151 register write log JSON
 //!
-//! ## Example
+//! ## Usage
 //!
-//! ```no_run
-//! // This is a placeholder example showing the intended API
-//! // Full implementation will be done in subsequent phases
-//! ```
+//! Full implementation will be done in subsequent phases according to IMPLEMENTATION.md.
+//! See the main binary for command-line usage.
 
 pub mod error;
 pub mod midi;
