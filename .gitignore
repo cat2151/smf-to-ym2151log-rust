@@ -24,3 +24,7 @@ target
 # Added by cargo
 
 /target
+
+# Generated test output files
+*_events.json
+*_ym2151.json
