@@ -491,3 +491,75 @@ fn test_ym2151_log_hex_format() {
         assert!(data_val.is_ok(), "Data should be valid hex: {}", event.data);
     }
 }
+
+#[test]
+fn test_convert_smf_to_ym2151_log_convenience_function() {
+    // Test the convenience function that accepts raw SMF bytes
+    let midi_path = "tests/test_data/simple_melody.mid";
+
+    // Read the MIDI file as bytes
+    let smf_bytes = fs::read(midi_path).expect("Failed to read test MIDI file");
+
+    // Use the convenience function
+    let result = smf_to_ym2151log::convert_smf_to_ym2151_log(&smf_bytes);
+    assert!(
+        result.is_ok(),
+        "Failed to convert SMF to YM2151 log: {:?}",
+        result.err()
+    );
+
+    let json_string = result.unwrap();
+
+    // Verify it's valid JSON
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_string).expect("Output should be valid JSON");
+
+    // Verify it has the expected structure
+    assert!(
+        parsed.get("event_count").is_some(),
+        "Should have event_count field"
+    );
+    assert!(parsed.get("events").is_some(), "Should have events field");
+
+    // Verify event_count is a number
+    let event_count = parsed["event_count"]
+        .as_u64()
+        .expect("event_count should be a number");
+    assert!(event_count > 0, "Should have at least some events");
+
+    // Verify events is an array
+    let events = parsed["events"]
+        .as_array()
+        .expect("events should be an array");
+    assert_eq!(
+        events.len() as u64,
+        event_count,
+        "events length should match event_count"
+    );
+}
+
+#[test]
+fn test_parse_midi_from_bytes() {
+    // Test parsing MIDI from bytes directly
+    let midi_path = "tests/test_data/simple_melody.mid";
+
+    // Read the MIDI file as bytes
+    let smf_bytes = fs::read(midi_path).expect("Failed to read test MIDI file");
+
+    // Parse from bytes
+    let result = smf_to_ym2151log::midi::parse_midi_from_bytes(&smf_bytes);
+    assert!(
+        result.is_ok(),
+        "Failed to parse MIDI from bytes: {:?}",
+        result.err()
+    );
+
+    let midi_data = result.unwrap();
+
+    // Verify metadata
+    assert_eq!(midi_data.ticks_per_beat, 480);
+    assert_eq!(midi_data.tempo_bpm, 120.0);
+
+    // Verify we got events
+    assert!(!midi_data.events.is_empty(), "Should have parsed events");
+}
