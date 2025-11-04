@@ -5,7 +5,7 @@
 use crate::error::Result;
 use crate::midi::{midi_to_kc_kf, ticks_to_samples, MidiData, MidiEvent};
 use crate::ym2151::{initialize_channel_events, Ym2151Event, Ym2151Log};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::Write;
 
@@ -68,8 +68,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
     }
 
     // Process MIDI events
-    // Track active notes per channel: key is (channel, note)
-    let mut active_notes: HashMap<(u8, u8), ()> = HashMap::new();
+    // Track active notes per channel: set of (channel, note) tuples
+    let mut active_notes: HashSet<(u8, u8)> = HashSet::new();
 
     for event in &midi_data.events {
         match event {
@@ -84,6 +84,7 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 channel,
                 note,
                 velocity,
+                ..
             } => {
                 // Skip if velocity is 0 (should already be converted to Note Off in parser)
                 if *velocity == 0 {
@@ -117,7 +118,7 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                     data: format!("0x{:02X}", 0x78 | ym2151_channel),
                 });
 
-                active_notes.insert((ym2151_channel, *note), ());
+                active_notes.insert((ym2151_channel, *note));
             }
 
             // Handle Note Off events
@@ -125,13 +126,14 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 ticks,
                 channel,
                 note,
+                ..
             } => {
                 // Map MIDI channel to YM2151 channel (clamp to 0-7)
                 let ym2151_channel = (*channel).min(7);
 
                 let sample_time = ticks_to_samples(*ticks, ticks_per_beat, current_tempo_bpm);
 
-                if active_notes.contains_key(&(ym2151_channel, *note)) {
+                if active_notes.contains(&(ym2151_channel, *note)) {
                     // Key OFF
                     ym2151_events.push(Ym2151Event {
                         time: sample_time,
