@@ -58,6 +58,7 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 let ym2151_ch = (*channel).min(7);
                 used_channels.insert(ym2151_ch);
             }
+            // Tempo and ProgramChange events don't affect channel initialization
             _ => {}
         }
     }
@@ -145,7 +146,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 }
             }
 
-            // Ignore other event types for now
+            // ProgramChange events are not yet implemented for YM2151 conversion
+            // Future work: map MIDI programs to YM2151 voice parameters
             _ => {}
         }
     }
