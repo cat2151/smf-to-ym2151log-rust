@@ -140,6 +140,56 @@ def create_multi_track_midi():
     
     return header + track1 + track2
 
+def create_multi_channel_midi():
+    """Create a MIDI file with multiple channels playing simultaneously
+    Channel 0: C (60), Channel 1: E (64), Channel 2: G (67)
+    """
+    # Header chunk
+    header = b'MThd'
+    header += struct.pack('>I', 6)
+    header += struct.pack('>H', 0)  # Format 0
+    header += struct.pack('>H', 1)  # Number of tracks
+    header += struct.pack('>H', 480)  # Ticks per quarter note
+    
+    # Track chunk
+    track_events = bytearray()
+    
+    # All three notes start at tick 0
+    # Channel 0: Note On C (60)
+    track_events += write_variable_length(0)
+    track_events += bytes([0x90, 60, 100])  # Note On, channel 0
+    
+    # Channel 1: Note On E (64)
+    track_events += write_variable_length(0)
+    track_events += bytes([0x91, 64, 100])  # Note On, channel 1
+    
+    # Channel 2: Note On G (67)
+    track_events += write_variable_length(0)
+    track_events += bytes([0x92, 67, 100])  # Note On, channel 2
+    
+    # All three notes end at tick 480
+    # Channel 0: Note Off C (60)
+    track_events += write_variable_length(480)
+    track_events += bytes([0x80, 60, 0])  # Note Off, channel 0
+    
+    # Channel 1: Note Off E (64)
+    track_events += write_variable_length(0)
+    track_events += bytes([0x81, 64, 0])  # Note Off, channel 1
+    
+    # Channel 2: Note Off G (67)
+    track_events += write_variable_length(0)
+    track_events += bytes([0x82, 67, 0])  # Note Off, channel 2
+    
+    # End of track
+    track_events += write_variable_length(0)
+    track_events += bytes([0xFF, 0x2F, 0x00])
+    
+    track = b'MTrk'
+    track += struct.pack('>I', len(track_events))
+    track += track_events
+    
+    return header + track
+
 if __name__ == '__main__':
     import os
     
@@ -158,3 +208,7 @@ if __name__ == '__main__':
     with open('tests/test_data/multi_track.mid', 'wb') as f:
         f.write(create_multi_track_midi())
     print('Created: tests/test_data/multi_track.mid')
+    
+    with open('tests/test_data/multi_channel.mid', 'wb') as f:
+        f.write(create_multi_channel_midi())
+    print('Created: tests/test_data/multi_channel.mid')
