@@ -13,22 +13,19 @@ const DEFAULT_TEMPO_USPQN: u32 = 500_000;
 /// Microseconds per minute (for tempo conversion)
 const MICROSECONDS_PER_MINUTE: f64 = 60_000_000.0;
 
-/// Parse a MIDI file and extract events
+/// Parse MIDI data from bytes and extract events
 ///
 /// # Arguments
-/// * `path` - Path to the MIDI file
+/// * `data` - Raw MIDI file data as bytes
 ///
 /// # Returns
 /// Parsed MIDI data with events and metadata
 ///
 /// # Errors
-/// Returns an error if the file cannot be read or parsed
-pub fn parse_midi_file(path: &str) -> Result<MidiData> {
-    // Read the MIDI file
-    let data = fs::read(path)?;
-
+/// Returns an error if the data cannot be parsed
+pub fn parse_midi_from_bytes(data: &[u8]) -> Result<MidiData> {
     // Parse with midly
-    let smf = Smf::parse(&data)
+    let smf = Smf::parse(data)
         .map_err(|e| Error::MidiParse(format!("Failed to parse MIDI file: {}", e)))?;
 
     // Get ticks per beat from the timing
@@ -134,6 +131,24 @@ pub fn parse_midi_file(path: &str) -> Result<MidiData> {
         tempo_bpm: initial_tempo_bpm,
         events,
     })
+}
+
+/// Parse a MIDI file and extract events
+///
+/// # Arguments
+/// * `path` - Path to the MIDI file
+///
+/// # Returns
+/// Parsed MIDI data with events and metadata
+///
+/// # Errors
+/// Returns an error if the file cannot be read or parsed
+pub fn parse_midi_file(path: &str) -> Result<MidiData> {
+    // Read the MIDI file
+    let data = fs::read(path)?;
+
+    // Parse using the bytes parser
+    parse_midi_from_bytes(&data)
 }
 
 /// Save MIDI data to JSON file

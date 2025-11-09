@@ -30,7 +30,7 @@ All implementation phases are complete. See [IMPLEMENTATION.md](IMPLEMENTATION.m
 - ✅ フェーズ6: ドキュメントと仕上げ
 
 ### 品質指標 (Quality Metrics)
-- ✅ すべてのテストが合格 (48 tests passing: 28 unit + 13 integration + 7 doc tests)
+- ✅ すべてのテストが合格 (51 tests passing: 28 unit + 15 integration + 8 doc tests)
 - ✅ コードカバレッジ: 良好
 - ✅ `cargo fmt`: 合格
 - ✅ `cargo clippy`: 警告なし
@@ -43,9 +43,10 @@ All implementation phases are complete. See [IMPLEMENTATION.md](IMPLEMENTATION.m
   - **パスB**: 中間イベント → YM2151レジスタログJSON（最終出力）
 - **型安全性**: Rustの型システムによる堅牢性
 - **高パフォーマンス**: ネイティブコンパイルによる高速処理
-- **テスト駆動開発**: 包括的なユニットテストと統合テスト (48 tests)
+- **テスト駆動開発**: 包括的なユニットテストと統合テスト (51 tests)
 - **互換性**: [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) と互換性のあるJSON形式
 - **標準対応**: SMF Format 0 および Format 1 をサポート
+- **ライブラリAPI**: 他のRustプロジェクトから利用可能な便利なAPI
 
 ## 使い方 (Usage)
 
@@ -60,7 +61,7 @@ cd smf-to-ym2151log-rust
 cargo install --path .
 ```
 
-### 基本的な使い方 (Basic Usage)
+### コマンドライン使用 (Command Line Usage)
 
 ```bash
 # MIDIファイルの変換
@@ -70,6 +71,34 @@ smf-to-ym2151log-rust song.mid
 # - song_events.json  (パスA: デバッグ用中間イベント)
 # - song_ym2151.json  (パスB: YM2151レジスタログ)
 ```
+
+### ライブラリとして使用 (Library Usage)
+
+他のRustプロジェクトからライブラリとして利用できます：
+
+```toml
+# Cargo.toml
+[dependencies]
+smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
+```
+
+```rust
+// メモリ内でSMFをYM2151ログに変換
+use smf_to_ym2151log::convert_smf_to_ym2151_log;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // SMFバイトデータを取得（例：他のライブラリから）
+    let smf_bytes = std::fs::read("song.mid")?;
+    
+    // 一度の呼び出しでYM2151 JSONログに変換
+    let ym2151_json = convert_smf_to_ym2151_log(&smf_bytes)?;
+    
+    println!("{}", ym2151_json);
+    Ok(())
+}
+```
+
+詳細なAPIドキュメント: `cargo doc --open`
 
 ### 出力例 (Output Example)
 
