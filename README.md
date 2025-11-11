@@ -1,80 +1,80 @@
 # smf-to-ym2151log-rust
 
-**Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装**
+**Rust implementation to convert Standard MIDI Files (SMF) to YM2151 register write logs (JSON format)**
 
 <p align="left">
   <a href="README.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
 </p>
 
-## 概要 (Overview)
+## Overview
 
 [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log) のRust版実装です。
 Standard MIDI Files (SMF) をYM2151 FM音源チップのレジスタ書き込みログ（JSON形式）に変換します。
 
 This is a Rust implementation of smf-to-ym2151log that converts Standard MIDI Files (SMF) to YM2151 FM synthesizer chip register write logs in JSON format.
 
-## プロジェクトステータス (Project Status)
+## Project Status
 
-**✅ 実装完了 - Implementation Complete!**
+**✅ Implementation Complete!**
 
 すべての実装フェーズが完了しました。詳細な実装計画については [IMPLEMENTATION.md](IMPLEMENTATION.md) をご覧ください。
 
 All implementation phases are complete. See [IMPLEMENTATION.md](IMPLEMENTATION.md) for detailed implementation plan.
 
-### 完了したフェーズ (Completed Phases)
-- ✅ フェーズ1: プロジェクト基盤構築
-- ✅ フェーズ2: MIDI解析実装
-- ✅ フェーズ3: MIDI→YM2151変換ユーティリティ
-- ✅ フェーズ4: YM2151変換実装
-- ✅ フェーズ5: メインプログラム統合
-- ✅ フェーズ6: ドキュメントと仕上げ
+### Completed Phases
+- ✅ Phase 1: Project Foundation Establishment
+- ✅ Phase 2: MIDI Parsing Implementation
+- ✅ Phase 3: MIDI to YM2151 Conversion Utilities
+- ✅ Phase 4: YM2151 Conversion Implementation
+- ✅ Phase 5: Main Program Integration
+- ✅ Phase 6: Documentation and Polishing
 
-### 品質指標 (Quality Metrics)
-- ✅ すべてのテストが合格 (51 tests passing: 28 unit + 15 integration + 8 doc tests)
-- ✅ コードカバレッジ: 良好
-- ✅ `cargo fmt`: 合格
-- ✅ `cargo clippy`: 警告なし
-- ✅ `cargo audit`: 脆弱性なし
+### Quality Metrics
+- ✅ All tests passed (51 tests passing: 28 unit + 15 integration + 8 doc tests)
+- ✅ Code Coverage: Good
+- ✅ `cargo fmt`: Passed
+- ✅ `cargo clippy`: No warnings
+- ✅ `cargo audit`: No vulnerabilities
 
-## 特徴 (Features)
+## Features
 
-- **2パス処理アーキテクチャ**:
-  - **パスA**: MIDIファイル → 中間イベントJSON（デバッグ用）
-  - **パスB**: 中間イベント → YM2151レジスタログJSON（最終出力）
-- **型安全性**: Rustの型システムによる堅牢性
-- **高パフォーマンス**: ネイティブコンパイルによる高速処理
-- **テスト駆動開発**: 包括的なユニットテストと統合テスト (51 tests)
-- **互換性**: [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) と互換性のあるJSON形式
-- **標準対応**: SMF Format 0 および Format 1 をサポート
-- **ライブラリAPI**: 他のRustプロジェクトから利用可能な便利なAPI
+- **Two-pass processing architecture**:
+  - **Pass A**: MIDI file → Intermediate Events JSON (for debugging)
+  - **Pass B**: Intermediate Events → YM2151 Register Log JSON (final output)
+- **Type Safety**: Robustness through Rust's type system
+- **High Performance**: Fast processing via native compilation
+- **Test-Driven Development**: Comprehensive unit and integration tests (51 tests)
+- **Compatibility**: JSON format compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc)
+- **Standard Support**: Supports SMF Format 0 and Format 1
+- **Library API**: Convenient API usable from other Rust projects
 
-## 使い方 (Usage)
+## Usage
 
-### インストール (Installation)
+### Installation
 
 ```bash
-# リポジトリをクローン
+# Clone the repository
 git clone https://github.com/cat2151/smf-to-ym2151log-rust.git
 cd smf-to-ym2151log-rust
 
-# ビルドとインストール
+# Build and install
 cargo install --path .
 ```
 
-### コマンドライン使用 (Command Line Usage)
+### Command Line Usage
 
 ```bash
-# MIDIファイルの変換
+# Convert a MIDI file
 smf-to-ym2151log-rust song.mid
 
-# 出力ファイル:
-# - song_events.json  (パスA: デバッグ用中間イベント)
-# - song_ym2151.json  (パスB: YM2151レジスタログ)
+# Output files:
+# - song_events.json  (Pass A: Intermediate events for debugging)
+# - song_ym2151.json  (Pass B: YM2151 register log)
 ```
 
-### ライブラリとして使用 (Library Usage)
+### Library Usage
 
-他のRustプロジェクトからライブラリとして利用できます：
+Can be used as a library from other Rust projects:
 
 ```toml
 # Cargo.toml
@@ -83,14 +83,14 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
 ```rust
-// メモリ内でSMFをYM2151ログに変換
+// Convert SMF to YM2151 log in memory
 use smf_to_ym2151log::convert_smf_to_ym2151_log;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // SMFバイトデータを取得（例：他のライブラリから）
+    // Get SMF byte data (e.g., from another library)
     let smf_bytes = std::fs::read("song.mid")?;
     
-    // 一度の呼び出しでYM2151 JSONログに変換
+    // Convert to YM2151 JSON log in a single call
     let ym2151_json = convert_smf_to_ym2151_log(&smf_bytes)?;
     
     println!("{}", ym2151_json);
@@ -98,9 +98,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-詳細なAPIドキュメント: `cargo doc --open`
+Detailed API documentation: `cargo doc --open`
 
-### 出力例 (Output Example)
+### Output Example
 
 ```
 smf-to-ym2151log-rust
@@ -125,65 +125,65 @@ Saving YM2151 log JSON...
 === CONVERSION COMPLETE ===
 ```
 
-## 開発 (Development)
+## Development
 
-### 前提条件 (Prerequisites)
-- Rust 1.70.0 以上
+### Prerequisites
+- Rust 1.70.0 or later
 - Cargo
 
-### ビルド (Build)
+### Build
 ```bash
-# デバッグビルド
+# Debug build
 cargo build
 
-# リリースビルド
+# Release build
 cargo build --release
 ```
 
-### テスト (Test)
+### Test
 ```bash
-# すべてのテストを実行
+# Run all tests
 cargo test
 
-# 特定のテストを実行
+# Run specific tests
 cargo test midi_parser
 
-# テストカバレッジ
+# Test coverage
 cargo tarpaulin --out Html
 ```
 
-### コード品質 (Code Quality)
+### Code Quality
 ```bash
-# フォーマットチェック
+# Format check
 cargo fmt --check
 
-# リントチェック
+# Lint check
 cargo clippy -- -D warnings
 
-# セキュリティチェック
+# Security check
 cargo audit
 ```
 
-## プロジェクト構造 (Project Structure)
+## Project Structure
 
-予定されているプロジェクト構造：
+Planned project structure:
 
 ```
 smf-to-ym2151log-rust/
-├── Cargo.toml           # プロジェクト設定
-├── README.md            # このファイル
-├── IMPLEMENTATION.md    # 実装計画書
-├── LICENSE              # ライセンス
+├── Cargo.toml           # Project configuration
+├── README.md            # This file
+├── IMPLEMENTATION.md    # Implementation plan
+├── LICENSE              # License
 ├── src/
-│   ├── main.rs         # メインエントリーポイント
-│   ├── lib.rs          # ライブラリルート
-│   ├── error.rs        # エラー型定義
-│   ├── midi/           # MIDI処理モジュール
+│   ├── main.rs         # Main entry point
+│   ├── lib.rs          # Library root
+│   ├── error.rs        # Error type definitions
+│   ├── midi/           # MIDI processing module
 │   │   ├── mod.rs
 │   │   ├── parser.rs
 │   │   ├── events.rs
 │   │   └── utils.rs
-│   └── ym2151/         # YM2151処理モジュール
+│   └── ym2151/         # YM2151 processing module
 │       ├── mod.rs
 │       ├── converter.rs
 │       ├── events.rs
@@ -195,20 +195,20 @@ smf-to-ym2151log-rust/
         └── test.mid
 ```
 
-## 参照 (References)
+## References
 
-- [Python版実装](https://github.com/cat2151/smf-to-ym2151log): このプロジェクトの元になったPython実装
-- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): 出力JSON形式の仕様元
-- [YM2151 データシート](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): YM2151チップの公式仕様書
+- [Python implementation](https://github.com/cat2151/smf-to-ym2151log): The Python implementation that this project is based on
+- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): Origin of the output JSON format specification
+- [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): Official specification document for the YM2151 chip
 
-## ライセンス (License)
+## License
 
-[LICENSE](LICENSE) ファイルを参照してください。
+Please refer to the [LICENSE](LICENSE) file.
 
-## 貢献 (Contributing)
+## Contributing
 
-イシューやプルリクエストを歓迎します。実装計画書を確認してから作業を開始することをお勧めします。
+Issues and pull requests are welcome. It is recommended to review the implementation plan before starting work.
 
-## 作者 (Author)
+## Author
 
 cat2151
