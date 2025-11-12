@@ -1,54 +1,58 @@
-Last updated: 2025-11-12
+Last updated: 2025-11-13
 
 # Development Status
 
 ## 現在のIssues
-- Rust版 `smf-to-ym2151log` プロジェクトの `IMPLEMENTATION.md` に記載された最終フェーズ6までの主要な実装が完了しました ([Issue #16](../issue-notes/16.md))。
-- このプロジェクトは、Standard MIDIファイルをYM2151レジスタ書き込みログに変換するRust実装であり、2段階処理と詳細なモジュール構成が定義されています。
-- 現在、実装完了後の最終ステップとして、Windows環境での動作確認が次の重要なタスクとして挙げられています。
+- オープン中のIssueはありません。
 
 ## 次の一手候補
-1. Windows環境での動作検証とテスト ([Issue #16](../issue-notes/16.md))
-   - 最初の小さな一歩: Windows OS環境を準備し、`smf-to-ym2151log-rust` プロジェクトを `cargo build --release` でビルド後、`cargo test` を実行して全てのテストがパスすることを確認する。
+1. 開発状況生成プロンプトの明確化と簡素化 [新規]
+   - 最初の小さな一歩: このプロンプトの「生成するもの」「生成しないもの」「Agent実行プロンプト生成ガイドライン」セクションを見直し、冗長性や分かりにくい点を特定する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: Cargo.toml, src/main.rs, tests/integration_tests.rs
+     対象ファイル: .github/actions-tmp/.github_automation/project_summary/prompts/development-status-prompt.md
 
-     実行内容: Windows環境での `smf-to-ym2151log-rust` プロジェクトのビルドとテスト実行に関する手順書を作成し、特にWindows固有の潜在的な問題点（例: パス区切り文字、OS固有のライブラリ依存）がないか調査してください。
+     実行内容: 対象ファイルの内容を分析し、以下の観点から改善案をmarkdown形式で出力してください：
+     1) 冗長な説明の削除
+     2) 項目間の重複の解消
+     3) ガイドラインのより分かりやすい配置
+     4) ハルシネーション抑制と建設的提案のバランス改善
 
-     確認事項: Windows OS上でRustツールチェインが適切にセットアップされていること。既存の `.github/workflows/ci.yml` (もしあれば) や関連するCI設定でWindowsビルドが考慮されているか。
+     確認事項: 変更が他のプロンプトや生成ロジックに影響を与えないこと。また、現在の出力要件を満たし続けることを確認してください。
 
-     期待する出力: Windows環境でのビルドとテスト実行の詳細な手順、および実行結果の確認方法をMarkdown形式で生成してください。潜在的な問題点とその回避策についても言及してください。
+     期待する出力: 改善されたプロンプト案と、それぞれの改善点についての説明をmarkdown形式で出力してください。
      ```
 
-2. Issue #16の記録内容と状態の整合性確認
-   - 最初の小さな一歩: GitHubリポジトリ上のIssue #16の実際の状態（オープンかクローズか）と、`.github/actions-tmp/issue-notes/16.md` に記述された内容、さらにこの「開発状況生成プロンプト」が提示するIssue #16のタイトルが一致するかを確認し、食い違いがあればレポートする。
+2. 自動生成される開発状況/プロジェクト概要の品質検証 [新規]
+   - 最初の小さな一歩: 直近で生成された `.github/actions-tmp/generated-docs/development-status.md` および `.github/actions-tmp/generated-docs/project-overview.md` の内容を確認し、情報が最新かつ正確であるか、そして開発者にとって有用な形式であるかを評価する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: .github/actions-tmp/issue-notes/16.md
+     対象ファイル: .github/actions-tmp/generated-docs/development-status.md, .github/actions-tmp/generated-docs/project-overview.md, .github/actions-tmp/.github_automation/project_summary/scripts/development/DevelopmentStatusGenerator.cjs, .github/actions-tmp/.github_automation/project_summary/scripts/overview/ProjectOverviewGenerator.cjs
 
-     実行内容: 提供された「開発状況情報」の「現在のオープンIssues」に記載された [Issue #16](../issue-notes/16.md) のタイトルと、`.github/actions-tmp/issue-notes/16.md` の内容、そしてGitHubリポジトリ上の Issue #16 の実際の状態（オープン/クローズ）を比較分析し、情報の整合性について報告してください。特に、`.github/actions-tmp/issue-notes/16.md` に「closeとする」と書かれている点に注目してください。
+     実行内容: 対象ファイルの内容とスクリプトを分析し、現在生成されているサマリーが開発者にとって最も価値のある情報を提供しているか評価してください。具体的には、情報過多や情報不足がないか、情報の鮮度、視認性について評価し、改善案をmarkdown形式で出力してください。
 
-     確認事項: GitHub APIへのアクセス権限（もし必要なら）。現在のプロンプト実行環境が参照しているリポジトリが `smf-to-ym2151log-rust` であるという前提。
+     確認事項: サマリー生成ロジックの変更がプロジェクトの意図と合致しているか、および関連するGitHub Actionsワークフロー（.github/workflows/call-daily-project-summary.ymlなど）との整合性を確認してください。
 
-     期待する出力: 以下の点を明確にしたMarkdown形式のレポートを生成してください：
-     1. 現在の「開発状況情報」が示す Issue #16 のタイトルと、`.github/actions-tmp/issue-notes/16.md` の内容の具体的な食い違い。
-     2. GitHubリポジトリ上の Issue #16 の実際の状態。
-     3. これらの情報に基づいて、現状の「開発状況生成プロンプト」の出力が適切かどうかの評価。
-     4. 情報の整合性を確保するための推奨される次のアクション（例: 新しいIssueの作成、既存Issueの修正）。
+     期待する出力: 現在のサマリーの評価結果と、品質向上に向けた具体的な改善提案（例: 表示項目の調整、情報の集約方法の変更など）をmarkdown形式で出力してください。
      ```
 
-3. 複数チャンネルサポートの調査と設計 ([IMPLEMENTATION.md](../IMPLEMENTATION.md) より)
-   - 最初の小さな一歩: `src/midi/parser.rs` と `src/ym2151/converter.rs` を中心に、現在のコードがどのようにMIDIチャンネル情報を扱っているかをレビューし、複数チャンネルのノートイベントをどのように管理・変換するかを検討するための初期調査を行う。
+3. Rust MIDI/YM2151変換コア機能の拡張可能性調査 [新規]
+   - 最初の小さな一歩: `src/midi` と `src/ym2151` モジュールの主要なファイル（`parser.rs`, `converter.rs`, `events.rs`など）を概観し、現在の機能範囲と設計の意図を把握する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: src/midi/parser.rs, src/midi/events.rs, src/ym2151/converter.rs, src/ym2151/events.rs
+     対象ファイル: src/midi/mod.rs, src/midi/parser.rs, src/midi/events.rs, src/ym2151/mod.rs, src/ym2151/converter.rs, src/ym2151/events.rs
 
-     実行内容: `smf-to-ym2151log-rust` プロジェクトにおいて、MIDIファイルの複数チャンネル（ポリフォニック）サポートを実現するために必要な変更点を洗い出し、そのための初期設計案を作成してください。具体的には、既存のMIDIイベント解析、YM2151イベント変換ロジック、およびデータ構造への影響を分析してください。
+     実行内容: 対象のRustファイル群を分析し、現在のMIDIパースとYM2151ログ変換のコアロジックを理解してください。以下の観点から、機能拡張またはリファクタリングの可能性について提案をmarkdown形式で出力してください：
+     1) 未サポートのMIDIイベント対応
+     2) YM2151ログフォーマットのバリエーション対応
+     3) エラーハンドリングの改善
+     4) テストカバレッジの強化
+     5) コードの保守性向上
 
-     確認事項: `IMPLEMENTATION.md` の「将来の拡張可能性」セクションの「短期的な拡張」にある「複数チャンネルのサポート（ポリフォニック）」の記述。既存のYM2151ログフォーマットが複数チャンネルのイベントをどのように表現できるかの制約。
+     確認事項: 提案される変更が既存のコア機能の安定性を損なわないこと、および将来的なパフォーマンス要件と整合していることを確認してください。
 
-     期待する出力: 複数チャンネル対応のための技術的な課題、変更が必要なファイルとコード箇所、および初期の設計方針（例: チャンネルごとの状態管理、イベントの多重化）をMarkdown形式で出力してください。
+     期待する出力: Rustコア機能の現状評価、および機能拡張やリファクタリングに関する具体的な提案（各提案のメリット・デメリット、実現可能性を含む）をmarkdown形式で出力してください。
+     ```
 
 ---
-Generated at: 2025-11-12 07:08:14 JST
+Generated at: 2025-11-13 07:07:50 JST

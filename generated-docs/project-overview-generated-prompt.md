@@ -1,4 +1,4 @@
-Last updated: 2025-11-12
+Last updated: 2025-11-13
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -66,8 +66,15 @@ Last updated: 2025-11-12
 **Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装**
 
 <p align="left">
-  <a href="README.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
+  <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
+  <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
 </p>
+
+## WIP
+
+まだドレミを最低限のJSONに変換できる程度です
+
+今後より高度な実装をしていく予定です
 
 ## 概要
 
@@ -251,4 +258,4 @@ README.md
 
 
 ---
-Generated at: 2025-11-12 07:07:44 JST
+Generated at: 2025-11-13 07:07:30 JST
