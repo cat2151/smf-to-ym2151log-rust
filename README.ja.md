@@ -7,6 +7,12 @@
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
 </p>
 
+## WIP
+
+まだドレミを最低限のJSONに変換できる程度です
+
+今後より高度な実装をしていく予定です
+
 ## 概要
 
 [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log) のRust版実装です。
