@@ -17,23 +17,39 @@ More advanced features are planned for future implementations.
 
 #### Channel Assignment Strategy
 
-The current implementation uses a **direct channel mapping strategy** with **drum channel priority**:
+The current implementation uses a **polyphony-based static channel assignment strategy** with **drum channel priority**:
 
-**Mapping Rules:**
--   **MIDI Channel 9 (drum channel)** → **YM2151 Channel 0** (priority mapping)
-    -   General MIDI convention uses channel 9 (0-based, channel 10 in 1-based) for drums
-    -   Drums often have multiple simultaneous note-ons at the same tick
-    -   Since YM2151 processes channels sequentially, assigning drums to channel 0 ensures they sound first for better audio quality
--   **MIDI Channel 0** → **YM2151 Channel 1**
--   **MIDI Channels 1-5** → **YM2151 Channels 2-6** (shifted due to drum priority)
--   **MIDI Channels 6+** → **YM2151 Channel 7** (overflow, all remaining MIDI channels share this YM2151 channel)
+**1. Polyphony Analysis Phase**: 
+Before conversion, the MIDI file is analyzed to measure the maximum polyphony (number of simultaneous voices) for each MIDI channel by tracking overlapping note events.
 
-**Note**: This is a simple 1:1 mapping (with drum priority) that does not support polyphony (multiple simultaneous notes on the same MIDI channel). Each MIDI channel can only play one note at a time on its assigned YM2151 channel.
+**2. Static Allocation Based on Polyphony**:
+YM2151 channels (0-7, total 8 channels) are allocated based on each MIDI channel's polyphony requirements.
+- MIDI channels with higher polyphony get multiple YM2151 channels
+- Example: If MIDI ch0 requires 3 voices and MIDI ch1 requires 1 voice:
+  - MIDI ch0 gets YM2151 ch0, ch1, ch2 (3 channels)
+  - MIDI ch1 gets YM2151 ch3 (1 channel)
+  - YM2151 ch4-ch7 remain available
+
+**3. Drum Channel Priority Reordering**:
+After initial allocation, if MIDI channel 9 (General MIDI drum channel) is present, the allocation is reordered:
+- MIDI channel 9 is prioritized to use YM2151 channel 0
+- Other channel assignments are swapped accordingly
+- **Reason**: Drums often have multiple simultaneous note-ons at the same tick. Since YM2151 processes channels sequentially with fixed register access cycles, assigning drums to channel 0 ensures they sound first for better audio quality.
+
+**Voice Management**:
+- When a MIDI channel has multiple YM2151 channels allocated (polyphony > 1), notes are distributed using round-robin allocation
+- Each note-on uses the next available voice in the allocation
+- Note-off events properly track which voice played which note
+
+**Limitations**:
+- Total of 8 YM2151 channels available
+- If total polyphony across all MIDI channels exceeds 8, overflow notes use the last allocated channel
+- No dynamic voice stealing during playback (all allocation is static/predetermined)
 
 **Out of Scope**: 
--   Polyphony support (multiple simultaneous voices per MIDI channel)
--   Dynamic channel assignment during playback
--   Voice stealing algorithms
+- Dynamic channel assignment during playback
+- Voice stealing algorithms
+- Real-time polyphony adjustment
 
 These features are intentionally omitted to maintain simplicity and align with the project's goals.
 
