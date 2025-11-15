@@ -6,8 +6,11 @@ use crate::error::Result;
 use crate::midi::{
     midi_to_kc_kf, ticks_to_samples_with_tempo_map, MidiData, MidiEvent, TempoChange,
 };
-use crate::ym2151::{initialize_channel_events, Ym2151Event, Ym2151Log};
-use std::collections::HashSet;
+use crate::ym2151::{
+    apply_tone_to_channel, default_tone_events, initialize_channel_events, load_tone_for_program,
+    Ym2151Event, Ym2151Log,
+};
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Write;
 
@@ -95,6 +98,13 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
         ym2151_events.extend(initialize_channel_events(ch, 0));
     }
 
+    // Track the current program (tone) for each MIDI channel
+    // Initialize all channels to program 0 (default)
+    let mut channel_programs: HashMap<u8, u8> = HashMap::new();
+    for &ch in &used_channels {
+        channel_programs.insert(ch, 0);
+    }
+
     // Process MIDI events
     // Track active notes per channel: set of (channel, note) tuples
     let mut active_notes: HashSet<(u8, u8)> = HashSet::new();
@@ -175,9 +185,41 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 }
             }
 
-            // ProgramChange events are not yet implemented for YM2151 conversion
-            // Future work: map MIDI programs to YM2151 voice parameters
-            _ => {}
+            // Handle Program Change events
+            MidiEvent::ProgramChange {
+                ticks,
+                channel,
+                program,
+            } => {
+                // Map MIDI channel to YM2151 channel (clamp to 0-7)
+                let ym2151_channel = (*channel).min(7);
+
+                // Skip if this channel isn't being used
+                if !used_channels.contains(&ym2151_channel) {
+                    continue;
+                }
+
+                let sample_time =
+                    ticks_to_samples_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
+
+                // Try to load tone from external file, fallback to default
+                let tone_events = match load_tone_for_program(*program) {
+                    Ok(Some(tone)) => {
+                        // Apply the loaded tone to the channel
+                        apply_tone_to_channel(&tone, ym2151_channel, sample_time)
+                    }
+                    Ok(None) | Err(_) => {
+                        // Use default tone if file doesn't exist or can't be loaded
+                        default_tone_events(ym2151_channel, sample_time)
+                    }
+                };
+
+                // Add the tone change events
+                ym2151_events.extend(tone_events);
+
+                // Update the channel's current program
+                channel_programs.insert(ym2151_channel, *program);
+            }
         }
     }
 
@@ -560,5 +602,160 @@ mod tests {
 
         assert!(ch0_note.is_some(), "Channel 0 should have a note");
         assert!(ch1_note.is_some(), "Channel 1 should have a note");
+    }
+
+    #[test]
+    fn test_convert_program_change() {
+        // Test that program change events trigger tone changes
+        let midi_data = MidiData {
+            ticks_per_beat: 480,
+            tempo_bpm: 120.0,
+            events: vec![
+                // Program change at the start
+                MidiEvent::ProgramChange {
+                    ticks: 0,
+                    channel: 0,
+                    program: 42,
+                },
+                // Play a note
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 0,
+                    note: 60,
+                    velocity: 100,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 480,
+                    channel: 0,
+                    note: 60,
+                },
+            ],
+        };
+
+        let result = convert_to_ym2151_log(&midi_data).unwrap();
+
+        // Should have initialization + program change tone events + note events
+        // 8 KEY OFF + 26 channel init + 26 program change tone + note on (3) + note off (1)
+        // = 64 events
+        assert_eq!(result.event_count, 64);
+
+        // Verify there are tone setting events at time 0
+        // Look for the RL_FB_CONNECT register (0x20 for channel 0)
+        let tone_events: Vec<_> = result
+            .events
+            .iter()
+            .filter(|e| e.addr == "0x20" && e.time == 0)
+            .collect();
+
+        // Should have 2 writes to 0x20: one from init, one from program change
+        assert_eq!(
+            tone_events.len(),
+            2,
+            "Should have tone settings from both init and program change"
+        );
+    }
+
+    #[test]
+    fn test_convert_program_change_unused_channel() {
+        // Program change on a channel that has no notes should be ignored
+        let midi_data = MidiData {
+            ticks_per_beat: 480,
+            tempo_bpm: 120.0,
+            events: vec![
+                // Program change on channel 5
+                MidiEvent::ProgramChange {
+                    ticks: 0,
+                    channel: 5,
+                    program: 10,
+                },
+                // But only channel 0 plays a note
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 0,
+                    note: 60,
+                    velocity: 100,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 480,
+                    channel: 0,
+                    note: 60,
+                },
+            ],
+        };
+
+        let result = convert_to_ym2151_log(&midi_data).unwrap();
+
+        // Should only have events for channel 0
+        // 8 KEY OFF + 26 channel 0 init + note on (3) + note off (1) = 38
+        assert_eq!(result.event_count, 38);
+    }
+
+    #[test]
+    fn test_convert_multiple_program_changes() {
+        // Test multiple program changes on the same channel
+        let midi_data = MidiData {
+            ticks_per_beat: 480,
+            tempo_bpm: 120.0,
+            events: vec![
+                MidiEvent::ProgramChange {
+                    ticks: 0,
+                    channel: 0,
+                    program: 10,
+                },
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 0,
+                    note: 60,
+                    velocity: 100,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 240,
+                    channel: 0,
+                    note: 60,
+                },
+                // Change to a different program
+                MidiEvent::ProgramChange {
+                    ticks: 240,
+                    channel: 0,
+                    program: 20,
+                },
+                MidiEvent::NoteOn {
+                    ticks: 480,
+                    channel: 0,
+                    note: 64,
+                    velocity: 100,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 720,
+                    channel: 0,
+                    note: 64,
+                },
+            ],
+        };
+
+        let result = convert_to_ym2151_log(&midi_data).unwrap();
+
+        // 8 KEY OFF + 26 init + 26 program 10 + note (3) + note off (1)
+        // + 26 program 20 + note (3) + note off (1) = 94
+        assert_eq!(result.event_count, 94);
+
+        // Verify both program changes generated tone events
+        let tone_events_time_0: Vec<_> = result
+            .events
+            .iter()
+            .filter(|e| e.addr == "0x20" && e.time == 0)
+            .collect();
+        assert_eq!(tone_events_time_0.len(), 2); // init + program 10
+
+        // Second program change should be at a different time
+        let tone_events_later: Vec<_> = result
+            .events
+            .iter()
+            .filter(|e| e.addr == "0x20" && e.time > 0)
+            .collect();
+        assert!(
+            !tone_events_later.is_empty(),
+            "Should have tone change at later time"
+        );
     }
 }

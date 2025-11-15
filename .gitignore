@@ -28,3 +28,8 @@ target
 # Generated test output files
 *_events.json
 *_ym2151.json
+
+# User-provided tone files (keep only the example and README)
+tones/*.json
+!tones/000.json
+!tones/README.md

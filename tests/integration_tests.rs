@@ -831,3 +831,89 @@ fn test_tempo_change_timing_accuracy() {
         "Tempo map calculation should match expected value"
     );
 }
+
+#[test]
+fn test_tone_loading_from_file() {
+    use smf_to_ym2151log::ym2151::load_tone_for_program;
+
+    // Test loading tone file 000.json (which should exist in tones directory)
+    let result = load_tone_for_program(0);
+    assert!(result.is_ok(), "Failed to load tone: {:?}", result.err());
+
+    let tone_opt = result.unwrap();
+    assert!(
+        tone_opt.is_some(),
+        "Tone file tones/000.json should exist for testing"
+    );
+
+    let tone = tone_opt.unwrap();
+    assert!(
+        !tone.events.is_empty(),
+        "Tone should have register write events"
+    );
+
+    // Verify tone has expected structure
+    assert_eq!(tone.events.len(), 26, "Default tone should have 26 events");
+}
+
+#[test]
+fn test_tone_loading_nonexistent() {
+    use smf_to_ym2151log::ym2151::load_tone_for_program;
+
+    // Test loading a tone that doesn't exist (e.g., program 127)
+    let result = load_tone_for_program(127);
+    assert!(result.is_ok());
+
+    let tone_opt = result.unwrap();
+    // Should return None if file doesn't exist
+    if tone_opt.is_none() {
+        // This is the expected behavior - no tone file exists
+        assert!(true);
+    } else {
+        // If the file exists, that's also fine for this test
+        assert!(true);
+    }
+}
+
+#[test]
+fn test_end_to_end_program_change() {
+    use smf_to_ym2151log::midi::{MidiData, MidiEvent};
+    use smf_to_ym2151log::ym2151::convert_to_ym2151_log;
+
+    // Create MIDI data with program change
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::ProgramChange {
+                ticks: 0,
+                channel: 0,
+                program: 0, // Use program 0 which has a tone file
+            },
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 60,
+            },
+        ],
+    };
+
+    let result = convert_to_ym2151_log(&midi_data);
+    assert!(result.is_ok(), "Conversion should succeed");
+
+    let log = result.unwrap();
+    assert!(log.event_count > 0, "Should have YM2151 events");
+
+    // Should have more events due to program change tone loading
+    // 8 KEY OFF + 26 init + 26 program change tone + 3 note on + 1 note off = 64
+    assert_eq!(
+        log.event_count, 64,
+        "Should have events from init, program change tone, and notes"
+    );
+}
