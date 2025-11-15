@@ -38,9 +38,10 @@ It converts Standard MIDI Files (SMF) into register write logs (JSON format) for
 -   **2-Pass Processing Architecture**:
     -   **Pass A**: MIDI file → Intermediate event JSON (for debugging)
     -   **Pass B**: Intermediate events → YM2151 register log JSON (final output)
+-   **Program Change Support**: Load custom YM2151 tones from external JSON files (MIDI programs 0-127)
 -   **Type Safety**: Robustness through Rust's type system
 -   **High Performance**: Fast processing due to native compilation
--   **Test-Driven Development**: Comprehensive unit and integration tests (51 tests)
+-   **Test-Driven Development**: Comprehensive unit and integration tests (73 tests)
 -   **Compatibility**: JSON format compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc)
 -   **Standard Support**: Supports SMF Format 0 and Format 1
 -   **Library API**: Convenient API available for use in other Rust projects
@@ -104,6 +105,50 @@ Saving YM2151 log JSON...
   ✓ Saved: song_ym2151.json
 
 === CONVERSION COMPLETE ===
+```
+
+## Program Change Support
+
+The converter supports MIDI Program Change events (0-127) for tone/voice switching. When a Program Change event is encountered, the converter will:
+
+1. **Look for an external tone file** in `tones/{program:03}.json` (e.g., `tones/042.json` for Program 42)
+2. **Load and apply the tone** if the file exists
+3. **Use the built-in default tone** if the file doesn't exist
+
+### Custom Tone Files
+
+Create custom YM2151 tones by placing JSON files in the `tones/` directory:
+
+```bash
+tones/
+├── 000.json    # Program 0 (Acoustic Grand Piano)
+├── 001.json    # Program 1 (Bright Acoustic Piano)
+├── ...
+└── 127.json    # Program 127 (Gunshot)
+```
+
+Each tone file defines YM2151 register writes for configuring FM synthesis parameters. See [`tones/README.md`](tones/README.md) for detailed format documentation and examples.
+
+### Example Workflow
+
+```bash
+# 1. Create a custom tone for MIDI Program 42
+#    (e.g., a brass sound)
+cat > tones/042.json << EOF
+{
+  "events": [
+    { "time": 0, "addr": "0x20", "data": "0xC7" },
+    { "time": 0, "addr": "0x38", "data": "0x00" },
+    ...
+  ]
+}
+EOF
+
+# 2. Convert a MIDI file that uses Program 42
+smf-to-ym2151log-rust song.mid
+
+# The converter will automatically use tones/042.json when
+# it encounters a Program Change to 42
 ```
 
 ## Development
