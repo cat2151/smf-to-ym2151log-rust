@@ -1,6 +1,6 @@
 # smf-to-ym2151log-rust
 
-**Rust implementation to convert Standard MIDI Files (SMF) into YM2151 register write logs (JSON format)**
+**Rust implementation to convert Standard MIDI Files (SMF) to YM2151 register write logs (JSON format)**
 
 <p align="left">
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
@@ -9,37 +9,37 @@
 
 ## WIP
 
-Currently, it can only convert basic notes (like "Do-Re-Mi") into a minimal JSON format.
+Currently, it can only convert basic note events into a minimal JSON format.
 
-More advanced implementations are planned for the future.
+More advanced features are planned for future implementations.
 
 ### Current Constraints
 
 #### Channel Assignment Strategy
 
-The current implementation uses a **static channel assignment strategy**. This strategy employs pre-analysis to assign MIDI channels to YM2151 channels:
+The current implementation uses a **static channel assignment strategy**. This strategy assigns MIDI channels to YM2151 channels using pre-analysis:
 
 1.  **Pre-analysis Phase**: Before conversion, the SMF is analyzed to measure the maximum polyphony (number of simultaneous voices) for each MIDI channel.
-2.  **Static Assignment**: YM2151 channels are assigned based on each MIDI channel's polyphony requirements.
-    *   Example: If MIDI ch0 requires 3 voices, MIDI ch1 requires 1 voice, and the remaining MIDI channels are unused:
-        *   YM2151 ch0-ch2 correspond to MIDI ch0
-        *   YM2151 ch3 corresponds to MIDI ch1
-        *   YM2151 ch4-ch7 remain available
+2.  **Static Assignment**: YM2151 channels are assigned based on the polyphony requirements of each MIDI channel.
+    -   Example: If MIDI ch0 requires 3 voices, MIDI ch1 requires 1 voice, and the remaining MIDI channels are unused:
+        -   YM2151 ch0-ch2 correspond to MIDI ch0
+        -   YM2151 ch3 corresponds to MIDI ch1
+        -   YM2151 ch4-ch7 remain available
 
 **Out of Scope**: Dynamic channel assignment (methods for changing MIDI-YM2151 channel assignments during playback) is not implemented. This decision aligns with the project's policy of prioritizing simplicity over complexity. Dynamic assignment would require complex voice stealing algorithms and state management, significantly increasing implementation complexity.
 
 ## Overview
 
 This is a Rust implementation of [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log).
-It converts Standard MIDI Files (SMF) into register write logs (JSON format) for the YM2151 FM sound chip.
+It converts Standard MIDI Files (SMF) into YM2151 FM sound chip register write logs (JSON format).
 
 ## Features
 
--   **2-Pass Processing Architecture**:
-    -   **Pass A**: MIDI file → Intermediate event JSON (for debugging)
-    -   **Pass B**: Intermediate events → YM2151 register log JSON (final output)
--   **Program Change Support**: Load custom YM2151 tones from external JSON files (MIDI programs 0-127)
--   **Type Safety**: Robustness through Rust's type system
+-   **Two-Pass Processing Architecture**:
+    -   **Pass A**: MIDI File → Intermediate Event JSON (for debugging)
+    -   **Pass B**: Intermediate Events → YM2151 Register Log JSON (final output)
+-   **Program Change Support**: Loads custom YM2151 instrument definitions from external JSON files (MIDI Program 0-127)
+-   **Type Safety**: Robustness provided by Rust's type system
 -   **High Performance**: Fast processing due to native compilation
 -   **Test-Driven Development**: Comprehensive unit and integration tests (73 tests)
 -   **Compatibility**: JSON format compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc)
@@ -59,7 +59,7 @@ cd smf-to-ym2151log-rust
 cargo install --path .
 ```
 
-### Command Line Usage
+### Command-line Usage
 
 ```bash
 # Convert a MIDI file
@@ -72,7 +72,7 @@ smf-to-ym2151log-rust song.mid
 
 ### Use as a Library
 
-Can be used as a library from other Rust projects:
+It can be used as a library from other Rust projects:
 
 ```toml
 # Cargo.toml
@@ -109,15 +109,15 @@ Saving YM2151 log JSON...
 
 ## Program Change Support
 
-The converter supports MIDI Program Change events (0-127) for tone/voice switching. When a Program Change event is encountered, the converter will:
+The converter supports instrument (patch) changes via MIDI Program Change events (0-127). When a Program Change event is detected, the converter performs the following actions:
 
-1. **Look for an external tone file** in `tones/{program:03}.json` (e.g., `tones/042.json` for Program 42)
-2. **Load and apply the tone** if the file exists
-3. **Use the built-in default tone** if the file doesn't exist
+1.  **Searches for an external instrument definition file**: `tones/{program:03}.json` (e.g., `tones/042.json` for Program 42)
+2.  **Loads and applies the instrument definition** if the file exists
+3.  **Uses a built-in default instrument** if the file does not exist
 
-### Custom Tone Files
+### Custom Instrument Files
 
-Create custom YM2151 tones by placing JSON files in the `tones/` directory:
+You can create custom YM2151 instrument definitions by placing JSON files in the `tones/` directory:
 
 ```bash
 tones/
@@ -127,12 +127,12 @@ tones/
 └── 127.json    # Program 127 (Gunshot)
 ```
 
-Each tone file defines YM2151 register writes for configuring FM synthesis parameters. See [`tones/README.md`](tones/README.md) for detailed format documentation and examples.
+Each instrument file defines YM2151 register writes to set FM synthesis parameters. For detailed format documentation and examples, refer to [`tones/README.md`](tones/README.md).
 
-### Example Workflow
+### Example Usage
 
 ```bash
-# 1. Create a custom tone for MIDI Program 42
+# 1. Create a custom instrument definition for MIDI Program 42
 #    (e.g., a brass sound)
 cat > tones/042.json << EOF
 {
@@ -147,17 +147,19 @@ EOF
 # 2. Convert a MIDI file that uses Program 42
 smf-to-ym2151log-rust song.mid
 
-# The converter will automatically use tones/042.json when
-# it encounters a Program Change to 42
+# The converter will automatically use tones/042.json
+# when Program 42 is specified in a program change event.
 ```
 
 ## Development
 
 ### Prerequisites
--   Rust 1.70.0 or higher
+
+-   Rust 1.70.0 or later
 -   Cargo
 
 ### Build
+
 ```bash
 # Debug build
 cargo build
@@ -166,7 +168,8 @@ cargo build
 cargo build --release
 ```
 
-### Tests
+### Testing
+
 ```bash
 # Run all tests
 cargo test
@@ -179,6 +182,7 @@ cargo tarpaulin --out Html
 ```
 
 ### Code Quality
+
 ```bash
 # Format check
 cargo fmt --check
@@ -192,6 +196,6 @@ cargo audit
 
 ## References
 
--   [Python Implementation](https://github.com/cat2151/smf-to-ym2151log): The original Python implementation this project is based on
+-   [Python implementation](https://github.com/cat2151/smf-to-ym2151log): The original Python implementation this project is based on
 -   [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): Specifies the output JSON format
--   [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): Official specification for the YM2151 chip
+-   [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): Official specification document for the YM2151 chip
