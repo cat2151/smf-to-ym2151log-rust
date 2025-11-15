@@ -687,16 +687,25 @@ fn test_end_to_end_multi_channel() {
     assert!(ym2151_log.event_count > 0);
 
     // Check that we have register writes for all 3 channels
-    // Channel 0: KC register at 0x28
-    let has_ch0_kc = ym2151_log.events.iter().any(|e| e.addr == "0x28");
-    // Channel 1: KC register at 0x29
-    let has_ch1_kc = ym2151_log.events.iter().any(|e| e.addr == "0x29");
-    // Channel 2: KC register at 0x2A
-    let has_ch2_kc = ym2151_log.events.iter().any(|e| e.addr == "0x2A");
+    // MIDI Channel 0 -> YM2151 Channel 1: KC register at 0x29
+    let has_ch0_kc = ym2151_log.events.iter().any(|e| e.addr == "0x29");
+    // MIDI Channel 1 -> YM2151 Channel 2: KC register at 0x2A
+    let has_ch1_kc = ym2151_log.events.iter().any(|e| e.addr == "0x2A");
+    // MIDI Channel 2 -> YM2151 Channel 3: KC register at 0x2B
+    let has_ch2_kc = ym2151_log.events.iter().any(|e| e.addr == "0x2B");
 
-    assert!(has_ch0_kc, "Should have KC register write for channel 0");
-    assert!(has_ch1_kc, "Should have KC register write for channel 1");
-    assert!(has_ch2_kc, "Should have KC register write for channel 2");
+    assert!(
+        has_ch0_kc,
+        "Should have KC register write for MIDI channel 0 -> YM2151 channel 1"
+    );
+    assert!(
+        has_ch1_kc,
+        "Should have KC register write for MIDI channel 1 -> YM2151 channel 2"
+    );
+    assert!(
+        has_ch2_kc,
+        "Should have KC register write for MIDI channel 2 -> YM2151 channel 3"
+    );
 
     // Save YM2151 log JSON
     save_ym2151_log(&ym2151_log, ym2151_json_path.to_str().unwrap())
@@ -780,9 +789,10 @@ fn test_tempo_change_timing_accuracy() {
 
     // First note off should be at tick 480
     // At 120 BPM: 480 ticks = 0.5 seconds = 27965 samples
+    // MIDI channel 0 -> YM2151 channel 1, so KEY OFF data is 0x01
     let first_note_off = note_events
         .iter()
-        .find(|e| e.data == "0x00" && e.time > 0)
+        .find(|e| e.data == "0x01" && e.time > 0)
         .expect("Should have first note off");
     assert_eq!(
         first_note_off.time, 27965,
@@ -790,9 +800,10 @@ fn test_tempo_change_timing_accuracy() {
     );
 
     // Second note on should also be at tick 480 (same time as tempo change)
+    // MIDI channel 0 -> YM2151 channel 1, so KEY ON data is 0x79
     let second_note_on = note_events
         .iter()
-        .find(|e| e.data == "0x78" && e.time == 27965)
+        .find(|e| e.data == "0x79" && e.time == 27965)
         .expect("Should have second note on at tempo change");
     assert_eq!(
         second_note_on.time, 27965,
@@ -805,7 +816,7 @@ fn test_tempo_change_timing_accuracy() {
     // Total = 83895 samples
     let second_note_off = note_events
         .iter()
-        .filter(|e| e.data == "0x00")
+        .filter(|e| e.data == "0x01") // MIDI channel 0 -> YM2151 channel 1
         .max_by_key(|e| e.time)
         .expect("Should have second note off");
     assert_eq!(
@@ -1005,13 +1016,14 @@ fn test_end_to_end_program_change_with_file() {
     );
 
     // Verify program change events generated tone changes
+    // MIDI channel 0 -> YM2151 channel 1
     let tone_change_events: Vec<_> = log
         .events
         .iter()
-        .filter(|e| e.addr == "0x20") // RL_FB_CONNECT register for channel 0
+        .filter(|e| e.addr == "0x21") // RL_FB_CONNECT register for YM2151 channel 1 (MIDI channel 0)
         .collect();
 
-    // Should have 3 writes to 0x20: init + program 0 + program 42
+    // Should have 3 writes to 0x21: init + program 0 + program 42
     assert_eq!(
         tone_change_events.len(),
         3,

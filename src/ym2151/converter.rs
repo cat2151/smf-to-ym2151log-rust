@@ -14,6 +14,43 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Write;
 
+/// Map MIDI channel to YM2151 channel with drum channel (9) priority
+///
+/// MIDI channel 9 (0-based) is the drum channel in General MIDI.
+/// Since drums often have multiple simultaneous note-ons and YM2151 processes
+/// channels sequentially, we prioritize the drum channel to YM2151 channel 0
+/// for better audio quality.
+///
+/// Mapping:
+/// - MIDI channel 9 → YM2151 channel 0 (drum channel gets priority)
+/// - MIDI channel 0 → YM2151 channel 1
+/// - MIDI channel 1 → YM2151 channel 2
+/// - MIDI channel 2 → YM2151 channel 3
+/// - MIDI channel 3 → YM2151 channel 4
+/// - MIDI channel 4 → YM2151 channel 5
+/// - MIDI channel 5 → YM2151 channel 6
+/// - MIDI channel 6 → YM2151 channel 7
+/// - MIDI channel 7 → YM2151 channel 7 (overflow)
+/// - MIDI channel 8+ → YM2151 channel 7 (overflow)
+///
+/// # Arguments
+/// * `midi_channel` - MIDI channel number (0-15)
+///
+/// # Returns
+/// YM2151 channel number (0-7)
+fn map_midi_channel_to_ym2151(midi_channel: u8) -> u8 {
+    match midi_channel {
+        9 => 0, // Drum channel gets priority
+        0 => 1, // Regular channels shifted
+        1 => 2,
+        2 => 3,
+        3 => 4,
+        4 => 5,
+        5 => 6,
+        _ => 7, // Channels 6, 7, 8+ overflow to channel 7
+    }
+}
+
 /// Convert MIDI events to YM2151 register write log
 ///
 /// # Arguments
@@ -84,8 +121,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
     for event in &midi_data.events {
         match event {
             MidiEvent::NoteOn { channel, .. } | MidiEvent::NoteOff { channel, .. } => {
-                // Map MIDI channel to YM2151 channel (clamp to 0-7)
-                let ym2151_ch = (*channel).min(7);
+                // Map MIDI channel to YM2151 channel with drum channel priority
+                let ym2151_ch = map_midi_channel_to_ym2151(*channel);
                 used_channels.insert(ym2151_ch);
             }
             // Tempo and ProgramChange events don't affect channel initialization
@@ -129,8 +166,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                     continue;
                 }
 
-                // Map MIDI channel to YM2151 channel (clamp to 0-7)
-                let ym2151_channel = (*channel).min(7);
+                // Map MIDI channel to YM2151 channel with drum channel priority
+                let ym2151_channel = map_midi_channel_to_ym2151(*channel);
 
                 let sample_time =
                     ticks_to_samples_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
@@ -167,8 +204,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 note,
                 ..
             } => {
-                // Map MIDI channel to YM2151 channel (clamp to 0-7)
-                let ym2151_channel = (*channel).min(7);
+                // Map MIDI channel to YM2151 channel with drum channel priority
+                let ym2151_channel = map_midi_channel_to_ym2151(*channel);
 
                 let sample_time =
                     ticks_to_samples_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
@@ -191,8 +228,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 channel,
                 program,
             } => {
-                // Map MIDI channel to YM2151 channel (clamp to 0-7)
-                let ym2151_channel = (*channel).min(7);
+                // Map MIDI channel to YM2151 channel with drum channel priority
+                let ym2151_channel = map_midi_channel_to_ym2151(*channel);
 
                 // Skip if this channel isn't being used
                 if !used_channels.contains(&ym2151_channel) {
@@ -292,12 +329,13 @@ mod tests {
         assert_eq!(result.event_count, 38);
 
         // Find the KC register write for Note On
-        // KC register is at 0x28 for channel 0
+        // MIDI channel 0 now maps to YM2151 channel 1 (due to drum channel priority)
+        // KC register is at 0x29 for channel 1
         // There should be exactly one KC write from the Note On event
         let kc_events: Vec<&Ym2151Event> = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x28" && e.data == "0x3E")
+            .filter(|e| e.addr == "0x29" && e.data == "0x3E")
             .collect();
 
         assert_eq!(
@@ -343,7 +381,7 @@ mod tests {
         let note_on_event = result
             .events
             .iter()
-            .find(|e| e.addr == "0x08" && e.data == "0x78" && e.time == 0)
+            .find(|e| e.addr == "0x08" && e.data == "0x79" && e.time == 0) // Channel 1 now
             .expect("Should have Note On KEY event at time 0");
         assert_eq!(note_on_event.time, 0);
     }
@@ -400,15 +438,15 @@ mod tests {
 
         let result = convert_to_ym2151_log(&midi_data).unwrap();
 
-        // Find KEY ON event
+        // Find KEY ON event - MIDI channel 0 maps to YM2151 channel 1
         let key_on = result
             .events
             .iter()
-            .find(|e| e.addr == "0x08" && e.data == "0x78")
+            .find(|e| e.addr == "0x08" && e.data == "0x79")
             .expect("Should have KEY ON event");
 
-        // 0x78 = all operators on, channel 0
-        assert_eq!(key_on.data, "0x78");
+        // 0x79 = all operators on, channel 1 (MIDI channel 0)
+        assert_eq!(key_on.data, "0x79");
     }
 
     #[test]
@@ -434,15 +472,16 @@ mod tests {
         let result = convert_to_ym2151_log(&midi_data).unwrap();
 
         // Find KEY OFF event (should be after initialization)
+        // MIDI channel 0 maps to YM2151 channel 1
         let key_off = result
             .events
             .iter()
             .filter(|e| e.addr == "0x08" && e.time > 0)
-            .find(|e| e.data == "0x00")
+            .find(|e| e.data == "0x01") // Channel 1
             .expect("Should have KEY OFF event");
 
-        // 0x00 = all operators off, channel 0
-        assert_eq!(key_off.data, "0x00");
+        // 0x01 = all operators off, channel 1
+        assert_eq!(key_off.data, "0x01");
     }
 
     #[test]
@@ -499,51 +538,51 @@ mod tests {
         assert_eq!(result.event_count, 98);
 
         // Verify KC register writes for each channel
-        // Channel 0: KC register is 0x28
+        // MIDI Channel 0 -> YM2151 Channel 1 (KC register 0x29)
         let ch0_kc = result
             .events
             .iter()
-            .find(|e| e.addr == "0x28" && e.time == 0)
-            .expect("Should have KC write for channel 0");
+            .find(|e| e.addr == "0x29" && e.time == 0)
+            .expect("Should have KC write for MIDI channel 0 -> YM2151 channel 1");
         assert_eq!(ch0_kc.data, "0x3E"); // Middle C
 
-        // Channel 1: KC register is 0x29
+        // MIDI Channel 1 -> YM2151 Channel 2 (KC register 0x2A)
         let ch1_kc = result
             .events
             .iter()
-            .find(|e| e.addr == "0x29" && e.time == 0)
-            .expect("Should have KC write for channel 1");
+            .find(|e| e.addr == "0x2A" && e.time == 0)
+            .expect("Should have KC write for MIDI channel 1 -> YM2151 channel 2");
         assert_eq!(ch1_kc.data, "0x44"); // E (octave 4, note 4)
 
-        // Channel 2: KC register is 0x2A
+        // MIDI Channel 2 -> YM2151 Channel 3 (KC register 0x2B)
         let ch2_kc = result
             .events
             .iter()
-            .find(|e| e.addr == "0x2A" && e.time == 0)
-            .expect("Should have KC write for channel 2");
+            .find(|e| e.addr == "0x2B" && e.time == 0)
+            .expect("Should have KC write for MIDI channel 2 -> YM2151 channel 3");
         assert_eq!(ch2_kc.data, "0x48"); // G (octave 4, note 8)
 
         // Verify KEY ON events for each channel
         let key_on_ch0 = result
             .events
             .iter()
-            .find(|e| e.addr == "0x08" && e.data == "0x78" && e.time == 0)
-            .expect("Should have KEY ON for channel 0");
-        assert_eq!(key_on_ch0.data, "0x78");
+            .find(|e| e.addr == "0x08" && e.data == "0x79" && e.time == 0)
+            .expect("Should have KEY ON for MIDI channel 0 -> YM2151 channel 1");
+        assert_eq!(key_on_ch0.data, "0x79");
 
         let key_on_ch1 = result
             .events
             .iter()
-            .find(|e| e.addr == "0x08" && e.data == "0x79" && e.time == 0)
-            .expect("Should have KEY ON for channel 1");
-        assert_eq!(key_on_ch1.data, "0x79");
+            .find(|e| e.addr == "0x08" && e.data == "0x7A" && e.time == 0)
+            .expect("Should have KEY ON for MIDI channel 1 -> YM2151 channel 2");
+        assert_eq!(key_on_ch1.data, "0x7A");
 
         let key_on_ch2 = result
             .events
             .iter()
-            .find(|e| e.addr == "0x08" && e.data == "0x7A" && e.time == 0)
-            .expect("Should have KEY ON for channel 2");
-        assert_eq!(key_on_ch2.data, "0x7A");
+            .find(|e| e.addr == "0x08" && e.data == "0x7B" && e.time == 0)
+            .expect("Should have KEY ON for MIDI channel 2 -> YM2151 channel 3");
+        assert_eq!(key_on_ch2.data, "0x7B");
     }
 
     #[test]
@@ -584,24 +623,34 @@ mod tests {
 
         // Should have events for both channels
         // Verify both channels are initialized
-        let has_ch0_init = result.events.iter().any(|e| e.addr == "0x20");
+        // MIDI channel 0 -> YM2151 channel 1 (RL_FB_CONNECT register 0x21)
+        // MIDI channel 1 -> YM2151 channel 2 (RL_FB_CONNECT register 0x22)
         let has_ch1_init = result.events.iter().any(|e| e.addr == "0x21");
+        let has_ch2_init = result.events.iter().any(|e| e.addr == "0x22");
 
-        assert!(has_ch0_init, "Channel 0 should be initialized");
-        assert!(has_ch1_init, "Channel 1 should be initialized");
+        assert!(
+            has_ch1_init,
+            "YM2151 Channel 1 (MIDI ch 0) should be initialized"
+        );
+        assert!(
+            has_ch2_init,
+            "YM2151 Channel 2 (MIDI ch 1) should be initialized"
+        );
 
         // Verify notes play on correct channels
+        // MIDI channel 0 -> YM2151 channel 1 (KC register 0x29)
         let ch0_note = result
             .events
             .iter()
-            .find(|e| e.addr == "0x28" && e.time == 0);
+            .find(|e| e.addr == "0x29" && e.time == 0);
+        // MIDI channel 1 -> YM2151 channel 2 (KC register 0x2A)
         let ch1_note = result
             .events
             .iter()
-            .find(|e| e.addr == "0x29" && e.time > 0);
+            .find(|e| e.addr == "0x2A" && e.time > 0);
 
-        assert!(ch0_note.is_some(), "Channel 0 should have a note");
-        assert!(ch1_note.is_some(), "Channel 1 should have a note");
+        assert!(ch0_note.is_some(), "MIDI Channel 0 should have a note");
+        assert!(ch1_note.is_some(), "MIDI Channel 1 should have a note");
     }
 
     #[test]
@@ -640,14 +689,15 @@ mod tests {
         assert_eq!(result.event_count, 64);
 
         // Verify there are tone setting events at time 0
-        // Look for the RL_FB_CONNECT register (0x20 for channel 0)
+        // MIDI channel 0 -> YM2151 channel 1
+        // Look for the RL_FB_CONNECT register (0x21 for channel 1)
         let tone_events: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x20" && e.time == 0)
+            .filter(|e| e.addr == "0x21" && e.time == 0)
             .collect();
 
-        // Should have 2 writes to 0x20: one from init, one from program change
+        // Should have 2 writes to 0x21: one from init, one from program change
         assert_eq!(
             tone_events.len(),
             2,
@@ -740,10 +790,11 @@ mod tests {
         assert_eq!(result.event_count, 94);
 
         // Verify both program changes generated tone events
+        // MIDI channel 0 -> YM2151 channel 1 (RL_FB_CONNECT register 0x21)
         let tone_events_time_0: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x20" && e.time == 0)
+            .filter(|e| e.addr == "0x21" && e.time == 0)
             .collect();
         assert_eq!(tone_events_time_0.len(), 2); // init + program 10
 
@@ -751,11 +802,216 @@ mod tests {
         let tone_events_later: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x20" && e.time > 0)
+            .filter(|e| e.addr == "0x21" && e.time > 0)
             .collect();
         assert!(
             !tone_events_later.is_empty(),
             "Should have tone change at later time"
         );
+    }
+
+    #[test]
+    fn test_map_midi_channel_to_ym2151_drum_channel() {
+        // MIDI channel 9 (drum channel) should map to YM2151 channel 0
+        assert_eq!(map_midi_channel_to_ym2151(9), 0);
+    }
+
+    #[test]
+    fn test_map_midi_channel_to_ym2151_regular_channels() {
+        // MIDI channel 0 should map to YM2151 channel 1 (shifted due to drum priority)
+        assert_eq!(map_midi_channel_to_ym2151(0), 1);
+
+        // MIDI channels 1-5 should map to YM2151 channels 2-6
+        assert_eq!(map_midi_channel_to_ym2151(1), 2);
+        assert_eq!(map_midi_channel_to_ym2151(2), 3);
+        assert_eq!(map_midi_channel_to_ym2151(3), 4);
+        assert_eq!(map_midi_channel_to_ym2151(4), 5);
+        assert_eq!(map_midi_channel_to_ym2151(5), 6);
+    }
+
+    #[test]
+    fn test_map_midi_channel_to_ym2151_overflow() {
+        // MIDI channels 6, 7, 8, and 10+ should overflow to YM2151 channel 7
+        assert_eq!(map_midi_channel_to_ym2151(6), 7);
+        assert_eq!(map_midi_channel_to_ym2151(7), 7);
+        assert_eq!(map_midi_channel_to_ym2151(8), 7);
+        assert_eq!(map_midi_channel_to_ym2151(10), 7);
+        assert_eq!(map_midi_channel_to_ym2151(15), 7);
+    }
+
+    #[test]
+    fn test_convert_drum_channel_note_on_channel_0() {
+        // Test that MIDI channel 9 (drum) maps to YM2151 channel 0
+        let midi_data = MidiData {
+            ticks_per_beat: 480,
+            tempo_bpm: 120.0,
+            events: vec![
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 9, // Drum channel
+                    note: 60,
+                    velocity: 100,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 480,
+                    channel: 9,
+                    note: 60,
+                },
+            ],
+        };
+
+        let result = convert_to_ym2151_log(&midi_data).unwrap();
+
+        // Find KC register write for channel 0 (0x28)
+        let kc_events: Vec<&Ym2151Event> = result
+            .events
+            .iter()
+            .filter(|e| e.addr == "0x28" && e.time == 0)
+            .collect();
+
+        assert_eq!(
+            kc_events.len(),
+            1,
+            "Drum channel should use YM2151 channel 0 (KC register 0x28)"
+        );
+
+        // Verify KEY ON uses channel 0
+        let key_on = result
+            .events
+            .iter()
+            .find(|e| e.addr == "0x08" && e.data == "0x78" && e.time == 0)
+            .expect("Should have KEY ON for channel 0");
+        assert_eq!(key_on.data, "0x78"); // 0x78 = all operators on, channel 0
+    }
+
+    #[test]
+    fn test_convert_regular_channel_shifted() {
+        // Test that MIDI channel 0 maps to YM2151 channel 1 (due to drum priority)
+        let midi_data = MidiData {
+            ticks_per_beat: 480,
+            tempo_bpm: 120.0,
+            events: vec![
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 0, // Regular channel 0
+                    note: 60,
+                    velocity: 100,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 480,
+                    channel: 0,
+                    note: 60,
+                },
+            ],
+        };
+
+        let result = convert_to_ym2151_log(&midi_data).unwrap();
+
+        // Find KC register write for channel 1 (0x29)
+        let kc_events: Vec<&Ym2151Event> = result
+            .events
+            .iter()
+            .filter(|e| e.addr == "0x29" && e.time == 0)
+            .collect();
+
+        assert_eq!(
+            kc_events.len(),
+            1,
+            "MIDI channel 0 should map to YM2151 channel 1 (KC register 0x29)"
+        );
+
+        // Verify KEY ON uses channel 1
+        let key_on = result
+            .events
+            .iter()
+            .find(|e| e.addr == "0x08" && e.data == "0x79" && e.time == 0)
+            .expect("Should have KEY ON for channel 1");
+        assert_eq!(key_on.data, "0x79"); // 0x79 = all operators on, channel 1
+    }
+
+    #[test]
+    fn test_convert_drum_and_regular_channels_together() {
+        // Test with both drum channel and regular channels
+        let midi_data = MidiData {
+            ticks_per_beat: 480,
+            tempo_bpm: 120.0,
+            events: vec![
+                // Drum channel (MIDI 9) at same tick
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 9,
+                    note: 36, // Bass drum
+                    velocity: 100,
+                },
+                // Regular channel (MIDI 0) at same tick
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 0,
+                    note: 60,
+                    velocity: 100,
+                },
+                // Regular channel (MIDI 1) at same tick
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 1,
+                    note: 64,
+                    velocity: 100,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 480,
+                    channel: 9,
+                    note: 36,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 480,
+                    channel: 0,
+                    note: 60,
+                },
+                MidiEvent::NoteOff {
+                    ticks: 480,
+                    channel: 1,
+                    note: 64,
+                },
+            ],
+        };
+
+        let result = convert_to_ym2151_log(&midi_data).unwrap();
+
+        // Verify drum channel uses YM2151 channel 0
+        let drum_kc = result
+            .events
+            .iter()
+            .find(|e| e.addr == "0x28" && e.time == 0)
+            .expect("Drum should use YM2151 channel 0");
+        assert!(drum_kc.data.starts_with("0x"));
+
+        // Verify MIDI channel 0 uses YM2151 channel 1
+        let ch0_kc = result
+            .events
+            .iter()
+            .find(|e| e.addr == "0x29" && e.time == 0)
+            .expect("MIDI ch 0 should use YM2151 channel 1");
+        assert!(ch0_kc.data.starts_with("0x"));
+
+        // Verify MIDI channel 1 uses YM2151 channel 2
+        let ch1_kc = result
+            .events
+            .iter()
+            .find(|e| e.addr == "0x2A" && e.time == 0)
+            .expect("MIDI ch 1 should use YM2151 channel 2");
+        assert!(ch1_kc.data.starts_with("0x"));
+
+        // Verify KEY ON events are in the correct order (drum first)
+        let key_on_events: Vec<&Ym2151Event> = result
+            .events
+            .iter()
+            .filter(|e| e.addr == "0x08" && e.time == 0 && e.data.starts_with("0x7"))
+            .collect();
+
+        // Should have 3 KEY ON events
+        assert_eq!(key_on_events.len(), 3);
+
+        // First KEY ON should be channel 0 (drum)
+        assert_eq!(key_on_events[0].data, "0x78"); // Channel 0
     }
 }
