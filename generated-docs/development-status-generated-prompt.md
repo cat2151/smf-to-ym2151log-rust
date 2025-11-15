@@ -1,4 +1,4 @@
-Last updated: 2025-11-13
+Last updated: 2025-11-16
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -205,6 +205,11 @@ Last updated: 2025-11-13
 - README.md
 - _config.yml
 - generated-docs/project-overview-generated-prompt.md
+- issue-notes/21.md
+- issue-notes/22.md
+- issue-notes/23.md
+- issue-notes/25.md
+- issue-notes/28.md
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -217,40 +222,420 @@ Last updated: 2025-11-13
 - src/ym2151/init.rs
 - src/ym2151/mod.rs
 - src/ym2151/note_table.rs
+- src/ym2151/tone.rs
 - tests/create_test_midi.py
 - tests/integration_tests.rs
 - tests/test_data/multi_channel.mid
 - tests/test_data/multi_track.mid
+- tests/test_data/program_change.mid
 - tests/test_data/simple_melody.mid
 - tests/test_data/tempo_change.mid
+- tones/000.json
+- tones/README.md
 
 ## 現在のオープンIssues
-オープン中のIssueはありません
+## [Issue #22](../issue-notes/22.md): （手作業）仮で tones/000.json～127.json のうちいくつかを実際に配置する。ym2151-tone-editorを利用して作成できる
+[issue-notes/22.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/22.md)
+
+...
+ラベル: 
+--- issue-notes/22.md の内容 ---
+
+```markdown
+# issue tones/000.json～127.json を、ym2151-tone-editorを利用して作成する #22
+[issues #22](https://github.com/cat2151/smf-to-ym2151log-rust/issues/22)
+
+
+
+```
 
 ## ドキュメントで言及されているファイルの内容
+### .github/actions-tmp/issue-notes/2.md
+```md
+# issue GitHub Actions「関数コールグラフhtmlビジュアライズ生成」を共通ワークフロー化する #2
+[issues #2](https://github.com/cat2151/github-actions/issues/2)
 
+
+# prompt
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+このymlファイルを、以下の2つのファイルに分割してください。
+1. 共通ワークフロー       cat2151/github-actions/.github/workflows/callgraph_enhanced.yml
+2. 呼び出し元ワークフロー cat2151/github-actions/.github/workflows/call-callgraph_enhanced.yml
+まずplanしてください
+```
+
+# 結果
+- indent
+    - linter？がindentのエラーを出しているがyml内容は見た感じOK
+    - テキストエディタとagentの相性問題と判断する
+    - 別のテキストエディタでsaveしなおし、テキストエディタをreload
+    - indentのエラーは解消した
+- LLMレビュー
+    - agent以外の複数のLLMにレビューさせる
+    - prompt
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+以下の2つのファイルをレビューしてください。最優先で、エラーが発生するかどうかだけレビューしてください。エラー以外の改善事項のチェックをするかわりに、エラー発生有無チェックに最大限注力してください。
+
+--- 共通ワークフロー
+
+# GitHub Actions Reusable Workflow for Call Graph Generation
+name: Generate Call Graph
+
+# TODO Windowsネイティブでのtestをしていた名残が残っているので、今後整理していく。今はWSL act でtestしており、Windowsネイティブ環境依存問題が解決した
+#  ChatGPTにレビューさせるとそこそこ有用そうな提案が得られたので、今後それをやる予定
+#  agentに自己チェックさせる手も、セカンドオピニオンとして選択肢に入れておく
+
+on:
+  workflow_call:
+
+jobs:
+  check-commits:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50 # 過去のコミットを取得
+
+      - name: Check for user commits in last 24 hours
+        id: check
+        run: |
+          node .github/scripts/callgraph_enhanced/check-commits.cjs
+
+  generate-callgraph:
+    needs: check-commits
+    if: needs.check-commits.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Remove old CodeQL packages cache
+        run: rm -rf ~/.codeql/packages
+
+      - name: Check Node.js version
+        run: |
+          node .github/scripts/callgraph_enhanced/check-node-version.cjs
+
+      - name: Install CodeQL CLI
+        run: |
+          wget https://github.com/github/codeql-cli-binaries/releases/download/v2.22.1/codeql-linux64.zip
+          unzip codeql-linux64.zip
+          sudo mv codeql /opt/codeql
+          echo "/opt/codeql" >> $GITHUB_PATH
+
+      - name: Install CodeQL query packs
+        run: |
+          /opt/codeql/codeql pack install .github/codeql-queries
+
+      - name: Check CodeQL exists
+        run: |
+          node .github/scripts/callgraph_enhanced/check-codeql-exists.cjs
+
+      - name: Verify CodeQL Configuration
+        run: |
+          node .github/scripts/callgraph_enhanced/analyze-codeql.cjs verify-config
+
+      - name: Remove existing CodeQL DB (if any)
+        run: |
+          rm -rf codeql-db
+
+      - name: Perform CodeQL Analysis
+        run: |
+          node .github/scripts/callgraph_enhanced/analyze-codeql.cjs analyze
+
+      - name: Check CodeQL Analysis Results
+        run: |
+          node .github/scripts/callgraph_enhanced/analyze-codeql.cjs check-results
+
+      - name: Debug CodeQL execution
+        run: |
+          node .github/scripts/callgraph_enhanced/analyze-codeql.cjs debug
+
+      - name: Wait for CodeQL results
+        run: |
+          node -e "setTimeout(()=>{}, 10000)"
+
+      - name: Find and process CodeQL results
+        run: |
+          node .github/scripts/callgraph_enhanced/find-process-results.cjs
+
+      - name: Generate HTML graph
+        run: |
+          node .github/scripts/callgraph_enhanced/generate-html-graph.cjs
+
+      - name: Copy files to generated-docs and commit results
+        run: |
+          node .github/scripts/callgraph_enhanced/copy-commit-results.cjs
+
+--- 呼び出し元
+# 呼び出し元ワークフロー: call-callgraph_enhanced.yml
+name: Call Call Graph Enhanced
+
+on:
+  schedule:
+    # 毎日午前5時(JST) = UTC 20:00前日
+    - cron: '0 20 * * *'
+  workflow_dispatch:
+
+jobs:
+  call-callgraph-enhanced:
+    # uses: cat2151/github-actions/.github/workflows/callgraph_enhanced.yml
+    uses: ./.github/workflows/callgraph_enhanced.yml # ローカルでのテスト用
+```
+
+# レビュー結果OKと判断する
+- レビュー結果を人力でレビューした形になった
+
+# test
+- #4 同様にローカル WSL + act でtestする
+- エラー。userのtest設計ミス。
+  - scriptの挙動 : src/ がある前提
+  - 今回の共通ワークフローのリポジトリ : src/ がない
+  - 今回testで実現したいこと
+    - 仮のソースでよいので、関数コールグラフを生成させる
+  - 対策
+    - src/ にダミーを配置する
+- test green
+  - ただしcommit pushはしてないので、html内容が0件NG、といったケースの検知はできない
+  - もしそうなったら別issueとしよう
+
+# test green
+
+# commit用に、yml 呼び出し元 uses をlocal用から本番用に書き換える
+
+# closeとする
+- もしhtml内容が0件NG、などになったら、別issueとするつもり
+
+```
+
+### .github/actions-tmp/issue-notes/22.md
+```md
+# issue project-summary の development-status 生成時、Geminiに与えたprompt、もcommit push、を試す #22
+[issues #22](https://github.com/cat2151/github-actions/issues/22)
+
+# 何が困るの？
+- 生成された development-status.md の妥当性がわかりづらいし、バグった場合の原因調査がしづらい
+
+# 対策案
+- Geminiに与えたpromptをfileにしてcommit pushしておくと、デバッグに役立つ可能性がある。
+
+# 方法案
+- Geminiに与えるprompt を生成時、それをfileにsaveし、commit push対象にする。
+- ひとまずgenerated-docs/ に保存する。落ち着いたら移動先を検討する。
+    - generated-docs/ 配下のまま、も有力な候補である。
+        - なぜなら、cjsによってgenerateされたdocなので。
+
+# 日次バッチでpromptを生成させ、agentに投げた
+- レビューした
+- 修正させた
+
+# 結果
+- エラー。pathのミス。呼び出し元側に保存したいのに、共通ワークフロー側に保存となってしまった。
+- 対策、ymlで引数を指定するようにした。
+- testする。
+
+# 結果
+- test green。呼び出し元側にcommitされていることを確認した。
+- 20Kbytesである
+    - Geminiにわたすサイズとしても許容範囲内と判断する
+        - token数から概算して100Kbytes～1Mbytes程度を想定
+
+# closeとする
+
+```
+
+### issue-notes/22.md
+```md
+# issue tones/000.json～127.json を、ym2151-tone-editorを利用して作成する #22
+[issues #22](https://github.com/cat2151/smf-to-ym2151log-rust/issues/22)
+
+
+
+```
+
+### tones/000.json
+```json
+{
+  "events": [
+    {
+      "time": 0,
+      "addr": "0x20",
+      "data": "0xC7"
+    },
+    {
+      "time": 0,
+      "addr": "0x38",
+      "data": "0x00"
+    },
+    {
+      "time": 0,
+      "addr": "0x40",
+      "data": "0x01"
+    },
+    {
+      "time": 0,
+      "addr": "0x60",
+      "data": "0x00"
+    },
+    {
+      "time": 0,
+      "addr": "0x80",
+      "data": "0x1F"
+    },
+    {
+      "time": 0,
+      "addr": "0xA0",
+      "data": "0x05"
+    },
+    {
+      "time": 0,
+      "addr": "0xC0",
+      "data": "0x05"
+    },
+    {
+      "time": 0,
+      "addr": "0xE0",
+      "data": "0xF7"
+    },
+    {
+      "time": 0,
+      "addr": "0x48",
+      "data": "0x01"
+    },
+    {
+      "time": 0,
+      "addr": "0x68",
+      "data": "0x7F"
+    },
+    {
+      "time": 0,
+      "addr": "0x88",
+      "data": "0x1F"
+    },
+    {
+      "time": 0,
+      "addr": "0xA8",
+      "data": "0x05"
+    },
+    {
+      "time": 0,
+      "addr": "0xC8",
+      "data": "0x05"
+    },
+    {
+      "time": 0,
+      "addr": "0xE8",
+      "data": "0xF7"
+    },
+    {
+      "time": 0,
+      "addr": "0x50",
+      "data": "0x01"
+    },
+    {
+      "time": 0,
+      "addr": "0x70",
+      "data": "0x7F"
+    },
+    {
+      "time": 0,
+      "addr": "0x90",
+      "data": "0x1F"
+    },
+    {
+      "time": 0,
+      "addr": "0xB0",
+      "data": "0x05"
+    },
+    {
+      "time": 0,
+      "addr": "0xD0",
+      "data": "0x05"
+    },
+    {
+      "time": 0,
+      "addr": "0xF0",
+      "data": "0xF7"
+    },
+    {
+      "time": 0,
+      "addr": "0x58",
+      "data": "0x01"
+    },
+    {
+      "time": 0,
+      "addr": "0x78",
+      "data": "0x7F"
+    },
+    {
+      "time": 0,
+      "addr": "0x98",
+      "data": "0x1F"
+    },
+    {
+      "time": 0,
+      "addr": "0xB8",
+      "data": "0x05"
+    },
+    {
+      "time": 0,
+      "addr": "0xD8",
+      "data": "0x05"
+    },
+    {
+      "time": 0,
+      "addr": "0xF8",
+      "data": "0xF7"
+    }
+  ]
+}
+
+```
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-b9d29e2 Auto-translate README.ja.md to README.md [auto]
-144aa8e Add WIP section to Japanese README
-8549f81 Merge branch 'main' of github.com:cat2151/smf-to-ym2151log-rust into main
-906781d link修正
-4f4d397 Update project summaries (overview & development status) [auto]
-b6bf491 Auto-translate README.ja.md to README.md [auto]
-e27e6b9 状況を反映
-71412f4 Auto-translate README.ja.md to README.md [auto]
-1206066 ja
-6453dc7 Merge branch 'main' of github.com:cat2151/smf-to-ym2151log-rust into main
+0b97b7b Auto-translate README.ja.md to README.md [auto]
+3e56907 Merge pull request #29 from cat2151/copilot/fix-midi-channel-mapping
+6008460 Update README to document polyphony-based allocation implementation
+756f7a5 Implement polyphony-based channel allocation with drum channel priority
+b95f9a7 Update documentation to reflect actual channel mapping implementation
+274a209 Implement MIDI channel 9 to YM2151 channel 0 priority mapping
+e0c44ed Initial plan
+31e73bf Auto-translate README.ja.md to README.md [auto]
+cf7e0c6 Merge pull request #27 from cat2151/copilot/add-ym2151log-json-for-midi
+32130ff Add tests and documentation for Program Change support
 
 ### 変更されたファイル:
+.gitignore
 README.ja.md
 README.md
-generated-docs/development-status-generated-prompt.md
-generated-docs/development-status.md
-generated-docs/project-overview-generated-prompt.md
-generated-docs/project-overview.md
+issue-notes/25.md
+issue-notes/28.md
+src/midi/utils.rs
+src/ym2151/converter.rs
+src/ym2151/mod.rs
+src/ym2151/tone.rs
+tests/create_test_midi.py
+tests/integration_tests.rs
+tests/test_data/program_change.mid
+tones/000.json
+tones/README.md
 
 
 ---
-Generated at: 2025-11-13 07:07:30 JST
+Generated at: 2025-11-16 07:05:56 JST
