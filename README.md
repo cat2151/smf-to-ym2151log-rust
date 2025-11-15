@@ -17,16 +17,26 @@ More advanced features are planned for future implementations.
 
 #### Channel Assignment Strategy
 
-The current implementation uses a **static channel assignment strategy**. This strategy assigns MIDI channels to YM2151 channels using pre-analysis:
+The current implementation uses a **direct channel mapping strategy** with **drum channel priority**:
 
-1.  **Pre-analysis Phase**: Before conversion, the SMF is analyzed to measure the maximum polyphony (number of simultaneous voices) for each MIDI channel.
-2.  **Static Assignment**: YM2151 channels are assigned based on the polyphony requirements of each MIDI channel.
-    -   Example: If MIDI ch0 requires 3 voices, MIDI ch1 requires 1 voice, and the remaining MIDI channels are unused:
-        -   YM2151 ch0-ch2 correspond to MIDI ch0
-        -   YM2151 ch3 corresponds to MIDI ch1
-        -   YM2151 ch4-ch7 remain available
+**Mapping Rules:**
+-   **MIDI Channel 9 (drum channel)** → **YM2151 Channel 0** (priority mapping)
+    -   General MIDI convention uses channel 9 (0-based, channel 10 in 1-based) for drums
+    -   Drums often have multiple simultaneous note-ons at the same tick
+    -   Since YM2151 processes channels sequentially, assigning drums to channel 0 ensures they sound first for better audio quality
+-   **MIDI Channel 0** → **YM2151 Channel 1**
+-   **MIDI Channels 1-5** → **YM2151 Channels 2-6** (shifted due to drum priority)
+-   **MIDI Channels 6+** → **YM2151 Channel 7** (overflow, all remaining MIDI channels share this YM2151 channel)
 
-**Out of Scope**: Dynamic channel assignment (methods for changing MIDI-YM2151 channel assignments during playback) is not implemented. This decision aligns with the project's policy of prioritizing simplicity over complexity. Dynamic assignment would require complex voice stealing algorithms and state management, significantly increasing implementation complexity.
+**Note**: This is a simple 1:1 mapping (with drum priority) that does not support polyphony (multiple simultaneous notes on the same MIDI channel). Each MIDI channel can only play one note at a time on its assigned YM2151 channel.
+
+**Out of Scope**: 
+-   Polyphony support (multiple simultaneous voices per MIDI channel)
+-   Dynamic channel assignment during playback
+-   Voice stealing algorithms
+
+These features are intentionally omitted to maintain simplicity and align with the project's goals.
+
 
 ## Overview
 
