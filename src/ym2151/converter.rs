@@ -3,7 +3,9 @@
 //! Converts MIDI events to YM2151 register write events.
 
 use crate::error::Result;
-use crate::midi::{midi_to_kc_kf, ticks_to_samples, MidiData, MidiEvent};
+use crate::midi::{
+    midi_to_kc_kf, ticks_to_samples_with_tempo_map, MidiData, MidiEvent, TempoChange,
+};
 use crate::ym2151::{initialize_channel_events, Ym2151Event, Ym2151Log};
 use std::collections::HashSet;
 use std::fs::File;
@@ -34,9 +36,34 @@ use std::io::Write;
 /// ```
 pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
     let ticks_per_beat = midi_data.ticks_per_beat;
-    let mut current_tempo_bpm = midi_data.tempo_bpm;
 
     let mut ym2151_events = Vec::new();
+
+    // Build tempo map from MIDI events
+    let mut tempo_map: Vec<TempoChange> = vec![TempoChange {
+        tick: 0,
+        tempo_bpm: midi_data.tempo_bpm,
+    }];
+
+    for event in &midi_data.events {
+        if let MidiEvent::Tempo { ticks, tempo_bpm } = event {
+            // Only add if it's different from the current tempo
+            // or if it's the first explicit tempo event at tick 0
+            if tempo_map.is_empty()
+                || *ticks > tempo_map.last().unwrap().tick
+                || (*ticks == 0 && tempo_map.len() == 1)
+            {
+                tempo_map.push(TempoChange {
+                    tick: *ticks,
+                    tempo_bpm: *tempo_bpm,
+                });
+            }
+        }
+    }
+
+    // Remove duplicates and sort by tick
+    tempo_map.sort_by_key(|t| t.tick);
+    tempo_map.dedup_by_key(|t| t.tick);
 
     // Initialize all channels at time 0
     // Register 0x08 is the Key ON/OFF register
@@ -74,9 +101,9 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
 
     for event in &midi_data.events {
         match event {
-            // Update tempo if tempo change event
-            MidiEvent::Tempo { tempo_bpm, .. } => {
-                current_tempo_bpm = *tempo_bpm;
+            // Tempo events are already in the tempo map, no action needed here
+            MidiEvent::Tempo { .. } => {
+                // Skip - tempo changes are handled via tempo_map
             }
 
             // Handle Note On events
@@ -95,7 +122,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 // Map MIDI channel to YM2151 channel (clamp to 0-7)
                 let ym2151_channel = (*channel).min(7);
 
-                let sample_time = ticks_to_samples(*ticks, ticks_per_beat, current_tempo_bpm);
+                let sample_time =
+                    ticks_to_samples_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
                 let (kc, kf) = midi_to_kc_kf(*note);
 
                 // Set KC (Key Code)
@@ -132,7 +160,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 // Map MIDI channel to YM2151 channel (clamp to 0-7)
                 let ym2151_channel = (*channel).min(7);
 
-                let sample_time = ticks_to_samples(*ticks, ticks_per_beat, current_tempo_bpm);
+                let sample_time =
+                    ticks_to_samples_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
 
                 if active_notes.contains(&(ym2151_channel, *note)) {
                     // Key OFF
