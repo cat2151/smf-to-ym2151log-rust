@@ -9,36 +9,36 @@
 
 ## WIP
 
-Currently, it can only convert basic musical notes into a minimal JSON format.
+Currently, it can only convert basic notes (like "Do-Re-Mi") into a minimal JSON format.
 
-More advanced features are planned for future implementations.
+More advanced implementations are planned for the future.
 
-### Current Limitations
+### Current Constraints
 
-#### Channel Allocation Strategy
+#### Channel Assignment Strategy
 
-The current implementation uses a **static channel allocation strategy** where MIDI channels are mapped to YM2151 channels using a pre-analysis approach:
+The current implementation uses a **static channel assignment strategy**. This strategy employs pre-analysis to assign MIDI channels to YM2151 channels:
 
-1. **Pre-Analysis Phase**: Before conversion, the SMF is analyzed to measure the maximum polyphony (number of simultaneous notes) for each MIDI channel
-2. **Static Allocation**: YM2151 channels are allocated to MIDI channels based on their polyphony requirements
-   - Example: If MIDI ch0 requires 3-note polyphony, MIDI ch1 requires 1-note polyphony, and other channels are unused:
-     - YM2151 channels 0-2 are assigned to MIDI ch0
-     - YM2151 channel 3 is assigned to MIDI ch1
-     - YM2151 channels 4-7 remain available
+1.  **Pre-analysis Phase**: Before conversion, the SMF is analyzed to measure the maximum polyphony (number of simultaneous voices) for each MIDI channel.
+2.  **Static Assignment**: YM2151 channels are assigned based on each MIDI channel's polyphony requirements.
+    *   Example: If MIDI ch0 requires 3 voices, MIDI ch1 requires 1 voice, and the remaining MIDI channels are unused:
+        *   YM2151 ch0-ch2 correspond to MIDI ch0
+        *   YM2151 ch3 corresponds to MIDI ch1
+        *   YM2151 ch4-ch7 remain available
 
-**Out of Scope**: Dynamic channel allocation (where MIDI-to-YM2151 channel mapping changes during playback) is not implemented. This decision aligns with the project's policy of prioritizing simplicity over complexity. Dynamic allocation would require complex voice stealing algorithms and state management that would significantly increase implementation complexity.
+**Out of Scope**: Dynamic channel assignment (methods for changing MIDI-YM2151 channel assignments during playback) is not implemented. This decision aligns with the project's policy of prioritizing simplicity over complexity. Dynamic assignment would require complex voice stealing algorithms and state management, significantly increasing implementation complexity.
 
 ## Overview
 
-This is the Rust implementation of [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log).
+This is a Rust implementation of [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log).
 It converts Standard MIDI Files (SMF) into register write logs (JSON format) for the YM2151 FM sound chip.
 
 ## Features
 
--   **Two-Pass Processing Architecture**:
-    -   **Pass A**: MIDI file → Intermediate Events JSON (for debugging)
-    -   **Pass B**: Intermediate Events → YM2151 Register Log JSON (final output)
--   **Type Safety**: Robustness ensured by Rust's type system
+-   **2-Pass Processing Architecture**:
+    -   **Pass A**: MIDI file → Intermediate event JSON (for debugging)
+    -   **Pass B**: Intermediate events → YM2151 register log JSON (final output)
+-   **Type Safety**: Robustness through Rust's type system
 -   **High Performance**: Fast processing due to native compilation
 -   **Test-Driven Development**: Comprehensive unit and integration tests (51 tests)
 -   **Compatibility**: JSON format compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc)
@@ -58,7 +58,7 @@ cd smf-to-ym2151log-rust
 cargo install --path .
 ```
 
-### Command-Line Usage
+### Command Line Usage
 
 ```bash
 # Convert a MIDI file
@@ -69,9 +69,9 @@ smf-to-ym2151log-rust song.mid
 # - song_ym2151.json  (Pass B: YM2151 register log)
 ```
 
-### As a Library
+### Use as a Library
 
-You can use this project as a library in other Rust projects:
+Can be used as a library from other Rust projects:
 
 ```toml
 # Cargo.toml
@@ -81,7 +81,7 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 Detailed API documentation: `cargo doc --open`
 
-### Example Output
+### Output Example
 
 ```
 smf-to-ym2151log-rust
@@ -109,8 +109,8 @@ Saving YM2151 log JSON...
 ## Development
 
 ### Prerequisites
-- Rust 1.70.0 or later
-- Cargo
+-   Rust 1.70.0 or higher
+-   Cargo
 
 ### Build
 ```bash
@@ -121,12 +121,12 @@ cargo build
 cargo build --release
 ```
 
-### Testing
+### Tests
 ```bash
 # Run all tests
 cargo test
 
-# Run specific test
+# Run a specific test
 cargo test midi_parser
 
 # Test coverage
@@ -149,4 +149,4 @@ cargo audit
 
 -   [Python Implementation](https://github.com/cat2151/smf-to-ym2151log): The original Python implementation this project is based on
 -   [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): Specifies the output JSON format
--   [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): Official specification document for the YM2151 chip
+-   [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): Official specification for the YM2151 chip
