@@ -313,11 +313,18 @@ fn test_end_to_end_tempo_change() {
     let midi_data = parse_midi_file(midi_path).expect("Failed to parse MIDI file");
 
     // Verify tempo events exist
-    let has_tempo = midi_data
+    let tempo_events: Vec<_> = midi_data
         .events
         .iter()
-        .any(|e| matches!(e, MidiEvent::Tempo { .. }));
-    assert!(has_tempo, "Should have tempo events");
+        .filter_map(|e| {
+            if let MidiEvent::Tempo { ticks, tempo_bpm } = e {
+                Some((*ticks, *tempo_bpm))
+            } else {
+                None
+            }
+        })
+        .collect();
+    assert!(!tempo_events.is_empty(), "Should have tempo events");
 
     // Save events JSON
     save_midi_events_json(&midi_data, events_json_path.to_str().unwrap())
@@ -325,6 +332,31 @@ fn test_end_to_end_tempo_change() {
 
     // Pass B: Convert to YM2151 log
     let ym2151_log = convert_to_ym2151_log(&midi_data).expect("Failed to convert to YM2151 log");
+
+    // Verify that tempo changes affect timing
+    // Find note events in the YM2151 log
+    let note_on_events: Vec<_> = ym2151_log
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x08" && e.data.starts_with("0x7"))
+        .collect();
+
+    // Should have at least 2 note on events with different timing
+    assert!(
+        note_on_events.len() >= 2,
+        "Should have at least 2 note on events"
+    );
+
+    // First note should be at time 0
+    assert_eq!(note_on_events[0].time, 0, "First note should be at time 0");
+
+    // Second note timing should reflect tempo change
+    // If tempo didn't affect timing, both notes would have same relative spacing
+    // With tempo change, the spacing should be different
+    assert!(
+        note_on_events[1].time > 0,
+        "Second note should be after time 0"
+    );
 
     // Save YM2151 log
     save_ym2151_log(&ym2151_log, ym2151_json_path.to_str().unwrap())
@@ -682,4 +714,120 @@ fn test_end_to_end_multi_channel() {
     // Clean up
     let _ = fs::remove_file(events_json_path);
     let _ = fs::remove_file(ym2151_json_path);
+}
+
+/// Test that tempo changes are correctly reflected in YM2151 timing
+#[test]
+fn test_tempo_change_timing_accuracy() {
+    use smf_to_ym2151log::midi::{
+        ticks_to_samples_with_tempo_map, MidiData, MidiEvent, TempoChange,
+    };
+    use smf_to_ym2151log::ym2151::convert_to_ym2151_log;
+
+    // Create a test MIDI file with tempo change
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            // Tempo starts at 120 BPM
+            MidiEvent::Tempo {
+                ticks: 0,
+                tempo_bpm: 120.0,
+            },
+            // First note at tick 0
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            // First note off at tick 480 (1 beat at 120 BPM = 0.5 seconds)
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 60,
+            },
+            // Tempo changes to 60 BPM at tick 480
+            MidiEvent::Tempo {
+                ticks: 480,
+                tempo_bpm: 60.0,
+            },
+            // Second note at tick 480
+            MidiEvent::NoteOn {
+                ticks: 480,
+                channel: 0,
+                note: 62,
+                velocity: 100,
+            },
+            // Second note off at tick 960 (1 beat at 60 BPM = 1.0 second after tempo change)
+            MidiEvent::NoteOff {
+                ticks: 960,
+                channel: 0,
+                note: 62,
+            },
+        ],
+    };
+
+    // Convert to YM2151 log
+    let ym2151_log = convert_to_ym2151_log(&midi_data).expect("Failed to convert");
+
+    // Find the note on/off events
+    let note_events: Vec<_> = ym2151_log
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x08" && e.time > 0)
+        .collect();
+
+    // First note off should be at tick 480
+    // At 120 BPM: 480 ticks = 0.5 seconds = 27965 samples
+    let first_note_off = note_events
+        .iter()
+        .find(|e| e.data == "0x00" && e.time > 0)
+        .expect("Should have first note off");
+    assert_eq!(
+        first_note_off.time, 27965,
+        "First note off timing incorrect"
+    );
+
+    // Second note on should also be at tick 480 (same time as tempo change)
+    let second_note_on = note_events
+        .iter()
+        .find(|e| e.data == "0x78" && e.time == 27965)
+        .expect("Should have second note on at tempo change");
+    assert_eq!(
+        second_note_on.time, 27965,
+        "Second note on timing incorrect"
+    );
+
+    // Second note off should be at tick 960
+    // First 480 ticks at 120 BPM = 0.5 seconds = 27965 samples
+    // Next 480 ticks at 60 BPM = 1.0 second = 55930 samples
+    // Total = 83895 samples
+    let second_note_off = note_events
+        .iter()
+        .filter(|e| e.data == "0x00")
+        .max_by_key(|e| e.time)
+        .expect("Should have second note off");
+    assert_eq!(
+        second_note_off.time, 83895,
+        "Second note off timing should reflect tempo change"
+    );
+
+    // Verify using the tempo map function directly
+    let tempo_map = vec![
+        TempoChange {
+            tick: 0,
+            tempo_bpm: 120.0,
+        },
+        TempoChange {
+            tick: 480,
+            tempo_bpm: 60.0,
+        },
+    ];
+
+    let time_at_960 = ticks_to_samples_with_tempo_map(960, 480, &tempo_map);
+    assert_eq!(
+        time_at_960, 83895,
+        "Tempo map calculation should match expected value"
+    );
 }
