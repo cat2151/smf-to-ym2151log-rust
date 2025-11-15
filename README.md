@@ -13,6 +13,21 @@ Currently, it can only convert basic musical notes into a minimal JSON format.
 
 More advanced features are planned for future implementations.
 
+### Current Limitations
+
+#### Channel Allocation Strategy
+
+The current implementation uses a **static channel allocation strategy** where MIDI channels are mapped to YM2151 channels using a pre-analysis approach:
+
+1. **Pre-Analysis Phase**: Before conversion, the SMF is analyzed to measure the maximum polyphony (number of simultaneous notes) for each MIDI channel
+2. **Static Allocation**: YM2151 channels are allocated to MIDI channels based on their polyphony requirements
+   - Example: If MIDI ch0 requires 3-note polyphony, MIDI ch1 requires 1-note polyphony, and other channels are unused:
+     - YM2151 channels 0-2 are assigned to MIDI ch0
+     - YM2151 channel 3 is assigned to MIDI ch1
+     - YM2151 channels 4-7 remain available
+
+**Out of Scope**: Dynamic channel allocation (where MIDI-to-YM2151 channel mapping changes during playback) is not implemented. This decision aligns with the project's policy of prioritizing simplicity over complexity. Dynamic allocation would require complex voice stealing algorithms and state management that would significantly increase implementation complexity.
+
 ## Overview
 
 This is the Rust implementation of [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log).
