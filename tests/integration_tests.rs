@@ -348,13 +348,16 @@ fn test_end_to_end_tempo_change() {
     );
 
     // First note should be at time 0
-    assert_eq!(note_on_events[0].time, 0, "First note should be at time 0");
+    assert!(
+        note_on_events[0].time < 0.001,
+        "First note should be at time 0"
+    );
 
     // Second note timing should reflect tempo change
     // If tempo didn't affect timing, both notes would have same relative spacing
     // With tempo change, the spacing should be different
     assert!(
-        note_on_events[1].time > 0,
+        note_on_events[1].time > 0.001,
         "Second note should be after time 0"
     );
 
@@ -444,7 +447,7 @@ fn test_output_file_path_generation() {
     }
 }
 
-/// Test that YM2151 log contains valid time values (sample times at 55930 Hz)
+/// Test that YM2151 log contains valid time values in seconds
 #[test]
 fn test_ym2151_log_time_values() {
     let midi_path = "tests/test_data/simple_melody.mid";
@@ -454,7 +457,7 @@ fn test_ym2151_log_time_values() {
     let ym2151_log = convert_to_ym2151_log(&midi_data).expect("Failed to convert to YM2151 log");
 
     // Check that times are non-decreasing (equal values are allowed, e.g., for simultaneous events)
-    let mut prev_time = 0;
+    let mut prev_time = 0.0;
     for event in &ym2151_log.events {
         assert!(
             event.time >= prev_time,
@@ -467,7 +470,7 @@ fn test_ym2151_log_time_values() {
 
     // Verify at least one event has non-zero time (unless empty)
     if !ym2151_log.events.is_empty() {
-        let has_nonzero = ym2151_log.events.iter().any(|e| e.time > 0);
+        let has_nonzero = ym2151_log.events.iter().any(|e| e.time > 0.001);
         // For non-empty MIDI files with notes, we should have some non-zero times
         // (Only all-zero times would be unusual for actual note events)
         assert!(
@@ -727,7 +730,7 @@ fn test_end_to_end_multi_channel() {
 #[test]
 fn test_tempo_change_timing_accuracy() {
     use smf_to_ym2151log::midi::{
-        ticks_to_samples_with_tempo_map, MidiData, MidiEvent, TempoChange,
+        ticks_to_seconds_with_tempo_map, MidiData, MidiEvent, TempoChange,
     };
     use smf_to_ym2151log::ym2151::convert_to_ym2151_log;
 
@@ -782,45 +785,45 @@ fn test_tempo_change_timing_accuracy() {
     let note_events: Vec<_> = ym2151_log
         .events
         .iter()
-        .filter(|e| e.addr == "0x08" && e.time > 0)
+        .filter(|e| e.addr == "0x08" && e.time > 0.001)
         .collect();
 
     // First note off should be at tick 480
-    // At 120 BPM: 480 ticks = 0.5 seconds = 27965 samples
+    // At 120 BPM: 480 ticks = 0.5 seconds
     // With polyphony analysis, channel allocation may vary - just check for note off events
     let first_note_off = note_events
         .iter()
-        .find(|e| e.data.starts_with("0x0") && e.time > 0 && e.time <= 28000)
+        .find(|e| e.data.starts_with("0x0") && e.time > 0.001 && e.time <= 0.51)
         .expect("Should have first note off");
     assert!(
-        first_note_off.time >= 27900 && first_note_off.time <= 28030,
-        "First note off timing should be around 27965, got {}",
+        first_note_off.time >= 0.49 && first_note_off.time <= 0.51,
+        "First note off timing should be around 0.5 seconds, got {}",
         first_note_off.time
     );
 
     // Second note on should also be at tick 480 (same time as tempo change)
     let second_note_on = note_events
         .iter()
-        .find(|e| e.data.starts_with("0x7") && e.time >= 27900 && e.time <= 28030)
+        .find(|e| e.data.starts_with("0x7") && e.time >= 0.49 && e.time <= 0.51)
         .expect("Should have second note on at tempo change");
     assert!(
-        second_note_on.time >= 27900 && second_note_on.time <= 28030,
-        "Second note on timing should be around 27965, got {}",
+        second_note_on.time >= 0.49 && second_note_on.time <= 0.51,
+        "Second note on timing should be around 0.5 seconds, got {}",
         second_note_on.time
     );
 
     // Second note off should be at tick 960
-    // First 480 ticks at 120 BPM = 0.5 seconds = 27965 samples
-    // Next 480 ticks at 60 BPM = 1.0 second = 55930 samples
-    // Total = 83895 samples
+    // First 480 ticks at 120 BPM = 0.5 seconds
+    // Next 480 ticks at 60 BPM = 1.0 second
+    // Total = 1.5 seconds
     let second_note_off = note_events
         .iter()
         .filter(|e| e.data.starts_with("0x0"))
-        .max_by_key(|e| e.time)
+        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap())
         .expect("Should have second note off");
     assert!(
-        second_note_off.time >= 83800 && second_note_off.time <= 84000,
-        "Second note off timing should be around 83895, got {}",
+        second_note_off.time >= 1.49 && second_note_off.time <= 1.51,
+        "Second note off timing should be around 1.5 seconds, got {}",
         second_note_off.time
     );
 
@@ -836,10 +839,11 @@ fn test_tempo_change_timing_accuracy() {
         },
     ];
 
-    let time_at_960 = ticks_to_samples_with_tempo_map(960, 480, &tempo_map);
-    assert_eq!(
-        time_at_960, 83895,
-        "Tempo map calculation should match expected value"
+    let time_at_960 = ticks_to_seconds_with_tempo_map(960, 480, &tempo_map);
+    assert!(
+        (time_at_960 - 1.5).abs() < 0.001,
+        "Tempo map calculation should match expected value of 1.5 seconds, got {}",
+        time_at_960
     );
 }
 

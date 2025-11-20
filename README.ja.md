@@ -163,8 +163,8 @@ tones/
 cat > tones/042.json << EOF
 {
   "events": [
-    { "time": 0, "addr": "0x20", "data": "0xC7" },
-    { "time": 0, "addr": "0x38", "data": "0x00" },
+    { "time": 0.0, "addr": "0x20", "data": "0xC7" },
+    { "time": 0.0, "addr": "0x38", "data": "0x00" },
     ...
   ]
 }
