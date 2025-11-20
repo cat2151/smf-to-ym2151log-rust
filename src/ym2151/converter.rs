@@ -4,7 +4,7 @@
 
 use crate::error::Result;
 use crate::midi::{
-    midi_to_kc_kf, ticks_to_samples_with_tempo_map, MidiData, MidiEvent, TempoChange,
+    midi_to_kc_kf, ticks_to_seconds_with_tempo_map, MidiData, MidiEvent, TempoChange,
 };
 use crate::ym2151::{
     apply_tone_to_channel, default_tone_events, initialize_channel_events, load_tone_for_program,
@@ -178,7 +178,7 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
     // Writing channel number turns off that channel
     for ch in 0..8 {
         ym2151_events.push(Ym2151Event {
-            time: 0,
+            time: 0.0,
             addr: "0x08".to_string(),
             data: format!("0x{:02X}", ch),
         });
@@ -200,7 +200,7 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
 
     // Initialize all used YM2151 channels with default parameters
     for &ch in &used_ym2151_channels {
-        ym2151_events.extend(initialize_channel_events(ch, 0));
+        ym2151_events.extend(initialize_channel_events(ch, 0.0));
     }
 
     // Track the current program (tone) for each YM2151 channel
@@ -247,27 +247,27 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                 let ym2151_channel = ym_channels[*voice_index % ym_channels.len()];
                 *voice_index = (*voice_index + 1) % ym_channels.len();
 
-                let sample_time =
-                    ticks_to_samples_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
+                let time_seconds =
+                    ticks_to_seconds_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
                 let (kc, kf) = midi_to_kc_kf(*note);
 
                 // Set KC (Key Code)
                 ym2151_events.push(Ym2151Event {
-                    time: sample_time,
+                    time: time_seconds,
                     addr: format!("0x{:02X}", 0x28 + ym2151_channel),
                     data: format!("0x{:02X}", kc),
                 });
 
                 // Set KF (Key Fraction)
                 ym2151_events.push(Ym2151Event {
-                    time: sample_time,
+                    time: time_seconds,
                     addr: format!("0x{:02X}", 0x30 + ym2151_channel),
                     data: format!("0x{:02X}", kf),
                 });
 
                 // Key ON (0x78 = all operators on)
                 ym2151_events.push(Ym2151Event {
-                    time: sample_time,
+                    time: time_seconds,
                     addr: "0x08".to_string(),
                     data: format!("0x{:02X}", 0x78 | ym2151_channel),
                 });
@@ -288,15 +288,15 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                     continue;
                 }
 
-                let sample_time =
-                    ticks_to_samples_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
+                let time_seconds =
+                    ticks_to_seconds_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
 
                 // Find which YM2151 channel has this note active and turn it off
                 for &ym2151_channel in ym2151_channels.unwrap() {
                     if active_notes.contains(&(ym2151_channel, *note)) {
                         // Key OFF
                         ym2151_events.push(Ym2151Event {
-                            time: sample_time,
+                            time: time_seconds,
                             addr: "0x08".to_string(),
                             data: format!("0x{:02X}", ym2151_channel),
                         });
@@ -319,8 +319,8 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                     continue;
                 }
 
-                let sample_time =
-                    ticks_to_samples_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
+                let time_seconds =
+                    ticks_to_seconds_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
 
                 // Apply program change to all allocated YM2151 channels for this MIDI channel
                 for &ym2151_channel in ym2151_channels.unwrap() {
@@ -328,11 +328,11 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
                     let tone_events = match load_tone_for_program(*program) {
                         Ok(Some(tone)) => {
                             // Apply the loaded tone to the channel
-                            apply_tone_to_channel(&tone, ym2151_channel, sample_time)
+                            apply_tone_to_channel(&tone, ym2151_channel, time_seconds)
                         }
                         Ok(None) | Err(_) => {
                             // Use default tone if file doesn't exist or can't be loaded
-                            default_tone_events(ym2151_channel, sample_time)
+                            default_tone_events(ym2151_channel, time_seconds)
                         }
                     };
 
@@ -467,9 +467,9 @@ mod tests {
         let note_on_event = result
             .events
             .iter()
-            .find(|e| e.addr == "0x08" && e.data == "0x78" && e.time == 0) // Channel 0 now
+            .find(|e| e.addr == "0x08" && e.data == "0x78" && e.time < 0.001) // Channel 0 now
             .expect("Should have Note On KEY event at time 0");
-        assert_eq!(note_on_event.time, 0);
+        assert!(note_on_event.time < 0.001);
     }
 
     #[test]
@@ -564,7 +564,7 @@ mod tests {
         let key_off = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x08" && e.time > 0)
+            .filter(|e| e.addr == "0x08" && e.time > 0.001)
             .find(|e| e.data == "0x00") // Channel 0
             .expect("Should have KEY OFF event");
 
@@ -633,7 +633,7 @@ mod tests {
             .iter()
             .find(|e| {
                 (e.addr == "0x28" || e.addr == "0x29" || e.addr == "0x2A")
-                    && e.time == 0
+                    && e.time < 0.001
                     && e.data == "0x3E"
             })
             .expect("Should have KC write for MIDI channel 0");
@@ -644,7 +644,7 @@ mod tests {
             .iter()
             .find(|e| {
                 (e.addr == "0x28" || e.addr == "0x29" || e.addr == "0x2A")
-                    && e.time == 0
+                    && e.time < 0.001
                     && e.data == "0x44"
             })
             .expect("Should have KC write for MIDI channel 1");
@@ -655,7 +655,7 @@ mod tests {
             .iter()
             .find(|e| {
                 (e.addr == "0x28" || e.addr == "0x29" || e.addr == "0x2A")
-                    && e.time == 0
+                    && e.time < 0.001
                     && e.data == "0x48"
             })
             .expect("Should have KC write for MIDI channel 2");
@@ -665,7 +665,7 @@ mod tests {
         let key_on_events: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x08" && e.time == 0 && e.data.starts_with("0x7"))
+            .filter(|e| e.addr == "0x08" && e.time < 0.001 && e.data.starts_with("0x7"))
             .collect();
         assert_eq!(key_on_events.len(), 3, "Should have 3 KEY ON events");
     }
@@ -711,7 +711,7 @@ mod tests {
         let init_channels: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr.starts_with("0x2") && e.time == 0)
+            .filter(|e| e.addr.starts_with("0x2") && e.time < 0.001)
             .map(|e| &e.addr)
             .collect();
 
@@ -724,7 +724,7 @@ mod tests {
         let note_channels: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr.starts_with("0x2") && (e.time == 0 || e.time > 0))
+            .filter(|e| e.addr.starts_with("0x2") && (e.time < 0.001 || e.time >= 0.001))
             .map(|e| &e.addr)
             .collect();
 
@@ -774,7 +774,7 @@ mod tests {
         let tone_events: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time == 0)
+            .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time < 0.001)
             .collect();
 
         // Should have 2 writes: one from init, one from program change
@@ -873,7 +873,7 @@ mod tests {
         let tone_events_time_0: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time == 0)
+            .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time < 0.001)
             .collect();
         assert!(
             tone_events_time_0.len() >= 2,
@@ -884,7 +884,7 @@ mod tests {
         let tone_events_later: Vec<_> = result
             .events
             .iter()
-            .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time > 0)
+            .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time > 0.001)
             .collect();
         assert!(
             !tone_events_later.is_empty(),
@@ -1025,7 +1025,7 @@ mod tests {
         let kc_events: Vec<&Ym2151Event> = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x28" && e.time == 0)
+            .filter(|e| e.addr == "0x28" && e.time < 0.001)
             .collect();
 
         assert_eq!(
@@ -1038,7 +1038,7 @@ mod tests {
         let key_on = result
             .events
             .iter()
-            .find(|e| e.addr == "0x08" && e.data == "0x78" && e.time == 0)
+            .find(|e| e.addr == "0x08" && e.data == "0x78" && e.time < 0.001)
             .expect("Should have KEY ON for channel 0");
         assert_eq!(key_on.data, "0x78"); // 0x78 = all operators on, channel 0
     }
@@ -1095,7 +1095,7 @@ mod tests {
         let drum_kc = result
             .events
             .iter()
-            .find(|e| e.addr == "0x28" && e.time == 0)
+            .find(|e| e.addr == "0x28" && e.time < 0.001)
             .expect("Drum should use YM2151 channel 0");
         assert!(drum_kc.data.starts_with("0x"));
 
@@ -1103,7 +1103,7 @@ mod tests {
         let ch0_kc = result
             .events
             .iter()
-            .find(|e| e.addr == "0x29" && e.time == 0)
+            .find(|e| e.addr == "0x29" && e.time < 0.001)
             .expect("MIDI ch 0 should use YM2151 channel 1");
         assert!(ch0_kc.data.starts_with("0x"));
 
@@ -1111,7 +1111,7 @@ mod tests {
         let ch1_kc = result
             .events
             .iter()
-            .find(|e| e.addr == "0x2A" && e.time == 0)
+            .find(|e| e.addr == "0x2A" && e.time < 0.001)
             .expect("MIDI ch 1 should use YM2151 channel 2");
         assert!(ch1_kc.data.starts_with("0x"));
 
@@ -1119,7 +1119,7 @@ mod tests {
         let key_on_events: Vec<&Ym2151Event> = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x08" && e.time == 0 && e.data.starts_with("0x7"))
+            .filter(|e| e.addr == "0x08" && e.time < 0.001 && e.data.starts_with("0x7"))
             .collect();
 
         // Should have 3 KEY ON events

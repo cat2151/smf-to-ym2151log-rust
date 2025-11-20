@@ -69,11 +69,11 @@ pub fn load_tone_for_program(program: u8) -> Result<Option<ToneDefinition>> {
 ///
 /// # Arguments
 /// * `channel` - YM2151 channel number (0-7)
-/// * `time` - Sample time for the events
+/// * `time` - Time in seconds for the events
 ///
 /// # Returns
 /// Vector of YM2151 register write events for the default tone
-pub fn default_tone_events(channel: u8, time: u32) -> Vec<Ym2151Event> {
+pub fn default_tone_events(channel: u8, time: f64) -> Vec<Ym2151Event> {
     // Use the existing channel initialization as the default tone
     crate::ym2151::initialize_channel_events(channel, time)
 }
@@ -86,11 +86,11 @@ pub fn default_tone_events(channel: u8, time: u32) -> Vec<Ym2151Event> {
 /// # Arguments
 /// * `tone` - Tone definition to apply
 /// * `channel` - Target YM2151 channel (0-7)
-/// * `time` - Sample time for the tone change
+/// * `time` - Time in seconds for the tone change
 ///
 /// # Returns
 /// Vector of YM2151 events configured for the specified channel and time
-pub fn apply_tone_to_channel(tone: &ToneDefinition, channel: u8, time: u32) -> Vec<Ym2151Event> {
+pub fn apply_tone_to_channel(tone: &ToneDefinition, channel: u8, time: f64) -> Vec<Ym2151Event> {
     tone.events
         .iter()
         .map(|event| {
@@ -135,7 +135,7 @@ mod tests {
 
     #[test]
     fn test_default_tone_events() {
-        let events = default_tone_events(0, 0);
+        let events = default_tone_events(0, 0.0);
         // Should have 26 events (same as initialize_channel_events)
         assert_eq!(events.len(), 26);
     }
@@ -154,50 +154,50 @@ mod tests {
         let tone = ToneDefinition {
             events: vec![
                 Ym2151Event {
-                    time: 0,
+                    time: 0.0,
                     addr: "0x20".to_string(), // RL_FB_CONNECT for channel 0
                     data: "0xC7".to_string(),
                 },
                 Ym2151Event {
-                    time: 0,
+                    time: 0.0,
                     addr: "0x40".to_string(), // DT1/MUL for operator 0, channel 0
                     data: "0x01".to_string(),
                 },
             ],
         };
 
-        // Apply to channel 1 at time 1000
-        let events = apply_tone_to_channel(&tone, 1, 1000);
+        // Apply to channel 1 at time 1.0 seconds
+        let events = apply_tone_to_channel(&tone, 1, 1.0);
 
         assert_eq!(events.len(), 2);
         // Channel register should be adjusted to 0x21 (channel 1)
         assert_eq!(events[0].addr, "0x21");
-        assert_eq!(events[0].time, 1000);
+        assert!((events[0].time - 1.0).abs() < 0.001);
         // Operator register should be adjusted to 0x41 (operator 0, channel 1)
         assert_eq!(events[1].addr, "0x41");
-        assert_eq!(events[1].time, 1000);
+        assert!((events[1].time - 1.0).abs() < 0.001);
     }
 
     #[test]
     fn test_apply_tone_to_different_channels() {
         let tone = ToneDefinition {
             events: vec![Ym2151Event {
-                time: 0,
+                time: 0.0,
                 addr: "0x60".to_string(), // TL for operator 0, channel 0
                 data: "0x00".to_string(),
             }],
         };
 
         // Apply to channel 0
-        let events_ch0 = apply_tone_to_channel(&tone, 0, 0);
+        let events_ch0 = apply_tone_to_channel(&tone, 0, 0.0);
         assert_eq!(events_ch0[0].addr, "0x60");
 
         // Apply to channel 3
-        let events_ch3 = apply_tone_to_channel(&tone, 3, 0);
+        let events_ch3 = apply_tone_to_channel(&tone, 3, 0.0);
         assert_eq!(events_ch3[0].addr, "0x63");
 
         // Apply to channel 7
-        let events_ch7 = apply_tone_to_channel(&tone, 7, 0);
+        let events_ch7 = apply_tone_to_channel(&tone, 7, 0.0);
         assert_eq!(events_ch7[0].addr, "0x67");
     }
 
@@ -206,22 +206,22 @@ mod tests {
         let tone = ToneDefinition {
             events: vec![
                 Ym2151Event {
-                    time: 0,
+                    time: 0.0,
                     addr: "0x60".to_string(), // TL operator 0, channel 0
                     data: "0x00".to_string(),
                 },
                 Ym2151Event {
-                    time: 0,
+                    time: 0.0,
                     addr: "0x68".to_string(), // TL operator 1, channel 0
                     data: "0x7F".to_string(),
                 },
                 Ym2151Event {
-                    time: 0,
+                    time: 0.0,
                     addr: "0x70".to_string(), // TL operator 2, channel 0
                     data: "0x7F".to_string(),
                 },
                 Ym2151Event {
-                    time: 0,
+                    time: 0.0,
                     addr: "0x78".to_string(), // TL operator 3, channel 0
                     data: "0x7F".to_string(),
                 },
@@ -229,7 +229,7 @@ mod tests {
         };
 
         // Apply to channel 2
-        let events = apply_tone_to_channel(&tone, 2, 0);
+        let events = apply_tone_to_channel(&tone, 2, 0.0);
 
         assert_eq!(events.len(), 4);
         assert_eq!(events[0].addr, "0x62"); // TL operator 0, channel 2
