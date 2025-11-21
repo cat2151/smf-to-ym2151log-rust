@@ -1,4 +1,4 @@
-Last updated: 2025-11-16
+Last updated: 2025-11-22
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -226,8 +226,8 @@ tones/
 cat > tones/042.json << EOF
 {
   "events": [
-    { "time": 0, "addr": "0x20", "data": "0xC7" },
-    { "time": 0, "addr": "0x38", "data": "0x00" },
+    { "time": 0.0, "addr": "0x20", "data": "0xC7" },
+    { "time": 0.0, "addr": "0x38", "data": "0x00" },
     ...
   ]
 }
@@ -305,6 +305,7 @@ cargo audit
   📖 23.md
   📖 25.md
   📖 28.md
+  📖 30.md
 📁 src/
   📄 error.rs
   📄 lib.rs
@@ -349,6 +350,7 @@ issue-notes/22.md
 issue-notes/23.md
 issue-notes/25.md
 issue-notes/28.md
+issue-notes/30.md
 tones/000.json
 tones/README.md
 
@@ -362,4 +364,4 @@ tones/README.md
 
 
 ---
-Generated at: 2025-11-16 07:05:56 JST
+Generated at: 2025-11-22 07:07:07 JST

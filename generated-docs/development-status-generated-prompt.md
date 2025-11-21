@@ -1,4 +1,4 @@
-Last updated: 2025-11-16
+Last updated: 2025-11-22
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -210,6 +210,7 @@ Last updated: 2025-11-16
 - issue-notes/23.md
 - issue-notes/25.md
 - issue-notes/28.md
+- issue-notes/30.md
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -473,132 +474,132 @@ jobs:
 {
   "events": [
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x20",
       "data": "0xC7"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x38",
       "data": "0x00"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x40",
       "data": "0x01"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x60",
       "data": "0x00"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x80",
       "data": "0x1F"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xA0",
       "data": "0x05"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xC0",
       "data": "0x05"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xE0",
       "data": "0xF7"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x48",
       "data": "0x01"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x68",
       "data": "0x7F"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x88",
       "data": "0x1F"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xA8",
       "data": "0x05"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xC8",
       "data": "0x05"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xE8",
       "data": "0xF7"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x50",
       "data": "0x01"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x70",
       "data": "0x7F"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x90",
       "data": "0x1F"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xB0",
       "data": "0x05"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xD0",
       "data": "0x05"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xF0",
       "data": "0xF7"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x58",
       "data": "0x01"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x78",
       "data": "0x7F"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0x98",
       "data": "0x1F"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xB8",
       "data": "0x05"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xD8",
       "data": "0x05"
     },
     {
-      "time": 0,
+      "time": 0.0,
       "addr": "0xF8",
       "data": "0xF7"
     }
@@ -609,33 +610,34 @@ jobs:
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+1245414 Auto-translate README.ja.md to README.md [auto]
+7da4267 Merge pull request #31 from cat2151/copilot/update-json-format-time
+cc0bfa9 Update documentation and tone files for f64 time format
+9e88de6 Change JSON time format from samples (u32) to seconds (f64)
+b4d5327 Initial plan
+4de1e86 Add issue note for #30 [auto]
+9ee99a5 Update project summaries (overview & development status) [auto]
 0b97b7b Auto-translate README.ja.md to README.md [auto]
 3e56907 Merge pull request #29 from cat2151/copilot/fix-midi-channel-mapping
 6008460 Update README to document polyphony-based allocation implementation
-756f7a5 Implement polyphony-based channel allocation with drum channel priority
-b95f9a7 Update documentation to reflect actual channel mapping implementation
-274a209 Implement MIDI channel 9 to YM2151 channel 0 priority mapping
-e0c44ed Initial plan
-31e73bf Auto-translate README.ja.md to README.md [auto]
-cf7e0c6 Merge pull request #27 from cat2151/copilot/add-ym2151log-json-for-midi
-32130ff Add tests and documentation for Program Change support
 
 ### 変更されたファイル:
-.gitignore
 README.ja.md
 README.md
-issue-notes/25.md
-issue-notes/28.md
+generated-docs/development-status-generated-prompt.md
+generated-docs/development-status.md
+generated-docs/project-overview-generated-prompt.md
+generated-docs/project-overview.md
+issue-notes/30.md
+src/lib.rs
 src/midi/utils.rs
 src/ym2151/converter.rs
-src/ym2151/mod.rs
+src/ym2151/events.rs
+src/ym2151/init.rs
 src/ym2151/tone.rs
-tests/create_test_midi.py
 tests/integration_tests.rs
-tests/test_data/program_change.mid
 tones/000.json
-tones/README.md
 
 
 ---
-Generated at: 2025-11-16 07:05:56 JST
+Generated at: 2025-11-22 07:07:07 JST
