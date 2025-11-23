@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 /// Represents a YM2151 register write event
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Ym2151Event {
-    /// Sample time at 55930 Hz
-    pub time: u32,
+    /// Time in seconds (f64)
+    pub time: f64,
     /// Register address (hex string format, e.g., "0x08")
     pub addr: String,
     /// Data to write (hex string format, e.g., "0x4E")

@@ -8,7 +8,7 @@ use crate::ym2151::Ym2151Event;
 ///
 /// # Arguments
 /// * `channel` - Channel number (0-7)
-/// * `time` - Sample time for the events
+/// * `time` - Time in seconds for the events
 ///
 /// # Returns
 /// Vector of initialization events
@@ -16,10 +16,10 @@ use crate::ym2151::Ym2151Event;
 /// # Example
 /// ```
 /// use smf_to_ym2151log::ym2151::initialize_channel_events;
-/// let events = initialize_channel_events(0, 0);
+/// let events = initialize_channel_events(0, 0.0);
 /// assert!(!events.is_empty());
 /// ```
-pub fn initialize_channel_events(channel: u8, time: u32) -> Vec<Ym2151Event> {
+pub fn initialize_channel_events(channel: u8, time: f64) -> Vec<Ym2151Event> {
     let mut events = Vec::new();
 
     // RL_FB_CONNECT: Stereo output and feedback configuration
@@ -104,26 +104,26 @@ mod tests {
 
     #[test]
     fn test_initialize_channel_events_count() {
-        let events = initialize_channel_events(0, 0);
+        let events = initialize_channel_events(0, 0.0);
         // Expected: 2 channel registers + 4 operators * 6 registers = 26 events
         assert_eq!(events.len(), 26);
     }
 
     #[test]
     fn test_initialize_channel_events_time() {
-        let time = 12345;
+        let time = 1.23;
         let events = initialize_channel_events(0, time);
         // All events should have the specified time
         for event in events {
-            assert_eq!(event.time, time);
+            assert!((event.time - time).abs() < 0.001);
         }
     }
 
     #[test]
     fn test_initialize_channel_events_different_channels() {
         // Test that different channels get different register addresses
-        let events_ch0 = initialize_channel_events(0, 0);
-        let events_ch1 = initialize_channel_events(1, 0);
+        let events_ch0 = initialize_channel_events(0, 0.0);
+        let events_ch1 = initialize_channel_events(1, 0.0);
 
         // First event should be RL_FB_CONNECT register
         assert_eq!(events_ch0[0].addr, "0x20");
@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn test_initialize_channel_events_operator_tl() {
-        let events = initialize_channel_events(0, 0);
+        let events = initialize_channel_events(0, 0.0);
         // Find TL (Total Level) register writes (0x60 base)
         // TL addresses for operators 0-3: 0x60, 0x68, 0x70, 0x78
         let tl_addresses = vec!["0x60", "0x68", "0x70", "0x78"];

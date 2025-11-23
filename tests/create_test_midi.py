@@ -190,6 +190,52 @@ def create_multi_channel_midi():
     
     return header + track
 
+def create_program_change_midi():
+    """Create a MIDI file with program change events"""
+    # Header chunk
+    header = b'MThd'
+    header += struct.pack('>I', 6)
+    header += struct.pack('>H', 0)  # Format 0
+    header += struct.pack('>H', 1)  # Number of tracks
+    header += struct.pack('>H', 480)  # Ticks per quarter note
+    
+    # Track chunk
+    track_events = bytearray()
+    
+    # Program Change to program 0 on channel 0
+    track_events += write_variable_length(0)
+    track_events += bytes([0xC0, 0])  # Program Change, channel 0, program 0
+    
+    # Note On: Middle C
+    track_events += write_variable_length(0)
+    track_events += bytes([0x90, 60, 100])
+    
+    # Note Off: Middle C at 480 ticks
+    track_events += write_variable_length(480)
+    track_events += bytes([0x80, 60, 0])
+    
+    # Program Change to program 42 on channel 0
+    track_events += write_variable_length(0)
+    track_events += bytes([0xC0, 42])  # Program Change, channel 0, program 42
+    
+    # Note On: D
+    track_events += write_variable_length(0)
+    track_events += bytes([0x90, 62, 90])
+    
+    # Note Off: D at 480 ticks later
+    track_events += write_variable_length(480)
+    track_events += bytes([0x80, 62, 0])
+    
+    # End of track
+    track_events += write_variable_length(0)
+    track_events += bytes([0xFF, 0x2F, 0x00])
+    
+    track = b'MTrk'
+    track += struct.pack('>I', len(track_events))
+    track += track_events
+    
+    return header + track
+
 if __name__ == '__main__':
     import os
     
@@ -212,3 +258,7 @@ if __name__ == '__main__':
     with open('tests/test_data/multi_channel.mid', 'wb') as f:
         f.write(create_multi_channel_midi())
     print('Created: tests/test_data/multi_channel.mid')
+    
+    with open('tests/test_data/program_change.mid', 'wb') as f:
+        f.write(create_program_change_midi())
+    print('Created: tests/test_data/program_change.mid')

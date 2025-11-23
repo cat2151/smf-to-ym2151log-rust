@@ -12,7 +12,7 @@
 //! - Convert MIDI notes to YM2151 KC/KF values
 //! - Handle tempo changes
 //! - Output JSON format compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc)
-//! - Sample rate: 55930 Hz (YM2151 standard)
+//! - Time values in seconds (f64) for simplicity and WebAudio API compatibility
 //!
 //! ## Example
 //!

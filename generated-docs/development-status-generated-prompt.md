@@ -1,4 +1,4 @@
-Last updated: 2025-11-12
+Last updated: 2025-11-22
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -205,6 +205,12 @@ Last updated: 2025-11-12
 - README.md
 - _config.yml
 - generated-docs/project-overview-generated-prompt.md
+- issue-notes/21.md
+- issue-notes/22.md
+- issue-notes/23.md
+- issue-notes/25.md
+- issue-notes/28.md
+- issue-notes/30.md
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -217,623 +223,421 @@ Last updated: 2025-11-12
 - src/ym2151/init.rs
 - src/ym2151/mod.rs
 - src/ym2151/note_table.rs
+- src/ym2151/tone.rs
 - tests/create_test_midi.py
 - tests/integration_tests.rs
 - tests/test_data/multi_channel.mid
 - tests/test_data/multi_track.mid
+- tests/test_data/program_change.mid
 - tests/test_data/simple_melody.mid
 - tests/test_data/tempo_change.mid
+- tones/000.json
+- tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #16](../issue-notes/16.md): IMPLEMENTATION.md の最終フェーズ6まで実装完了したので、Windows版で動作確認する
+## [Issue #22](../issue-notes/22.md): （手作業）仮で tones/000.json～127.json のうちいくつかを実際に配置する。ym2151-tone-editorを利用して作成できる
+[issue-notes/22.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/22.md)
 
+...
 ラベル: 
---- issue-notes/16.md の内容 ---
+--- issue-notes/22.md の内容 ---
 
 ```markdown
+# issue tones/000.json～127.json を、ym2151-tone-editorを利用して作成する #22
+[issues #22](https://github.com/cat2151/smf-to-ym2151log-rust/issues/22)
+
+
 
 ```
 
 ## ドキュメントで言及されているファイルの内容
-### .github/actions-tmp/issue-notes/16.md
+### .github/actions-tmp/issue-notes/2.md
 ```md
-# issue issue-note / project-summary / translate / callgraph をtonejs-mml-to-jsonから呼び出す #16
-[issues #16](https://github.com/cat2151/github-actions/issues/16)
+# issue GitHub Actions「関数コールグラフhtmlビジュアライズ生成」を共通ワークフロー化する #2
+[issues #2](https://github.com/cat2151/github-actions/issues/2)
 
-# これまでの課題
-- issue-note / project-summary / translate / callgraph は、github-actions リポジトリ上ではtest greenである。
-- だが他のリポジトリにおいて動作するか？が可視化不足である。
 
-# 対策
-- issue-note / project-summary / translate / callgraph をtonejs-mml-to-jsonから呼び出す
-- 詳しく
-    - まず、現状、tonejs-mml-to-json でその4つのworkflowがどうなっているか、このmdに可視化する
-    - 例えば、既に呼び出している、呼び出していない、tonejs-mml-to-jsonにある古いworkflowを呼び出している
-
-# 調査結果
-- まず、現状、tonejs-mml-to-json でその4つのworkflowがどうなっているか、このmdに可視化する
-    - 結果：
-        - issue-note
-            - tonejs-mml-to-jsonにある古いworkflowを呼び出している
-        - project-summary
-            - tonejs-mml-to-jsonにある古いworkflowを呼び出している
-        - translate
-            - tonejs-mml-to-jsonにある古いworkflowを呼び出している
-        - callgraph
-            - tonejs-mml-to-jsonにある古いworkflowを呼び出している
-
-# どうする？
-- issue-note
-    - github-actions リポジトリにある、call-issue-note.yml をcpして使うようにする、まず単純cpして動くかを確認する
-- project-summary
-    - github-actions リポジトリにある、call-daily-project-summary.yml をcpして使うようにする、まず単純cpして動くかを確認する
-- translate
-    - github-actions リポジトリにある、call-translate-readme.yml をcpして使うようにする、まず単純cpして動くかを確認する
-- callgraph
-    - github-actions リポジトリにある、call-callgraph.yml をcpして使うようにする、まず単純cpして動くかを確認する
-
-# 状況
-- issue-note
-    - tonejs-mml-to-jsonリポジトリにて、test green
-    - issue-noteについては当issueのタスクは完了した、と判断する
-- project-summary
-    - tonejs-mml-to-jsonリポジトリにて、test green
-    - project-summaryについては当issueのタスクは完了した、と判断する
-
-# 状況
-- translate
-    - github-actions リポジトリにある、call-translate-readme.yml をcpして使うようにする、まず単純cpして動くかを確認する
-        - 状況
-            - 単純cpした
-            - ソース机上レビューした。OK
-            - トリガーはREADME.ja.mdのcommit
-            - testは省略とする
-            - もし今後README.ja.mdのcommit時にうまく動作しないとしても、そのとき対処すればOK、と判断する
-    - translateについては当issueのタスクは完了した、と判断する
-
-# どうする？
-- callgraph
-    - github-actions リポジトリにある、call-callgraph.yml をcpして使うようにする、まず単純cpして動くかを確認する
+# prompt
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+このymlファイルを、以下の2つのファイルに分割してください。
+1. 共通ワークフロー       cat2151/github-actions/.github/workflows/callgraph_enhanced.yml
+2. 呼び出し元ワークフロー cat2151/github-actions/.github/workflows/call-callgraph_enhanced.yml
+まずplanしてください
+```
 
 # 結果
-- callgraph
-    - tonejs-mml-to-jsonリポジトリにて、test red
-    - logをみても情報不足なため、まずloggerを修正する
-    - 結果、わかった、運用ミス、対象srcの指定の考慮漏れ
-    - どうする？
-        - 対象srcを指定する。tonejs-mml-to-jsonリポジトリにて進める
-    - 結果
-        - test green
-    - callgraphについては当issueのタスクは完了した、と判断する
+- indent
+    - linter？がindentのエラーを出しているがyml内容は見た感じOK
+    - テキストエディタとagentの相性問題と判断する
+    - 別のテキストエディタでsaveしなおし、テキストエディタをreload
+    - indentのエラーは解消した
+- LLMレビュー
+    - agent以外の複数のLLMにレビューさせる
+    - prompt
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+以下の2つのファイルをレビューしてください。最優先で、エラーが発生するかどうかだけレビューしてください。エラー以外の改善事項のチェックをするかわりに、エラー発生有無チェックに最大限注力してください。
 
-# 状況
-- github-actions以外のリポジトリとして、
-    - tonejs-mml-to-jsonリポジトリにおいて、
-        - issue-note / project-summary / translate / callgraph がtest greenとなった。
-        - closeできる、と判断する。
+--- 共通ワークフロー
+
+# GitHub Actions Reusable Workflow for Call Graph Generation
+name: Generate Call Graph
+
+# TODO Windowsネイティブでのtestをしていた名残が残っているので、今後整理していく。今はWSL act でtestしており、Windowsネイティブ環境依存問題が解決した
+#  ChatGPTにレビューさせるとそこそこ有用そうな提案が得られたので、今後それをやる予定
+#  agentに自己チェックさせる手も、セカンドオピニオンとして選択肢に入れておく
+
+on:
+  workflow_call:
+
+jobs:
+  check-commits:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50 # 過去のコミットを取得
+
+      - name: Check for user commits in last 24 hours
+        id: check
+        run: |
+          node .github/scripts/callgraph_enhanced/check-commits.cjs
+
+  generate-callgraph:
+    needs: check-commits
+    if: needs.check-commits.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Remove old CodeQL packages cache
+        run: rm -rf ~/.codeql/packages
+
+      - name: Check Node.js version
+        run: |
+          node .github/scripts/callgraph_enhanced/check-node-version.cjs
+
+      - name: Install CodeQL CLI
+        run: |
+          wget https://github.com/github/codeql-cli-binaries/releases/download/v2.22.1/codeql-linux64.zip
+          unzip codeql-linux64.zip
+          sudo mv codeql /opt/codeql
+          echo "/opt/codeql" >> $GITHUB_PATH
+
+      - name: Install CodeQL query packs
+        run: |
+          /opt/codeql/codeql pack install .github/codeql-queries
+
+      - name: Check CodeQL exists
+        run: |
+          node .github/scripts/callgraph_enhanced/check-codeql-exists.cjs
+
+      - name: Verify CodeQL Configuration
+        run: |
+          node .github/scripts/callgraph_enhanced/analyze-codeql.cjs verify-config
+
+      - name: Remove existing CodeQL DB (if any)
+        run: |
+          rm -rf codeql-db
+
+      - name: Perform CodeQL Analysis
+        run: |
+          node .github/scripts/callgraph_enhanced/analyze-codeql.cjs analyze
+
+      - name: Check CodeQL Analysis Results
+        run: |
+          node .github/scripts/callgraph_enhanced/analyze-codeql.cjs check-results
+
+      - name: Debug CodeQL execution
+        run: |
+          node .github/scripts/callgraph_enhanced/analyze-codeql.cjs debug
+
+      - name: Wait for CodeQL results
+        run: |
+          node -e "setTimeout(()=>{}, 10000)"
+
+      - name: Find and process CodeQL results
+        run: |
+          node .github/scripts/callgraph_enhanced/find-process-results.cjs
+
+      - name: Generate HTML graph
+        run: |
+          node .github/scripts/callgraph_enhanced/generate-html-graph.cjs
+
+      - name: Copy files to generated-docs and commit results
+        run: |
+          node .github/scripts/callgraph_enhanced/copy-commit-results.cjs
+
+--- 呼び出し元
+# 呼び出し元ワークフロー: call-callgraph_enhanced.yml
+name: Call Call Graph Enhanced
+
+on:
+  schedule:
+    # 毎日午前5時(JST) = UTC 20:00前日
+    - cron: '0 20 * * *'
+  workflow_dispatch:
+
+jobs:
+  call-callgraph-enhanced:
+    # uses: cat2151/github-actions/.github/workflows/callgraph_enhanced.yml
+    uses: ./.github/workflows/callgraph_enhanced.yml # ローカルでのテスト用
+```
+
+# レビュー結果OKと判断する
+- レビュー結果を人力でレビューした形になった
+
+# test
+- #4 同様にローカル WSL + act でtestする
+- エラー。userのtest設計ミス。
+  - scriptの挙動 : src/ がある前提
+  - 今回の共通ワークフローのリポジトリ : src/ がない
+  - 今回testで実現したいこと
+    - 仮のソースでよいので、関数コールグラフを生成させる
+  - 対策
+    - src/ にダミーを配置する
+- test green
+  - ただしcommit pushはしてないので、html内容が0件NG、といったケースの検知はできない
+  - もしそうなったら別issueとしよう
+
+# test green
+
+# commit用に、yml 呼び出し元 uses をlocal用から本番用に書き換える
+
+# closeとする
+- もしhtml内容が0件NG、などになったら、別issueとするつもり
+
+```
+
+### .github/actions-tmp/issue-notes/22.md
+```md
+# issue project-summary の development-status 生成時、Geminiに与えたprompt、もcommit push、を試す #22
+[issues #22](https://github.com/cat2151/github-actions/issues/22)
+
+# 何が困るの？
+- 生成された development-status.md の妥当性がわかりづらいし、バグった場合の原因調査がしづらい
+
+# 対策案
+- Geminiに与えたpromptをfileにしてcommit pushしておくと、デバッグに役立つ可能性がある。
+
+# 方法案
+- Geminiに与えるprompt を生成時、それをfileにsaveし、commit push対象にする。
+- ひとまずgenerated-docs/ に保存する。落ち着いたら移動先を検討する。
+    - generated-docs/ 配下のまま、も有力な候補である。
+        - なぜなら、cjsによってgenerateされたdocなので。
+
+# 日次バッチでpromptを生成させ、agentに投げた
+- レビューした
+- 修正させた
+
+# 結果
+- エラー。pathのミス。呼び出し元側に保存したいのに、共通ワークフロー側に保存となってしまった。
+- 対策、ymlで引数を指定するようにした。
+- testする。
+
+# 結果
+- test green。呼び出し元側にcommitされていることを確認した。
+- 20Kbytesである
+    - Geminiにわたすサイズとしても許容範囲内と判断する
+        - token数から概算して100Kbytes～1Mbytes程度を想定
 
 # closeとする
 
 ```
 
-### IMPLEMENTATION.md
+### issue-notes/22.md
 ```md
-# Implementation Plan: smf-to-ym2151log-rust
+# issue tones/000.json～127.json を、ym2151-tone-editorを利用して作成する #22
+[issues #22](https://github.com/cat2151/smf-to-ym2151log-rust/issues/22)
 
-## 概要 (Overview)
 
-Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装の計画書です。
-Python版の [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log) を参考に、Rustで再実装します。
-
-This document outlines the implementation plan for a Rust version of smf-to-ym2151log, which converts Standard MIDI Files (SMF) to YM2151 register write logs in JSON format.
-
-## 1. 入出力仕様 (Input/Output Specification)
-
-### 入力 (Input)
-- **フォーマット**: Standard MIDI File (.mid)
-- **対応形式**: SMF Format 0, Format 1
-- **コマンドライン引数**: 
-  ```bash
-  smf-to-ym2151log-rust <midi_file>
-  ```
-
-### 出力 (Output)
-
-#### Pass A 出力 (Debug Events JSON)
-- **ファイル名**: `<base_name>_events.json`
-- **用途**: デバッグ用の中間イベントデータ
-- **フォーマット例**:
-  ```json
-  {
-    "ticks_per_beat": 480,
-    "tempo_bpm": 120.0,
-    "events": [
-      {
-        "type": "note_on",
-        "ticks": 0,
-        "channel": 0,
-        "note": 60,
-        "velocity": 100
-      },
-      {
-        "type": "note_off",
-        "ticks": 480,
-        "channel": 0,
-        "note": 60
-      }
-    ]
-  }
-  ```
-
-#### Pass B 出力 (YM2151 Log JSON)
-- **ファイル名**: `<base_name>_ym2151.json`
-- **用途**: 最終的なYM2151レジスタ書き込みログ
-- **仕様**: [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) 互換形式
-- **フォーマット例**:
-  ```json
-  {
-    "event_count": 50,
-    "events": [
-      {
-        "time": 0,
-        "addr": "0x08",
-        "data": "0x00"
-      },
-      {
-        "time": 0,
-        "addr": "0x28",
-        "data": "0x4E"
-      }
-    ]
-  }
-  ```
-
-#### フィールド説明
-- `time`: サンプル時刻（整数、55930 Hzサンプルレートでの値）
-- `addr`: YM2151レジスタアドレス（16進数文字列）
-- `data`: 書き込むデータ（16進数文字列）
-
-## 2. アーキテクチャ (Architecture)
-
-### 2段階処理 (2-Pass Processing)
 
 ```
-┌──────────────┐
-│  MIDI File   │
-│   (.mid)     │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────────────┐
-│   Pass A: Parser     │
-│  MIDI → Events JSON  │
-│  (midi_parser.rs)    │
-└──────┬───────────────┘
-       │
-       ▼
-┌──────────────────────┐
-│  Events JSON (Debug) │
-│  <name>_events.json  │
-└──────┬───────────────┘
-       │
-       ▼
-┌──────────────────────┐
-│  Pass B: Converter   │
-│ Events → YM2151 Log  │
-│ (ym2151_converter.rs)│
-└──────┬───────────────┘
-       │
-       ▼
-┌──────────────────────┐
-│   YM2151 Log JSON    │
-│ <name>_ym2151.json   │
-└──────────────────────┘
-```
 
-### モジュール構成 (Module Structure)
-
-```
-src/
-├── main.rs                  # エントリーポイント、CLI処理
-├── lib.rs                   # ライブラリのルート
-├── midi/
-│   ├── mod.rs              # MIDIモジュールのルート
-│   ├── parser.rs           # Pass A: MIDIファイル解析
-│   ├── events.rs           # MIDIイベント構造体定義
-│   └── utils.rs            # MIDIユーティリティ関数
-├── ym2151/
-│   ├── mod.rs              # YM2151モジュールのルート
-│   ├── converter.rs        # Pass B: YM2151ログ変換
-│   ├── events.rs           # YM2151イベント構造体定義
-│   ├── init.rs             # YM2151チャンネル初期化
-│   └── note_table.rs       # MIDI→YM2151音程変換テーブル
-└── error.rs                 # エラー型定義
-
-tests/
-├── integration_tests.rs     # 統合テスト
-└── test_data/              # テストデータ（MIDIファイルなど）
-    └── test.mid
-```
-
-## 3. 利用ライブラリ (Dependencies)
-
-### 必須ライブラリ
-
-| ライブラリ | バージョン | 用途 | 理由 |
-|-----------|-----------|------|------|
-| `midly` | 0.5.x | MIDI解析 | 高速で安全なSMF解析、ゼロコピー設計 |
-| `serde` | 1.0.x | シリアライズ | JSON出力に必要、Rust標準的な選択 |
-| `serde_json` | 1.0.x | JSON処理 | 最も広く使われているJSONライブラリ |
-| `anyhow` | 1.0.x | エラーハンドリング | シンプルで使いやすいエラー処理 |
-| `thiserror` | 1.0.x | カスタムエラー型 | ライブラリ用のエラー型定義に最適 |
-
-### 開発・テスト用ライブラリ
-
-| ライブラリ | バージョン | 用途 |
-|-----------|-----------|------|
-| `criterion` | 0.5.x | ベンチマーク（オプション） |
-| `proptest` | 1.0.x | プロパティベーステスト（オプション） |
-
-### Cargo.toml 設定例
-
-```toml
-[package]
-name = "smf-to-ym2151log-rust"
-version = "0.1.0"
-edition = "2021"
-authors = ["cat2151"]
-license = "MIT"
-description = "Convert Standard MIDI Files to YM2151 register write log in JSON format"
-repository = "https://github.com/cat2151/smf-to-ym2151log-rust"
-
-[dependencies]
-midly = "0.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-anyhow = "1.0"
-thiserror = "1.0"
-
-[dev-dependencies]
-criterion = { version = "0.5", optional = true }
-proptest = { version = "1.0", optional = true }
-
-[[bin]]
-name = "smf-to-ym2151log-rust"
-path = "src/main.rs"
-
-[lib]
-name = "smf_to_ym2151log"
-path = "src/lib.rs"
-```
-
-## 4. テスト方針 (Testing Strategy)
-
-### 4.1 ユニットテスト (Unit Tests)
-
-各モジュールに対してユニットテストを実装：
-
-#### midi_utils テスト
-- [ ] MIDI音程番号からYM2151 KC/KF変換のテスト
-  - 各オクターブの代表的な音程
-  - 境界値（最小値、最大値）
-  - オクターブクランプの検証
-- [ ] ティック→秒変換のテスト
-- [ ] 秒→サンプル数変換のテスト
-- [ ] ティック→サンプル数変換のテスト
-
-#### ym2151_converter テスト
-- [ ] チャンネル初期化イベント生成のテスト
-- [ ] Note OnイベントからYM2151イベント生成のテスト
-- [ ] Note OffイベントからYM2151イベント生成のテスト
-- [ ] テンポ変更の反映テスト
-
-#### midi_parser テスト
-- [ ] シンプルなMIDIファイル解析のテスト
-- [ ] 複数トラックのMIDIファイル解析のテスト
-- [ ] テンポ変更を含むMIDIファイルのテスト
-
-### 4.2 統合テスト (Integration Tests)
-
-- [ ] エンドツーエンドテスト：実際のMIDIファイルからJSON出力まで
-- [ ] Python版との出力比較テスト（互換性確認）
-- [ ] 複数のMIDIファイル形式での動作確認
-
-### 4.3 テストデータ
-
-```rust
-// tests/test_data/ にテスト用MIDIファイルを配置
-tests/
-└── test_data/
-    ├── simple_melody.mid    // 単純なメロディ
-    ├── scale.mid            // 音階パターン
-    ├── tempo_change.mid     // テンポ変更を含む
-    └── multi_track.mid      // 複数トラック
-```
-
-### 4.4 Python版との互換性テスト
-
-```bash
-# Python版で変換
-python smf_to_ym2151log.py test.mid
-# Rust版で変換
-cargo run -- test.mid
-# 出力を比較
-diff test_ym2151.json test_ym2151.json
-```
-
-### 4.5 テストカバレッジ目標
-
-- ユニットテスト: 90%以上のコードカバレッジ
-- 統合テスト: 主要なユースケースをカバー
-- エラーハンドリング: 異常系テストの実装
-
-## 5. 段階的実装 (Phased Implementation)
-
-### フェーズ1: プロジェクト基盤構築 (Phase 1: Project Foundation)
-
-**目標**: Rustプロジェクトのセットアップと基本構造の構築
-
-**タスク**:
-- [ ] Cargoプロジェクトの初期化
-- [ ] 基本的なディレクトリ構造の作成
-- [ ] 依存ライブラリの追加（Cargo.toml）
-- [ ] 基本的なエラー型の定義（error.rs）
-- [ ] CI/CD設定（GitHub Actions）
-  - ビルドテスト
-  - ユニットテスト実行
-  - フォーマットチェック（rustfmt）
-  - リントチェック（clippy）
-
-**成果物**:
-- 動作するRustプロジェクト構造
-- エラー型定義
-- CI/CDパイプライン
-
-### フェーズ2: MIDI解析実装 (Phase 2: MIDI Parser Implementation)
-
-**目標**: Pass A - MIDIファイルを中間イベントJSONに変換
-
-**タスク**:
-- [ ] MIDIイベント構造体の定義（midi/events.rs）
-  ```rust
-  #[derive(Debug, Clone, Serialize, Deserialize)]
-  pub enum MidiEvent {
-      NoteOn { ticks: u32, channel: u8, note: u8, velocity: u8 },
-      NoteOff { ticks: u32, channel: u8, note: u8 },
-      Tempo { ticks: u32, tempo_bpm: f64 },
-      ProgramChange { ticks: u32, channel: u8, program: u8 },
-  }
-  ```
-- [ ] MIDIファイル解析機能の実装（midi/parser.rs）
-  - midlyクレートを使用したSMF解析
-  - Note On/Off イベントの抽出
-  - テンポイベントの抽出
-  - プログラムチェンジイベントの抽出（将来の拡張用）
-- [ ] 中間JSON出力機能の実装
-- [ ] ユニットテストの作成
-  - 基本的なMIDI解析テスト
-  - テンポ変更を含むMIDI解析テスト
-
-**成果物**:
-- MIDIファイルを解析して中間JSONを出力する機能
-- 対応するユニットテスト
-
-### フェーズ3: MIDI→YM2151変換ユーティリティ (Phase 3: MIDI to YM2151 Utilities)
-
-**目標**: MIDI音程からYM2151レジスタ値への変換ロジック実装
-
-**タスク**:
-- [ ] YM2151音程テーブルの実装（ym2151/note_table.rs）
-  ```rust
-  // YM2151 note table (C# to C)
-  const NOTE_TABLE: [u8; 12] = [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14];
-  ```
-- [ ] MIDI音程→KC/KF変換関数の実装（midi/utils.rs）
-  ```rust
-  pub fn midi_to_kc_kf(midi_note: u8) -> (u8, u8) {
-      // MIDI note to YM2151 KC (Key Code) and KF (Key Fraction)
-  }
-  ```
-- [ ] タイミング変換関数の実装
-  - ティック→秒変換
-  - 秒→サンプル数変換
-  - ティック→サンプル数変換（55930 Hz）
-- [ ] 包括的なユニットテストの作成
-  - 各オクターブの音程変換テスト
-  - 境界値テスト（オクターブクランプ）
-  - タイミング変換の精度テスト
-
-**成果物**:
-- MIDI→YM2151変換ユーティリティ関数群
-- 対応するユニットテスト
-
-### フェーズ4: YM2151変換実装 (Phase 4: YM2151 Converter Implementation)
-
-**目標**: Pass B - 中間イベントからYM2151レジスタログへの変換
-
-**タスク**:
-- [ ] YM2151イベント構造体の定義（ym2151/events.rs）
-  ```rust
-  #[derive(Debug, Clone, Serialize, Deserialize)]
-  pub struct Ym2151Event {
-      pub time: u32,
-      pub addr: String,  // "0x08" format
-      pub data: String,  // "0x4E" format
-  }
-  ```
-- [ ] YM2151チャンネル初期化の実装（ym2151/init.rs）
-  - 全8チャンネルの初期化（time=0でKEY OFF）
-  - チャンネル0のデフォルトパラメータ設定
-- [ ] YM2151変換コアロジックの実装（ym2151/converter.rs）
-  - Note On → YM2151レジスタ書き込み（KC, KF, KEY ON）
-  - Note Off → YM2151レジスタ書き込み（KEY OFF）
-  - テンポ変更の反映
-  - 発音中ノートの管理
-- [ ] ユニットテストの作成
-  - 初期化イベント生成テスト
-  - Note On変換テスト
-  - Note Off変換テスト
-  - 複数ノートの処理テスト
-
-**成果物**:
-- YM2151ログ生成機能
-- 対応するユニットテスト
-
-### フェーズ5: メインプログラム統合 (Phase 5: Main Program Integration)
-
-**目標**: コマンドラインインターフェースと2パス処理の統合
-
-**タスク**:
-- [ ] コマンドライン引数の解析（main.rs）
-- [ ] Pass A + Pass B の統合処理フロー
-  ```rust
-  fn main() -> Result<()> {
-      // 1. コマンドライン引数の取得
-      // 2. MIDIファイルの解析 (Pass A)
-      // 3. 中間JSON出力
-      // 4. YM2151ログ変換 (Pass B)
-      // 5. 最終JSON出力
-      // 6. 進捗・統計情報の表示
-  }
-  ```
-- [ ] エラーハンドリングの整備
-- [ ] 統合テストの作成
-  - エンドツーエンドテスト
-  - Python版との出力比較テスト
-
-**成果物**:
-- 完全に動作するCLIプログラム
-- 統合テスト
-
-### フェーズ6: ドキュメントと仕上げ (Phase 6: Documentation and Polish)
-
-**目標**: ドキュメント整備とコード品質の最終確認
-
-**タスク**:
-- [ ] README.mdの作成
-  - インストール方法
-  - 使い方（サンプル付き）
-  - ビルド方法
-  - テスト実行方法
-- [ ] API ドキュメントの整備（docコメント）
-- [ ] サンプルMIDIファイルの追加
-- [ ] ベンチマーク追加（オプション）
-- [ ] コード品質チェック
-  - `cargo fmt` の実行
-  - `cargo clippy` の実行
-  - 未使用コードの削除
-- [ ] セキュリティチェック
-  - `cargo audit` の実行
-  - 依存関係の脆弱性チェック
-
-**成果物**:
-- 完成したドキュメント
-- クリーンで高品質なコードベース
-
-## 6. Python版との比較 (Comparison with Python Version)
-
-### 類似点 (Similarities)
-- 2段階処理アーキテクチャ
-- 同じ出力JSON形式
-- 同じYM2151音程変換ロジック
-- 同じサンプルレート（55930 Hz）
-
-### 相違点 (Differences)
-
-| 項目 | Python版 | Rust版 |
-|------|----------|--------|
-| **型安全性** | 実行時チェック | コンパイル時チェック |
-| **エラーハンドリング** | 例外ベース | Result型ベース |
-| **パフォーマンス** | インタープリタ | ネイティブコンパイル |
-| **メモリ管理** | GC | 所有権システム |
-| **依存ライブラリ** | mido | midly |
-| **構造体定義** | dict | struct + enum |
-
-### Rust版の利点 (Advantages of Rust Version)
-- **型安全性**: コンパイル時に多くのバグを検出
-- **パフォーマンス**: 大きなMIDIファイルの高速処理
-- **メモリ効率**: 低メモリフットプリント
-- **ゼロコスト抽象化**: 抽象化によるオーバーヘッドなし
-- **並行処理**: 将来的な並行処理の実装が容易
-
-## 7. 将来の拡張可能性 (Future Enhancements)
-
-### 短期的な拡張 (Short-term)
-- [ ] 複数チャンネルのサポート（ポリフォニック）
-- [ ] MIDIコントローラーイベントの対応（ボリューム、パン）
-- [ ] プログラムチェンジによる音色選択
-
-### 中期的な拡張 (Mid-term)
-- [ ] カスタム音色定義のサポート
-- [ ] MIDIトラック選択機能
-- [ ] 出力フォーマットの選択肢追加（バイナリ形式など）
-
-### 長期的な拡張 (Long-term)
-- [ ] リアルタイムMIDI入力対応
-- [ ] GUIアプリケーション化
-- [ ] 他のFM音源チップのサポート（OPM、OPN等）
-
-## 8. 実装時の注意事項 (Implementation Notes)
-
-### セキュリティ
-- [ ] ファイル入力のバリデーション
-- [ ] メモリ制限の設定（大きなMIDIファイル対策）
-- [ ] パニックの回避（unwrap()の使用を最小限に）
-
-### パフォーマンス
-- [ ] 不要なクローンの回避
-- [ ] イテレータの活用
-- [ ] ヒープアロケーションの最小化
-
-### コード品質
-- [ ] Rustのイディオムに従う
-- [ ] エラーメッセージの充実
-- [ ] ログ出力の適切な実装
-- [ ] テストの充実
-
-## 9. 成功の定義 (Definition of Success)
-
-このプロジェクトは以下の基準を満たした時に成功とみなされます：
-
-1. **機能性**: Python版と同じMIDIファイルから同じYM2151ログJSONを生成
-2. **テスト**: 90%以上のコードカバレッジとすべてのテストが合格
-3. **ドキュメント**: 完全なREADMEとAPIドキュメント
-4. **品質**: `cargo clippy`と`cargo fmt`がクリーン
-5. **セキュリティ**: `cargo audit`で脆弱性なし
-6. **パフォーマンス**: Python版と同等以上の処理速度
-
-## 10. まとめ (Summary)
-
-このRust実装は、Python版の設計思想を引き継ぎながら、Rustの型安全性とパフォーマンスの利点を活かした実装となります。段階的なアプローチにより、各フェーズで動作確認を行いながら確実に機能を構築していきます。
-
-テスト駆動開発を採用し、各機能に対して包括的なテストを作成することで、高品質で保守性の高いコードベースを維持します。
+### tones/000.json
+```json
+{
+  "events": [
+    {
+      "time": 0.0,
+      "addr": "0x20",
+      "data": "0xC7"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x38",
+      "data": "0x00"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x40",
+      "data": "0x01"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x60",
+      "data": "0x00"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x80",
+      "data": "0x1F"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xA0",
+      "data": "0x05"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xC0",
+      "data": "0x05"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xE0",
+      "data": "0xF7"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x48",
+      "data": "0x01"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x68",
+      "data": "0x7F"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x88",
+      "data": "0x1F"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xA8",
+      "data": "0x05"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xC8",
+      "data": "0x05"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xE8",
+      "data": "0xF7"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x50",
+      "data": "0x01"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x70",
+      "data": "0x7F"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x90",
+      "data": "0x1F"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xB0",
+      "data": "0x05"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xD0",
+      "data": "0x05"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xF0",
+      "data": "0xF7"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x58",
+      "data": "0x01"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x78",
+      "data": "0x7F"
+    },
+    {
+      "time": 0.0,
+      "addr": "0x98",
+      "data": "0x1F"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xB8",
+      "data": "0x05"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xD8",
+      "data": "0x05"
+    },
+    {
+      "time": 0.0,
+      "addr": "0xF8",
+      "data": "0xF7"
+    }
+  ]
+}
 
 ```
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-b6bf491 Auto-translate README.ja.md to README.md [auto]
-e27e6b9 状況を反映
-71412f4 Auto-translate README.ja.md to README.md [auto]
-1206066 ja
-6453dc7 Merge branch 'main' of github.com:cat2151/smf-to-ym2151log-rust into main
-056bf32 github-actionsリポジトリの共通ワークフローを導入
-a30bcf5 jekyll settings
+1245414 Auto-translate README.ja.md to README.md [auto]
+7da4267 Merge pull request #31 from cat2151/copilot/update-json-format-time
+cc0bfa9 Update documentation and tone files for f64 time format
+9e88de6 Change JSON time format from samples (u32) to seconds (f64)
+b4d5327 Initial plan
+4de1e86 Add issue note for #30 [auto]
+9ee99a5 Update project summaries (overview & development status) [auto]
+0b97b7b Auto-translate README.ja.md to README.md [auto]
+3e56907 Merge pull request #29 from cat2151/copilot/fix-midi-channel-mapping
+6008460 Update README to document polyphony-based allocation implementation
 
 ### 変更されたファイル:
-.github/workflows/call-daily-project-summary.yml
-.github/workflows/call-issue-note.yml
-.github/workflows/call-translate-readme.yml
 README.ja.md
 README.md
-_config.yml
+generated-docs/development-status-generated-prompt.md
+generated-docs/development-status.md
+generated-docs/project-overview-generated-prompt.md
+generated-docs/project-overview.md
+issue-notes/30.md
 src/lib.rs
-src/midi/parser.rs
+src/midi/utils.rs
 src/ym2151/converter.rs
-tests/create_test_midi.py
+src/ym2151/events.rs
+src/ym2151/init.rs
+src/ym2151/tone.rs
 tests/integration_tests.rs
-tests/test_data/multi_channel.mid
+tones/000.json
 
 
 ---
-Generated at: 2025-11-12 07:07:44 JST
+Generated at: 2025-11-22 07:07:07 JST

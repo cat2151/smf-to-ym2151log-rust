@@ -1,54 +1,51 @@
-Last updated: 2025-11-12
+Last updated: 2025-11-22
 
 # Development Status
 
 ## 現在のIssues
-- Rust版 `smf-to-ym2151log` プロジェクトの `IMPLEMENTATION.md` に記載された最終フェーズ6までの主要な実装が完了しました ([Issue #16](../issue-notes/16.md))。
-- このプロジェクトは、Standard MIDIファイルをYM2151レジスタ書き込みログに変換するRust実装であり、2段階処理と詳細なモジュール構成が定義されています。
-- 現在、実装完了後の最終ステップとして、Windows環境での動作確認が次の重要なタスクとして挙げられています。
+- [Issue #22](../issue-notes/22.md) は、YM2151の音色データ `tones/000.json` から `tones/127.json` を作成するという手作業タスクです。
+- これらの音色データは `ym2151-tone-editor` を利用して個別に作成し、`tones/` ディレクトリに配置する必要があります。
+- 現在、`tones/000.json` のみが存在し、残りの127個の音色ファイルはまだ作成されていません。
 
 ## 次の一手候補
-1. Windows環境での動作検証とテスト ([Issue #16](../issue-notes/16.md))
-   - 最初の小さな一歩: Windows OS環境を準備し、`smf-to-ym2151log-rust` プロジェクトを `cargo build --release` でビルド後、`cargo test` を実行して全てのテストがパスすることを確認する。
+1. [Issue #22](../issue-notes/22.md) 基本的な音色データをいくつか作成し、コンバータでのロードを検証
+   - 最初の小さな一歩: `ym2151-tone-editor` の出力形式に合わせて `tones/001.json` にシンプルなピアノの音色を仮で作成し、`src/ym2151/converter.rs` がこのファイルをロードできるか確認するための簡単なテストを追加する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: Cargo.toml, src/main.rs, tests/integration_tests.rs
+     対象ファイル: `tones/001.json`, `src/ym2151/converter.rs`, `tests/integration_tests.rs`
 
-     実行内容: Windows環境での `smf-to-ym2151log-rust` プロジェクトのビルドとテスト実行に関する手順書を作成し、特にWindows固有の潜在的な問題点（例: パス区切り文字、OS固有のライブラリ依存）がないか調査してください。
+     実行内容: `tones/000.json`を参考に、`tones/001.json`という名前で簡単なピアノの音色設定をJSON形式で作成してください。その後、`src/ym2151/converter.rs`が`tones/`ディレクトリ内のファイルを相対パスで正しくロードできるかを確認するため、`tests/integration_tests.rs`に`tones/001.json`をロードするテストケースを追加してください。
 
-     確認事項: Windows OS上でRustツールチェインが適切にセットアップされていること。既存の `.github/workflows/ci.yml` (もしあれば) や関連するCI設定でWindowsビルドが考慮されているか。
+     確認事項: `src/ym2151/converter.rs`が`tones/`ディレクトリ内のファイルを相対パスで正しく参照できるか、およびJSONファイルのパース処理に問題がないかを確認してください。
 
-     期待する出力: Windows環境でのビルドとテスト実行の詳細な手順、および実行結果の確認方法をMarkdown形式で生成してください。潜在的な問題点とその回避策についても言及してください。
+     期待する出力: `tones/001.json`のファイル内容と、`src/ym2151/converter.rs`がそのファイルをロードできることを示す、またはその機能追加を示すRustコードの変更点。テストケースを追加した場合は、テスト結果の確認を可能にするコード変更。
      ```
 
-2. Issue #16の記録内容と状態の整合性確認
-   - 最初の小さな一歩: GitHubリポジトリ上のIssue #16の実際の状態（オープンかクローズか）と、`.github/actions-tmp/issue-notes/16.md` に記述された内容、さらにこの「開発状況生成プロンプト」が提示するIssue #16のタイトルが一致するかを確認し、食い違いがあればレポートする。
+2. [Issue #22](../issue-notes/22.md) 音色データロード/管理の拡張性検討
+   - 最初の小さな一歩: `src/ym2151/tone.rs` に、`tones/`ディレクトリから全ての `.json` ファイル（`000.json`〜`127.json`）を読み込み、Program Change番号と関連付けるための関数や構造体のスケルトンを定義する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: .github/actions-tmp/issue-notes/16.md
+     対象ファイル: `src/ym2151/tone.rs`, `src/ym2151/mod.rs`
 
-     実行内容: 提供された「開発状況情報」の「現在のオープンIssues」に記載された [Issue #16](../issue-notes/16.md) のタイトルと、`.github/actions-tmp/issue-notes/16.md` の内容、そしてGitHubリポジトリ上の Issue #16 の実際の状態（オープン/クローズ）を比較分析し、情報の整合性について報告してください。特に、`.github/actions-tmp/issue-notes/16.md` に「closeとする」と書かれている点に注目してください。
+     実行内容: `src/ym2151/tone.rs`に、`tones/`ディレクトリから`000.json`から`127.json`の形式のファイルを一括で読み込み、内部的にマップ構造（`HashMap<u8, Tone>`）として保持する機能の設計案を記述し、その関数のプロトタイプをRustコードで実装してください。`src/ym2151/mod.rs`からこの機能を呼び出すことを想定した変更も検討してください。
 
-     確認事項: GitHub APIへのアクセス権限（もし必要なら）。現在のプロンプト実行環境が参照しているリポジトリが `smf-to-ym2151log-rust` であるという前提。
+     確認事項: ファイルシステムからの読み込みエラーハンドリング、存在しないProgram Change番号の扱いの検討。現在の`Tone`構造体が音色管理に適しているか。
 
-     期待する出力: 以下の点を明確にしたMarkdown形式のレポートを生成してください：
-     1. 現在の「開発状況情報」が示す Issue #16 のタイトルと、`.github/actions-tmp/issue-notes/16.md` の内容の具体的な食い違い。
-     2. GitHubリポジトリ上の Issue #16 の実際の状態。
-     3. これらの情報に基づいて、現状の「開発状況生成プロンプト」の出力が適切かどうかの評価。
-     4. 情報の整合性を確保するための推奨される次のアクション（例: 新しいIssueの作成、既存Issueの修正）。
+     期待する出力: 音色データの一括ロードを行うRust関数のスケルトンコードと、この機能に関する設計メモをMarkdown形式で出力してください。
      ```
 
-3. 複数チャンネルサポートの調査と設計 ([IMPLEMENTATION.md](../IMPLEMENTATION.md) より)
-   - 最初の小さな一歩: `src/midi/parser.rs` と `src/ym2151/converter.rs` を中心に、現在のコードがどのようにMIDIチャンネル情報を扱っているかをレビューし、複数チャンネルのノートイベントをどのように管理・変換するかを検討するための初期調査を行う。
+3. [Issue #22](../issue-notes/22.md) 既存MIDIファイルと新規音色データの変換テスト
+   - 最初の小さな一歩: `tests/integration_tests.rs` 内の既存のテストを変更または新規追加し、`tones/000.json` を使用して `tests/test_data/simple_melody.mid` を変換し、出力されるYM2151ログの基本構造が正しいことをアサートする。
    - Agent実行プロンプト:
      ```
-     対象ファイル: src/midi/parser.rs, src/midi/events.rs, src/ym2151/converter.rs, src/ym2151/events.rs
+     対象ファイル: `tests/integration_tests.rs`, `src/ym2151/converter.rs`, `tests/test_data/simple_melody.mid`, `tones/000.json`
 
-     実行内容: `smf-to-ym2151log-rust` プロジェクトにおいて、MIDIファイルの複数チャンネル（ポリフォニック）サポートを実現するために必要な変更点を洗い出し、そのための初期設計案を作成してください。具体的には、既存のMIDIイベント解析、YM2151イベント変換ロジック、およびデータ構造への影響を分析してください。
+     実行内容: `tests/integration_tests.rs`を開き、`tests/test_data/simple_melody.mid`を`src/ym2151/converter.rs`で変換するテストケースを追加または修正してください。このテストケースでは、`tones/000.json`を音色データとして利用し、変換後のYM2151イベントのリストが空でないこと、または特定のYM2151レジスタ設定が含まれていることを確認するアサートを追加してください。
 
-     確認事項: `IMPLEMENTATION.md` の「将来の拡張可能性」セクションの「短期的な拡張」にある「複数チャンネルのサポート（ポリフォニック）」の記述。既存のYM2151ログフォーマットが複数チャンネルのイベントをどのように表現できるかの制約。
+     確認事項: テストが`tones/000.json`を正しく参照できるか。変換ロジックが期待通りのYM2151イベントを生成するか。
 
-     期待する出力: 複数チャンネル対応のための技術的な課題、変更が必要なファイルとコード箇所、および初期の設計方針（例: チャンネルごとの状態管理、イベントの多重化）をMarkdown形式で出力してください。
+     期待する出力: `tests/integration_tests.rs`に追加された、MIDIファイルと音色データを統合した変換テストケースのRustコード。
+     ```
 
 ---
-Generated at: 2025-11-12 07:08:14 JST
+Generated at: 2025-11-22 07:07:25 JST
