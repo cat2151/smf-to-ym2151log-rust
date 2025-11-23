@@ -22,15 +22,11 @@ use crate::ym2151::note_table::NOTE_TABLE;
 pub fn midi_to_kc_kf(midi_note: u8) -> (u8, u8) {
     // Adjust MIDI note by -1 to align octaves between MIDI and YM2151 numbering
     let adjusted_midi = if midi_note > 0 { midi_note - 1 } else { 0 };
-    let mut midi_octave = (adjusted_midi / 12).saturating_sub(1);
-
-    // Clamp octave to valid range (0-7 for YM2151)
-    midi_octave = midi_octave.min(7);
-
     let note_in_octave = (adjusted_midi % 12) as usize;
-    let ym_note = NOTE_TABLE[note_in_octave];
 
-    let kc = (midi_octave << 4) | ym_note;
+    let ym_octave = ((adjusted_midi / 12) as i8 - 2).clamp(0, 7) as u8;
+    let ym_note = NOTE_TABLE[note_in_octave];
+    let kc = (ym_octave << 4) | ym_note;
     let kf = 0; // No fine tuning for now
 
     (kc, kf)
