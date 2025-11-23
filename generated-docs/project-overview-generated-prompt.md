@@ -1,4 +1,4 @@
-Last updated: 2025-11-22
+Last updated: 2025-11-24
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -306,6 +306,8 @@ cargo audit
   📖 25.md
   📖 28.md
   📖 30.md
+  📖 32.md
+  📖 33.md
 📁 src/
   📄 error.rs
   📄 lib.rs
@@ -351,6 +353,8 @@ issue-notes/23.md
 issue-notes/25.md
 issue-notes/28.md
 issue-notes/30.md
+issue-notes/32.md
+issue-notes/33.md
 tones/000.json
 tones/README.md
 
@@ -364,4 +368,4 @@ tones/README.md
 
 
 ---
-Generated at: 2025-11-22 07:07:07 JST
+Generated at: 2025-11-24 07:06:52 JST

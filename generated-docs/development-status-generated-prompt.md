@@ -1,4 +1,4 @@
-Last updated: 2025-11-22
+Last updated: 2025-11-24
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -211,6 +211,8 @@ Last updated: 2025-11-22
 - issue-notes/25.md
 - issue-notes/28.md
 - issue-notes/30.md
+- issue-notes/32.md
+- issue-notes/33.md
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -235,6 +237,21 @@ Last updated: 2025-11-22
 - tones/README.md
 
 ## 現在のオープンIssues
+## [Issue #33](../issue-notes/33.md): 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。
+[issue-notes/33.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/33.md)
+
+...
+ラベル: 
+--- issue-notes/33.md の内容 ---
+
+```markdown
+# issue 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。 #33
+[issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
+
+
+
+```
+
 ## [Issue #22](../issue-notes/22.md): （手作業）仮で tones/000.json～127.json のうちいくつかを実際に配置する。ym2151-tone-editorを利用して作成できる
 [issue-notes/22.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/22.md)
 
@@ -469,6 +486,94 @@ jobs:
 
 ```
 
+### .github/actions-tmp/issue-notes/3.md
+```md
+# issue GitHub Actions「issue note生成」を共通ワークフロー化する #3
+[issues #3](https://github.com/cat2151/github-actions/issues/3)
+
+- 前提
+  - userは、translateのworkflowを共通ワークフロー化し、動くようにしたので、共通ワークフロー化の知識がある
+  - よって、今回は、promptでplanさせ、そのplanをuserがレビューし、planの改善を指示できるので、ハルシネーションのリスクを下げることができる
+
+- prompt
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+このymlはまだ共通ワークフロー化されず、
+呼び出し元からコピーされたままの状態です。
+このymlファイル名のまま、
+中身を共通ワークフロー化してください。
+呼び出し元ymlは別途書きますので気にしないでください。
+まずplanしてください
+```
+
+- plan 生成結果
+```
+共通ワークフロー化のためのplanは以下の通りです。
+
+1. 目的
+現在の issue-note.yml を「共通ワークフロー」として再設計し、他リポジトリや他ワークフローから workflow_call で呼び出せるようにする。
+2. 主な変更点
+on: トリガーを workflow_call に変更（直接イベントで起動しない）。
+必要な入力（inputs）やシークレット（secrets）を workflow_call セクションで定義。
+github.event.issue などのイベント依存部分を、inputs経由で受け取る形に修正。
+既存の処理（issueノート生成、コミット、issue body更新）はそのまま活かすが、パラメータ化する。
+3. 具体的な修正内容
+on: issues: → on: workflow_call: に変更。
+inputs で必要な値（例: issue_title, issue_number, issue_body, issue_url など）を受け取る。
+スクリプト内の ${{ github.event.issue.xxx }} を ${{ inputs.xxx }} に置換。
+github-script ステップも同様にinputsを参照。
+必要に応じて secrets も workflow_call で受け取れるようにする。
+4. ファイル名・配置
+ファイル名はそのまま issue-note.yml。
+配置場所は workflows でOK（共通ワークフローとしてもこの場所で良い）。
+5. 呼び出し元への影響
+呼び出し元ワークフローで uses: <repo>/.github/workflows/issue-note.yml@main のように参照し、inputsを渡す形になる。
+このplanで進めます。次に、実際の共通ワークフロー化のためのyml修正案を作成しますか？
+```
+
+- userがplanレビューし、OKを出した
+- agentに生成結果ymlをレビューさせた、OKとなった
+  - userはこのレビューは認知負荷が高いのでskipとする（単純な細かい間違い探し作業になるので、それはagentに任せた）
+-  エラー。呼び出し元ymlのエラーがあり修正。共通ワークフローのエラー指摘があり、共通ワークフロー側の修正が必要となった
+```
+原因の分析：
+
+呼び出し元（tonejs-mml-to-jsonのissue-note.yml）は、reusable workflow（cat2151/github-actions/.github/workflows/issue-note.yml@main）をusesで呼び出し、inputsをwithで渡しています。
+共通ワークフロー（reusable workflow）は inputs を workflow_call で受け取り、各ステップで ${{ inputs.xxx }} で参照しています。
+しかし、エラーが発生したのは actions/github-script@v7 の script 内です。
+エラーの本質的な原因：
+
+actions/github-script の script: で ${{ inputs.issue_number }} のような式を直接 JavaScript テンプレートリテラル内で使っていますが、これはサポートされていません。
+script: の中は JavaScript であり、YAMLの ${{ ... }} は展開されません（または意図通りに展開されません）。
+そのため、inputs 変数は script 内の JavaScript で未定義となり、ReferenceError になります。
+正しい書き方：
+
+actions/github-script の script: でワークフローの inputs を使いたい場合は、with: で input を environment 変数や script の引数として渡し、JavaScript で process.env から取得するか、github-script の input 機能を使う必要があります。
+例（修正版）：
+
+このように、inputs の値を env で渡し、script 内では process.env で参照してください。
+
+まとめ：
+
+actions/github-script の script 内で ${{ inputs.xxx }} を直接使うと ReferenceError になる
+env: で値を渡し、process.env で参照するのが正しい
+修正が必要です。修正版のワークフローが必要な場合はお知らせください。
+```
+
+- test green
+- closeとする
+
+```
+
+### issue-notes/33.md
+```md
+# issue 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。 #33
+[issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
+
+
+
+```
+
 ### tones/000.json
 ```json
 {
@@ -610,34 +715,46 @@ jobs:
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+a79dbe5 Add issue note for #33 [auto]
+2bd6634 Merge branch 'main' of github.com:cat2151/smf-to-ym2151log-rust into main
+8126733 fix #32
+92b74a8 Add issue note for #32 [auto]
+29f82ed Update project summaries (overview & development status) [auto]
 1245414 Auto-translate README.ja.md to README.md [auto]
 7da4267 Merge pull request #31 from cat2151/copilot/update-json-format-time
 cc0bfa9 Update documentation and tone files for f64 time format
 9e88de6 Change JSON time format from samples (u32) to seconds (f64)
 b4d5327 Initial plan
-4de1e86 Add issue note for #30 [auto]
-9ee99a5 Update project summaries (overview & development status) [auto]
-0b97b7b Auto-translate README.ja.md to README.md [auto]
-3e56907 Merge pull request #29 from cat2151/copilot/fix-midi-channel-mapping
-6008460 Update README to document polyphony-based allocation implementation
 
 ### 変更されたファイル:
+.gitignore
 README.ja.md
 README.md
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
+issue-notes/21.md
+issue-notes/22.md
+issue-notes/23.md
+issue-notes/25.md
+issue-notes/28.md
 issue-notes/30.md
+issue-notes/32.md
+issue-notes/33.md
 src/lib.rs
 src/midi/utils.rs
 src/ym2151/converter.rs
 src/ym2151/events.rs
 src/ym2151/init.rs
+src/ym2151/mod.rs
 src/ym2151/tone.rs
+tests/create_test_midi.py
 tests/integration_tests.rs
+tests/test_data/program_change.mid
 tones/000.json
+tones/README.md
 
 
 ---
-Generated at: 2025-11-22 07:07:07 JST
+Generated at: 2025-11-24 07:06:53 JST

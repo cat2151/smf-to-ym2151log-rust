@@ -1,51 +1,56 @@
-Last updated: 2025-11-22
+Last updated: 2025-11-24
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #22](../issue-notes/22.md) は、YM2151の音色データ `tones/000.json` から `tones/127.json` を作成するという手作業タスクです。
-- これらの音色データは `ym2151-tone-editor` を利用して個別に作成し、`tones/` ディレクトリに配置する必要があります。
-- 現在、`tones/000.json` のみが存在し、残りの127個の音色ファイルはまだ作成されていません。
+-   [Issue #33](../issue-notes/33.md) では、`ym2151-tone-editor`が出力するJSON形式の音色データを、従来の`tones/`ディレクトリより優先して読み込む仕様追加が検討されています。
+-   [Issue #22](../issue-notes/22.md) は、`ym2151-tone-editor`を用いて`tones/000.json`などの音色データを手動で作成し、配置する準備に関するタスクです。
+-   これらのIssueは、音色データの管理方法を改善し、外部ツールとの連携を強化することを目指しています。
 
 ## 次の一手候補
-1. [Issue #22](../issue-notes/22.md) 基本的な音色データをいくつか作成し、コンバータでのロードを検証
-   - 最初の小さな一歩: `ym2151-tone-editor` の出力形式に合わせて `tones/001.json` にシンプルなピアノの音色を仮で作成し、`src/ym2151/converter.rs` がこのファイルをロードできるか確認するための簡単なテストを追加する。
+1. `ym2151-tone-editor` 出力JSON形式の分析 [Issue #33](../issue-notes/33.md)
+   - 最初の小さな一歩: `ym2151-tone-editor` のドキュメントやサンプル出力を調査し、GM000 variations format JSONのスキーマと既存 `tones/` のJSONスキーマとの差異を比較分析する。
+   - Agent実行プロンプ:
+     ```
+     対象ファイル: `tones/000.json` および `ym2151-tone-editor` のドキュメントまたはサンプルJSON（仮に `docs/ym2151-tone-editor-sample.json` と想定）
+
+     実行内容: `tones/000.json` と `ym2151-tone-editor` が出力するGM000 variations format JSON（想定）のスキーマを比較し、主な違い（フィールド名、データ型、構造など）をMarkdown形式で分析してください。特に、`time` フィールドの形式（`u32`のサンプル数か`f64`の秒数か）やイベント構造の違いに焦点を当ててください。
+
+     確認事項: `ym2151-tone-editor` の具体的な出力形式が不明な場合、一般的なGM音源の仕様や、もし存在すればym2151-tone-editorのリポジトリを参照して仮定してください。
+
+     期待する出力: 2つのJSON形式の比較表を含むMarkdown形式の分析結果。
+     ```
+
+2. 音色ファイル読み込みロジックの特定と拡張点の分析 [Issue #33](../issue-notes/33.md)
+   - 最初の小さな一歩: 現在の `src/ym2151/tone.rs` における音色ファイル (`tones/000.json` など) の読み込み処理を特定し、新しいパス（例: `ym2151-tone-editor` ディレクトリ）から優先的に読み込むための拡張点を分析する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `tones/001.json`, `src/ym2151/converter.rs`, `tests/integration_tests.rs`
+     対象ファイル: `src/ym2151/tone.rs`, `src/ym2151/init.rs`, `src/lib.rs`
 
-     実行内容: `tones/000.json`を参考に、`tones/001.json`という名前で簡単なピアノの音色設定をJSON形式で作成してください。その後、`src/ym2151/converter.rs`が`tones/`ディレクトリ内のファイルを相対パスで正しくロードできるかを確認するため、`tests/integration_tests.rs`に`tones/001.json`をロードするテストケースを追加してください。
+     実行内容: 上記ファイル群の中から、現在 `tones/` ディレクトリ下のJSONファイルを読み込んでいる箇所を特定し、そのファイルパス解決ロジックを分析してください。特に、新しいディレクトリパス（例: `editor_tones/` または symlink先）からファイルを優先的に読み込むように変更する場合の、コード上の適切な変更箇所と考慮すべき点をMarkdown形式で記述してください。
 
-     確認事項: `src/ym2151/converter.rs`が`tones/`ディレクトリ内のファイルを相対パスで正しく参照できるか、およびJSONファイルのパース処理に問題がないかを確認してください。
+     確認事項: 既存のファイルシステム操作やエラーハンドリングが、新しいロジック導入後も正しく機能すること。シンボリックリンクの扱いや、指定されたディレクトリが存在しない場合のエラー処理も考慮に入れること。
 
-     期待する出力: `tones/001.json`のファイル内容と、`src/ym2151/converter.rs`がそのファイルをロードできることを示す、またはその機能追加を示すRustコードの変更点。テストケースを追加した場合は、テスト結果の確認を可能にするコード変更。
+     期待する出力: 現在の読み込みロジックの概要、優先読み込みを実装するための推奨される変更箇所（関数名、行番号など）と具体的なコード修正案の方向性、および考慮すべきエッジケースを記述したMarkdownレポート。
      ```
 
-2. [Issue #22](../issue-notes/22.md) 音色データロード/管理の拡張性検討
-   - 最初の小さな一歩: `src/ym2151/tone.rs` に、`tones/`ディレクトリから全ての `.json` ファイル（`000.json`〜`127.json`）を読み込み、Program Change番号と関連付けるための関数や構造体のスケルトンを定義する。
+3. `ym2151-tone-editor` 出力テストデータ配置の準備 [Issue #22](../issue-notes/22.md)
+   - 最初の小さな一歩: `ym2151-tone-editor` の出力ファイルを格納するためのテストディレクトリ構造を計画し、ダミーのJSONファイルを配置して読み込みテストの準備をする。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `src/ym2151/tone.rs`, `src/ym2151/mod.rs`
+     対象ファイル: `tests/integration_tests.rs`, `Cargo.toml` (テスト関連設定のため), および新しいテストディレクトリ (例: `tests/editor_tones/`)
 
-     実行内容: `src/ym2151/tone.rs`に、`tones/`ディレクトリから`000.json`から`127.json`の形式のファイルを一括で読み込み、内部的にマップ構造（`HashMap<u8, Tone>`）として保持する機能の設計案を記述し、その関数のプロトタイプをRustコードで実装してください。`src/ym2151/mod.rs`からこの機能を呼び出すことを想定した変更も検討してください。
+     実行内容:
+     1. `ym2151-tone-editor` の出力ファイルを配置するための新しいディレクトリ `tests/editor_tones/` の作成を提案してください。
+     2. このディレクトリに配置されるダミーの `000.json` (ym2151-tone-editor形式を模倣) の内容を生成してください。
+     3. `tests/integration_tests.rs` に、この新しいディレクトリから音色ファイルを読み込む簡単なテストケースを追加する変更の方向性を記述してください。
 
-     確認事項: ファイルシステムからの読み込みエラーハンドリング、存在しないProgram Change番号の扱いの検討。現在の`Tone`構造体が音色管理に適しているか。
+     確認事項: 新しいテストディレクトリがCargoのビルドシステムで認識され、テスト時に利用可能であること。また、ダミーのJSONファイルが最低限の有効なYM2151音色データ構造を持っていること。
 
-     期待する出力: 音色データの一括ロードを行うRust関数のスケルトンコードと、この機能に関する設計メモをMarkdown形式で出力してください。
-     ```
-
-3. [Issue #22](../issue-notes/22.md) 既存MIDIファイルと新規音色データの変換テスト
-   - 最初の小さな一歩: `tests/integration_tests.rs` 内の既存のテストを変更または新規追加し、`tones/000.json` を使用して `tests/test_data/simple_melody.mid` を変換し、出力されるYM2151ログの基本構造が正しいことをアサートする。
-   - Agent実行プロンプト:
-     ```
-     対象ファイル: `tests/integration_tests.rs`, `src/ym2151/converter.rs`, `tests/test_data/simple_melody.mid`, `tones/000.json`
-
-     実行内容: `tests/integration_tests.rs`を開き、`tests/test_data/simple_melody.mid`を`src/ym2151/converter.rs`で変換するテストケースを追加または修正してください。このテストケースでは、`tones/000.json`を音色データとして利用し、変換後のYM2151イベントのリストが空でないこと、または特定のYM2151レジスタ設定が含まれていることを確認するアサートを追加してください。
-
-     確認事項: テストが`tones/000.json`を正しく参照できるか。変換ロジックが期待通りのYM2151イベントを生成するか。
-
-     期待する出力: `tests/integration_tests.rs`に追加された、MIDIファイルと音色データを統合した変換テストケースのRustコード。
-     ```
+     期待する出力:
+     - `tests/editor_tones/` ディレクトリの作成提案。
+     - `tests/editor_tones/000.json` として配置するダミーJSONファイルの内容。
+     - `tests/integration_tests.rs` に追加するテスト関数のスケルトンと、その中で新しいパスから音色ファイルを読み込むコードの概念的な記述をMarkdown形式で出力してください。
 
 ---
-Generated at: 2025-11-22 07:07:25 JST
+Generated at: 2025-11-24 07:07:11 JST
