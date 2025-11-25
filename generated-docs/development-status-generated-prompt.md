@@ -1,4 +1,4 @@
-Last updated: 2025-11-24
+Last updated: 2025-11-26
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -199,7 +199,6 @@ Last updated: 2025-11-24
 - .gitignore
 - Cargo.lock
 - Cargo.toml
-- IMPLEMENTATION.md
 - LICENSE
 - README.ja.md
 - README.md
@@ -715,6 +714,8 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+52488c9 不要documentを削除
+0786eb0 Update project summaries (overview & development status) [auto]
 a79dbe5 Add issue note for #33 [auto]
 2bd6634 Merge branch 'main' of github.com:cat2151/smf-to-ym2151log-rust into main
 8126733 fix #32
@@ -723,11 +724,10 @@ a79dbe5 Add issue note for #33 [auto]
 1245414 Auto-translate README.ja.md to README.md [auto]
 7da4267 Merge pull request #31 from cat2151/copilot/update-json-format-time
 cc0bfa9 Update documentation and tone files for f64 time format
-9e88de6 Change JSON time format from samples (u32) to seconds (f64)
-b4d5327 Initial plan
 
 ### 変更されたファイル:
 .gitignore
+IMPLEMENTATION.md
 README.ja.md
 README.md
 generated-docs/development-status-generated-prompt.md
@@ -757,4 +757,4 @@ tones/README.md
 
 
 ---
-Generated at: 2025-11-24 07:06:53 JST
+Generated at: 2025-11-26 07:07:24 JST

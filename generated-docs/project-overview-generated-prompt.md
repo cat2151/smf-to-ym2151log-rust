@@ -1,4 +1,4 @@
-Last updated: 2025-11-24
+Last updated: 2025-11-26
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -293,7 +293,6 @@ cargo audit
 📄 .gitignore
 📄 Cargo.lock
 📄 Cargo.toml
-📖 IMPLEMENTATION.md
 📄 LICENSE
 📖 README.ja.md
 📖 README.md
@@ -344,7 +343,6 @@ cargo audit
 関数呼び出し階層を分析できませんでした
 
 ## プロジェクト構造（ファイル一覧）
-IMPLEMENTATION.md
 README.ja.md
 README.md
 issue-notes/21.md
@@ -368,4 +366,4 @@ tones/README.md
 
 
 ---
-Generated at: 2025-11-24 07:06:52 JST
+Generated at: 2025-11-26 07:07:24 JST
