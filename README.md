@@ -1,55 +1,55 @@
 # smf-to-ym2151log-rust
 
-**Rust implementation to convert Standard MIDI Files (SMF) into YM2151 register write logs (JSON format)**
-
 <p align="left">
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
 </p>
 
+**Rust implementation to convert Standard MIDI Files (SMF) into YM2151 register write logs (JSON format)**
+
 ## WIP
 
-Currently, it can only convert basic notes into a minimal JSON format.
+Currently, it can only convert basic do-re-mi notes into a minimal JSON format.
 
-More advanced features are planned for future implementation.
+More advanced features will be implemented in the future.
 
 Frequent breaking changes are expected.
 
 ## Purpose
 
-It is utilized as a library by `cat-play-mml`.
+It is used as a library by `cat-play-mml`.
 
 ### Current Constraints
 
 #### Channel Assignment Strategy
 
-The current implementation employs a **chord-count based static channel assignment strategy** with **drum channel prioritization**:
+The current implementation uses a **chord-count-based static channel assignment strategy** and **drum channel prioritization**:
 
 **1. Chord Count Analysis Phase**:
-Before conversion, the MIDI file is analyzed to measure the maximum chord count (number of simultaneous notes) for each MIDI channel by tracking overlapping note events.
+Before conversion, the MIDI file is analyzed to measure the maximum chord count (polyphony) for each MIDI channel by tracking overlapping note events.
 
 **2. Static Assignment based on Chord Count**:
 YM2151 channels (0-7, total 8 channels) are assigned based on the chord count requirements of each MIDI channel.
-- MIDI channels with higher chord counts receive multiple YM2151 channels.
-- Example: If MIDI ch0 requires 3 notes and MIDI ch1 requires 1 note:
+- MIDI channels with a high chord count receive multiple YM2151 channels.
+- Example: If MIDI ch0 requires 3 simultaneous notes and MIDI ch1 requires 1:
   - MIDI ch0 gets YM2151 ch0, ch1, ch2 (3 channels)
   - MIDI ch1 gets YM2151 ch3 (1 channel)
   - YM2151 ch4-ch7 remain available
 
-**3. Drum Channel Prioritization Reordering**:
-After initial assignment, if MIDI channel 9 (General MIDI drum channel) is present, the assignment is reordered:
+**3. Drum Channel Priority Reordering**:
+After initial assignment, if MIDI channel 9 (General MIDI drum channel) exists, the assignment is reordered:
 - MIDI channel 9 is prioritized to use YM2151 channel 0.
-- Other channel assignments are swapped accordingly.
-- **Reason**: Drums often have multiple note-on events on the same tick. The YM2151 processes channels sequentially and requires a defined register access cycle; assigning drums to channel 0 allows them to sound first, improving sound quality.
+- Other channel assignments are swapped as appropriate.
+- **Reason**: Drums often have multiple note-on events at the same tick. Since the YM2151 processes channels sequentially and requires a specified register access cycle, assigning drums to channel 0 ensures they sound first, improving sound quality.
 
 **Voice Management**:
-- When a MIDI channel is assigned multiple YM2151 channels (chord count > 1), notes are distributed in a round-robin fashion.
+- If a MIDI channel is assigned multiple YM2151 channels (chord count > 1), notes are distributed in a round-robin fashion.
 - Each note-on uses the next available voice within its assignment.
 - Note-off events properly track which voice played which note.
 
 **Limitations**:
 - A total of 8 YM2151 channels are available.
-- If the total chord count for all MIDI channels exceeds 8, overflow notes will use the last assigned channel.
+- If the total chord count across all MIDI channels exceeds 8, overflowed notes will use the last assigned channel.
 - No dynamic voice stealing during playback (all assignments are static/pre-determined).
 
 **Out of Scope**:
@@ -61,21 +61,20 @@ These features are intentionally omitted to maintain simplicity and align with t
 
 ## Overview
 
-This is the Rust implementation of [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log).
-It converts Standard MIDI Files (SMF) into YM2151 FM sound chip register write logs in JSON format.
+This is a Rust implementation of [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log).
+It converts Standard MIDI Files (SMF) into register write logs (JSON format) for the YM2151 FM sound chip.
 
 ## Features
 
 - **2-Pass Processing Architecture**:
-  - **Pass A**: MIDI file → Intermediate event JSON (for debugging)
-  - **Pass B**: Intermediate events → YM2151 register log JSON (final output)
-- **Program Change Support**: Loads custom YM2151 timbres from external JSON files (MIDI programs 0-127)
+  - **Pass A**: MIDI file → Intermediate Event JSON (for debugging)
+  - **Pass B**: Intermediate Events → YM2151 Register Log JSON (final output)
+- **Program Change Support**: Loads custom YM2151 tones from external JSON files (MIDI Programs 0-127)
 - **Type Safety**: Robustness through Rust's type system
 - **High Performance**: Fast processing due to native compilation
 - **Test-Driven Development**: Comprehensive unit and integration tests (73 tests)
-- **Compatibility**: JSON format compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc)
-- **Standard Support**: Supports SMF Format 0 and Format 1
-- **Library API**: Convenient API usable from other Rust projects
+- **Standard Compliance**: Supports SMF Format 0 and Format 1
+- **Library API**: Convenient API usable by other Rust projects
 
 ## Usage
 
@@ -101,7 +100,7 @@ smf-to-ym2151log-rust song.mid
 # - song_ym2151.json  (Pass B: YM2151 register log)
 ```
 
-### Usage as a Library
+### Using as a library
 
 It can be used as a library from other Rust projects:
 
@@ -113,7 +112,7 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 Detailed API documentation: `cargo doc --open`
 
-### Example Output
+### Output Example
 
 ```
 smf-to-ym2151log-rust
@@ -140,15 +139,15 @@ Saving YM2151 log JSON...
 
 ## Program Change Support
 
-The converter supports timbre switching via MIDI Program Change events (0-127). When a Program Change event is detected, the converter performs the following actions:
+The converter supports tone changes via MIDI Program Change events (0-127). When a Program Change event is detected, the converter performs the following:
 
-1.  **Searches for an external timbre file**: `tones/{program:03}.json` (e.g., `tones/042.json` for program 42)
-2.  **Loads and applies the timbre**: If the file exists
-3.  **Uses the built-in default timbre**: If the file does not exist
+1. **Searches for an external tone file**: `tones/{program:03}.json` (e.g., `tones/042.json` for program 42)
+2. **Loads and applies the tone** if the file exists.
+3. **Uses a built-in default tone** if the file does not exist.
 
-### Custom Timbre Files
+### Custom Tone Files
 
-You can create custom YM2151 timbres by placing JSON files in the `tones/` directory:
+You can create custom YM2151 tones by placing JSON files in the `tones/` directory:
 
 ```bash
 tones/
@@ -158,12 +157,12 @@ tones/
 └── 127.json    # Program 127 (Gunshot)
 ```
 
-Each timbre file defines YM2151 register writes to set FM synthesis parameters. For detailed format documentation and examples, please refer to [`tones/README.md`](tones/README.md).
+Each tone file defines YM2151 register writes to set FM synthesis parameters. For detailed format documentation and examples, refer to [`tones/README.md`](tones/README.md).
 
-### Example Usage
+### Usage Example
 
 ```bash
-# 1. Create a custom timbre for MIDI Program 42
+# 1. Create a custom tone for MIDI Program 42
 #    (e.g., a brass sound)
 cat > tones/042.json << EOF
 {
@@ -197,7 +196,7 @@ cargo build
 cargo build --release
 ```
 
-### Testing
+### Test
 ```bash
 # Run all tests
 cargo test
@@ -224,5 +223,5 @@ cargo audit
 ## References
 
 - [Python implementation](https://github.com/cat2151/smf-to-ym2151log): The original Python implementation of this project
-- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): Origin of the output JSON format specification
+- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): The source of the output JSON format specification
 - [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): Official specification document for the YM2151 chip
