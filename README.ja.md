@@ -1,11 +1,11 @@
 # smf-to-ym2151log-rust
 
-**Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装**
-
 <p align="left">
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
 </p>
+
+**Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装**
 
 ## WIP
 
@@ -74,7 +74,6 @@ Standard MIDI Files (SMF) をYM2151 FM音源チップのレジスタ書き込み
 - **型安全性**: Rustの型システムによる堅牢性
 - **高パフォーマンス**: ネイティブコンパイルによる高速処理
 - **テスト駆動開発**: 包括的なユニットテストと統合テスト (73 tests)
-- **互換性**: [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) と互換性のあるJSON形式
 - **標準対応**: SMF Format 0 および Format 1 をサポート
 - **ライブラリAPI**: 他のRustプロジェクトから利用可能な便利なAPI
 
