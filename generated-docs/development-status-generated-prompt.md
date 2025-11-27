@@ -1,4 +1,4 @@
-Last updated: 2025-11-26
+Last updated: 2025-11-28
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -714,19 +714,18 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+05ede15 Auto-translate README.ja.md to README.md [auto]
+a1a345a link場所変更。そしてJSON互換性の記述を削除（f64 secondsにしたので）
+73638ef Auto-translate README.ja.md to README.md [auto]
+5275af6 Update README.ja.md with breaking changes note
+159d01b Update project summaries (overview & development status) [auto]
 52488c9 不要documentを削除
 0786eb0 Update project summaries (overview & development status) [auto]
 a79dbe5 Add issue note for #33 [auto]
 2bd6634 Merge branch 'main' of github.com:cat2151/smf-to-ym2151log-rust into main
 8126733 fix #32
-92b74a8 Add issue note for #32 [auto]
-29f82ed Update project summaries (overview & development status) [auto]
-1245414 Auto-translate README.ja.md to README.md [auto]
-7da4267 Merge pull request #31 from cat2151/copilot/update-json-format-time
-cc0bfa9 Update documentation and tone files for f64 time format
 
 ### 変更されたファイル:
-.gitignore
 IMPLEMENTATION.md
 README.ja.md
 README.md
@@ -734,27 +733,7 @@ generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
-issue-notes/21.md
-issue-notes/22.md
-issue-notes/23.md
-issue-notes/25.md
-issue-notes/28.md
-issue-notes/30.md
-issue-notes/32.md
-issue-notes/33.md
-src/lib.rs
-src/midi/utils.rs
-src/ym2151/converter.rs
-src/ym2151/events.rs
-src/ym2151/init.rs
-src/ym2151/mod.rs
-src/ym2151/tone.rs
-tests/create_test_midi.py
-tests/integration_tests.rs
-tests/test_data/program_change.mid
-tones/000.json
-tones/README.md
 
 
 ---
-Generated at: 2025-11-26 07:07:24 JST
+Generated at: 2025-11-28 07:07:00 JST
