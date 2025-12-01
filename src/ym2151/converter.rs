@@ -421,7 +421,7 @@ mod tests {
         let kc_events: Vec<&Ym2151Event> = result
             .events
             .iter()
-            .filter(|e| e.addr == "0x28" && e.data == "0x3E")
+            .filter(|e| e.addr == "0x28" && e.data == "0x2E")
             .collect();
 
         assert_eq!(
@@ -430,8 +430,8 @@ mod tests {
             "Should have exactly one KC register write for Middle C"
         );
 
-        // Middle C (MIDI 60) should map to KC 0x3E
-        assert_eq!(kc_events[0].data, "0x3E");
+        // Middle C (MIDI 60) should map to KC 0x2E (Octave 2, Note C)
+        assert_eq!(kc_events[0].data, "0x2E");
     }
 
     #[test]
@@ -628,16 +628,20 @@ mod tests {
         // Verify KC register writes for each channel
         // With polyphony-based allocation and no drums, channels are allocated sequentially
         // MIDI Channel 0,1,2 each have polyphony 1, so they get YM2151 channels 0,1,2
+        // Note: With -2 octave offset:
+        //   MIDI 60 (C4) → KC 0x2E (Octave 2, Note C)
+        //   MIDI 64 (E4) → KC 0x34 (Octave 3, Note E)
+        //   MIDI 67 (G4) → KC 0x38 (Octave 3, Note G)
         let ch0_kc = result
             .events
             .iter()
             .find(|e| {
                 (e.addr == "0x28" || e.addr == "0x29" || e.addr == "0x2A")
                     && e.time < 0.001
-                    && e.data == "0x3E"
+                    && e.data == "0x2E"
             })
             .expect("Should have KC write for MIDI channel 0");
-        assert_eq!(ch0_kc.data, "0x3E"); // Middle C
+        assert_eq!(ch0_kc.data, "0x2E"); // Middle C (Octave 2, Note C)
 
         let ch1_kc = result
             .events
@@ -645,10 +649,10 @@ mod tests {
             .find(|e| {
                 (e.addr == "0x28" || e.addr == "0x29" || e.addr == "0x2A")
                     && e.time < 0.001
-                    && e.data == "0x44"
+                    && e.data == "0x34"
             })
             .expect("Should have KC write for MIDI channel 1");
-        assert_eq!(ch1_kc.data, "0x44"); // E (octave 4, note 4)
+        assert_eq!(ch1_kc.data, "0x34"); // E (octave 3, note 4)
 
         let ch2_kc = result
             .events
@@ -656,10 +660,10 @@ mod tests {
             .find(|e| {
                 (e.addr == "0x28" || e.addr == "0x29" || e.addr == "0x2A")
                     && e.time < 0.001
-                    && e.data == "0x48"
+                    && e.data == "0x38"
             })
             .expect("Should have KC write for MIDI channel 2");
-        assert_eq!(ch2_kc.data, "0x48"); // G (octave 4, note 8)
+        assert_eq!(ch2_kc.data, "0x38"); // G (octave 3, note 8)
 
         // Verify we have 3 KEY ON events
         let key_on_events: Vec<_> = result

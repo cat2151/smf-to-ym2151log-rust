@@ -16,7 +16,7 @@ use crate::ym2151::note_table::NOTE_TABLE;
 /// ```
 /// use smf_to_ym2151log::midi::midi_to_kc_kf;
 /// let (kc, kf) = midi_to_kc_kf(60); // Middle C (C4)
-/// assert_eq!(kc, 0x3E); // Octave 3, Note C
+/// assert_eq!(kc, 0x2E); // Octave 2, Note C
 /// assert_eq!(kf, 0);
 /// ```
 pub fn midi_to_kc_kf(midi_note: u8) -> (u8, u8) {
@@ -258,7 +258,7 @@ mod tests {
     fn test_midi_to_kc_kf_middle_c() {
         // MIDI note 60 = C4 (Middle C)
         let (kc, kf) = midi_to_kc_kf(60);
-        assert_eq!(kc, 0x3E); // Octave 3, Note C
+        assert_eq!(kc, 0x2E); // Octave 2, Note C
         assert_eq!(kf, 0);
     }
 
@@ -266,34 +266,34 @@ mod tests {
     fn test_midi_to_kc_kf_a440() {
         // MIDI note 69 = A4 (A440)
         let (kc, kf) = midi_to_kc_kf(69);
-        assert_eq!(kc, 0x4A); // Octave 4, Note A
+        assert_eq!(kc, 0x3A); // Octave 3, Note A
         assert_eq!(kf, 0);
     }
 
     #[test]
     fn test_midi_to_kc_kf_octaves() {
         // Test representative notes across different octaves
-        // C notes from different octaves
+        // C notes from different octaves (YM2151 octave = MIDI octave - 2)
         let (kc, _) = midi_to_kc_kf(24); // C1
-        assert_eq!(kc, 0x0E); // Octave 0, Note C
+        assert_eq!(kc, 0x0E); // Octave 0 (clamped), Note C
 
         let (kc, _) = midi_to_kc_kf(36); // C2
-        assert_eq!(kc, 0x1E); // Octave 1, Note C
+        assert_eq!(kc, 0x0E); // Octave 0, Note C
 
         let (kc, _) = midi_to_kc_kf(48); // C3
-        assert_eq!(kc, 0x2E); // Octave 2, Note C
+        assert_eq!(kc, 0x1E); // Octave 1, Note C
 
         let (kc, _) = midi_to_kc_kf(60); // C4
-        assert_eq!(kc, 0x3E); // Octave 3, Note C
+        assert_eq!(kc, 0x2E); // Octave 2, Note C
 
         let (kc, _) = midi_to_kc_kf(72); // C5
-        assert_eq!(kc, 0x4E); // Octave 4, Note C
+        assert_eq!(kc, 0x3E); // Octave 3, Note C
 
         let (kc, _) = midi_to_kc_kf(84); // C6
-        assert_eq!(kc, 0x5E); // Octave 5, Note C
+        assert_eq!(kc, 0x4E); // Octave 4, Note C
 
         let (kc, _) = midi_to_kc_kf(96); // C7
-        assert_eq!(kc, 0x6E); // Octave 6, Note C
+        assert_eq!(kc, 0x5E); // Octave 5, Note C
     }
 
     #[test]
@@ -335,7 +335,8 @@ mod tests {
     #[test]
     fn test_midi_to_kc_kf_octave_clamping_high() {
         // Test that very high notes clamp to octave 7
-        for midi_note in 108..=127 {
+        // With -2 octave offset: MIDI 108-119 → octave 6, MIDI 120-127 → octave 7
+        for midi_note in 120..=127 {
             let (kc, _) = midi_to_kc_kf(midi_note);
             let octave = (kc >> 4) & 0x07;
             assert_eq!(
