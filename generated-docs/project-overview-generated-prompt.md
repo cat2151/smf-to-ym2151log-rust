@@ -1,4 +1,4 @@
-Last updated: 2025-11-28
+Last updated: 2025-12-02
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -303,6 +303,7 @@ cargo audit
 📖 README.md
 📄 _config.yml
 📁 generated-docs/
+🌐 googled947dc864c270e07.html
 📁 issue-notes/
   📖 21.md
   📖 22.md
@@ -342,7 +343,9 @@ cargo audit
   📖 README.md
 
 ## ファイル詳細分析
-
+**googled947dc864c270e07.html** (1行, 53バイト)
+  - 関数: なし
+  - インポート: なし
 
 ## 関数呼び出し階層
 関数呼び出し階層を分析できませんでした
@@ -350,6 +353,7 @@ cargo audit
 ## プロジェクト構造（ファイル一覧）
 README.ja.md
 README.md
+googled947dc864c270e07.html
 issue-notes/21.md
 issue-notes/22.md
 issue-notes/23.md
@@ -371,4 +375,4 @@ tones/README.md
 
 
 ---
-Generated at: 2025-11-28 07:07:00 JST
+Generated at: 2025-12-02 07:07:07 JST

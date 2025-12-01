@@ -1,4 +1,4 @@
-Last updated: 2025-11-28
+Last updated: 2025-12-02
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -161,6 +161,7 @@ Last updated: 2025-11-28
 - .github/actions-tmp/generated-docs/project-overview-generated-prompt.md
 - .github/actions-tmp/generated-docs/project-overview.md
 - .github/actions-tmp/generated-docs/style.css
+- .github/actions-tmp/googled947dc864c270e07.html
 - .github/actions-tmp/issue-notes/10.md
 - .github/actions-tmp/issue-notes/11.md
 - .github/actions-tmp/issue-notes/12.md
@@ -204,6 +205,7 @@ Last updated: 2025-11-28
 - README.md
 - _config.yml
 - generated-docs/project-overview-generated-prompt.md
+- googled947dc864c270e07.html
 - issue-notes/21.md
 - issue-notes/22.md
 - issue-notes/23.md
@@ -714,26 +716,26 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+e2a62b2 Google検索にindexさせる用
+46dc9a8 Google検索にindexさせる用
+c1525ea Update project summaries (overview & development status) [auto]
 05ede15 Auto-translate README.ja.md to README.md [auto]
 a1a345a link場所変更。そしてJSON互換性の記述を削除（f64 secondsにしたので）
 73638ef Auto-translate README.ja.md to README.md [auto]
 5275af6 Update README.ja.md with breaking changes note
 159d01b Update project summaries (overview & development status) [auto]
 52488c9 不要documentを削除
-0786eb0 Update project summaries (overview & development status) [auto]
-a79dbe5 Add issue note for #33 [auto]
-2bd6634 Merge branch 'main' of github.com:cat2151/smf-to-ym2151log-rust into main
-8126733 fix #32
 
 ### 変更されたファイル:
-IMPLEMENTATION.md
 README.ja.md
 README.md
+_config.yml
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
+googled947dc864c270e07.html
 
 
 ---
-Generated at: 2025-11-28 07:07:00 JST
+Generated at: 2025-12-02 07:07:07 JST
