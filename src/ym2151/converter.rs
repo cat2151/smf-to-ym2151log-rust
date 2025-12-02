@@ -3,12 +3,10 @@
 //! Converts MIDI events to YM2151 register write events.
 
 use crate::error::Result;
-use crate::midi::{
-    midi_to_kc_kf, ticks_to_seconds_with_tempo_map, MidiData, MidiEvent, TempoChange,
-};
+use crate::midi::{midi_to_kc_kf, ticks_to_seconds_with_tempo_map, MidiData, MidiEvent};
 use crate::ym2151::{
-    allocate_channels, analyze_polyphony, apply_tone_to_channel, default_tone_events,
-    initialize_channel_events, load_tone_for_program, Ym2151Event, Ym2151Log,
+    allocate_channels, analyze_polyphony, apply_tone_to_channel, build_tempo_map,
+    default_tone_events, initialize_channel_events, load_tone_for_program, Ym2151Event, Ym2151Log,
 };
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -43,30 +41,7 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
     let mut ym2151_events = Vec::new();
 
     // Build tempo map from MIDI events
-    let mut tempo_map: Vec<TempoChange> = vec![TempoChange {
-        tick: 0,
-        tempo_bpm: midi_data.tempo_bpm,
-    }];
-
-    for event in &midi_data.events {
-        if let MidiEvent::Tempo { ticks, tempo_bpm } = event {
-            // Only add if it's different from the current tempo
-            // or if it's the first explicit tempo event at tick 0
-            if tempo_map.is_empty()
-                || *ticks > tempo_map.last().unwrap().tick
-                || (*ticks == 0 && tempo_map.len() == 1)
-            {
-                tempo_map.push(TempoChange {
-                    tick: *ticks,
-                    tempo_bpm: *tempo_bpm,
-                });
-            }
-        }
-    }
-
-    // Remove duplicates and sort by tick
-    tempo_map.sort_by_key(|t| t.tick);
-    tempo_map.dedup_by_key(|t| t.tick);
+    let tempo_map = build_tempo_map(midi_data);
 
     // Initialize all channels at time 0
     // Register 0x08 is the Key ON/OFF register
