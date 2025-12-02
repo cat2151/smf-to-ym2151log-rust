@@ -53,13 +53,12 @@ pub fn process_note_on(
     }
 
     // Get allocated YM2151 channel(s) for this MIDI channel
-    let ym2151_channels = ctx.allocation.midi_to_ym2151.get(&channel);
-    if ym2151_channels.is_none() || ym2151_channels.unwrap().is_empty() {
-        // No allocation for this channel, skip
+    let Some(ym_channels) = ctx.allocation.midi_to_ym2151.get(&channel) else {
+        return events;
+    };
+    if ym_channels.is_empty() {
         return events;
     }
-
-    let ym_channels = ym2151_channels.unwrap();
 
     // Use round-robin voice allocation for polyphony
     let voice_index = ctx.allocation.current_voice.entry(channel).or_insert(0);
@@ -116,15 +115,14 @@ pub fn process_note_off(
     let mut events = Vec::new();
 
     // Get allocated YM2151 channel(s) for this MIDI channel
-    let ym2151_channels = ctx.allocation.midi_to_ym2151.get(&channel);
-    if ym2151_channels.is_none() {
+    let Some(ym_channels) = ctx.allocation.midi_to_ym2151.get(&channel) else {
         return events;
-    }
+    };
 
     let time_seconds = ticks_to_seconds_with_tempo_map(ticks, ctx.ticks_per_beat, ctx.tempo_map);
 
     // Find which YM2151 channel has this note active and turn it off
-    for &ym2151_channel in ym2151_channels.unwrap() {
+    for &ym2151_channel in ym_channels {
         if ctx.active_notes.contains(&(ym2151_channel, note)) {
             // Key OFF
             events.push(Ym2151Event {
@@ -163,15 +161,14 @@ pub fn process_program_change(
     let mut events = Vec::new();
 
     // Get allocated YM2151 channel(s) for this MIDI channel
-    let ym2151_channels = ctx.allocation.midi_to_ym2151.get(&channel);
-    if ym2151_channels.is_none() {
+    let Some(ym_channels) = ctx.allocation.midi_to_ym2151.get(&channel) else {
         return events;
-    }
+    };
 
     let time_seconds = ticks_to_seconds_with_tempo_map(ticks, ctx.ticks_per_beat, ctx.tempo_map);
 
     // Apply program change to all allocated YM2151 channels for this MIDI channel
-    for &ym2151_channel in ym2151_channels.unwrap() {
+    for &ym2151_channel in ym_channels {
         // Try to load tone from external file, fallback to default
         let tone_events = match load_tone_for_program(program) {
             Ok(Some(tone)) => {
