@@ -4,6 +4,7 @@
 
 pub mod channel_allocation;
 pub mod converter;
+pub mod event_processor;
 pub mod events;
 pub mod init;
 pub mod note_table;
@@ -12,6 +13,7 @@ pub mod tone;
 
 pub use channel_allocation::*;
 pub use converter::*;
+pub use event_processor::*;
 pub use events::*;
 pub use init::*;
 pub use note_table::*;

@@ -3,10 +3,10 @@
 //! Converts MIDI events to YM2151 register write events.
 
 use crate::error::Result;
-use crate::midi::{midi_to_kc_kf, ticks_to_seconds_with_tempo_map, MidiData, MidiEvent};
+use crate::midi::MidiData;
 use crate::ym2151::{
-    allocate_channels, analyze_polyphony, apply_tone_to_channel, build_tempo_map,
-    default_tone_events, initialize_channel_events, load_tone_for_program, Ym2151Event, Ym2151Log,
+    allocate_channels, analyze_polyphony, build_tempo_map, initialize_channel_events,
+    process_event, EventProcessorContext, Ym2151Event, Ym2151Log,
 };
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -83,137 +83,18 @@ pub fn convert_to_ym2151_log(midi_data: &MidiData) -> Result<Ym2151Log> {
     // Track active notes per YM2151 channel: set of (ym2151_channel, note) tuples
     let mut active_notes: HashSet<(u8, u8)> = HashSet::new();
 
+    // Create event processor context
+    let mut ctx = EventProcessorContext {
+        ticks_per_beat,
+        tempo_map: &tempo_map,
+        allocation: &mut allocation,
+        active_notes: &mut active_notes,
+        channel_programs: &mut channel_programs,
+    };
+
     for event in &midi_data.events {
-        match event {
-            // Tempo events are already in the tempo map, no action needed here
-            MidiEvent::Tempo { .. } => {
-                // Skip - tempo changes are handled via tempo_map
-            }
-
-            // Handle Note On events
-            MidiEvent::NoteOn {
-                ticks,
-                channel,
-                note,
-                velocity,
-                ..
-            } => {
-                // Skip if velocity is 0 (should already be converted to Note Off in parser)
-                if *velocity == 0 {
-                    continue;
-                }
-
-                // Get allocated YM2151 channel(s) for this MIDI channel
-                let ym2151_channels = allocation.midi_to_ym2151.get(channel);
-                if ym2151_channels.is_none() || ym2151_channels.unwrap().is_empty() {
-                    // No allocation for this channel, skip
-                    continue;
-                }
-
-                let ym_channels = ym2151_channels.unwrap();
-
-                // Use round-robin voice allocation for polyphony
-                let voice_index = allocation.current_voice.entry(*channel).or_insert(0);
-                let ym2151_channel = ym_channels[*voice_index % ym_channels.len()];
-                *voice_index = (*voice_index + 1) % ym_channels.len();
-
-                let time_seconds =
-                    ticks_to_seconds_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
-                let (kc, kf) = midi_to_kc_kf(*note);
-
-                // Set KC (Key Code)
-                ym2151_events.push(Ym2151Event {
-                    time: time_seconds,
-                    addr: format!("0x{:02X}", 0x28 + ym2151_channel),
-                    data: format!("0x{:02X}", kc),
-                });
-
-                // Set KF (Key Fraction)
-                ym2151_events.push(Ym2151Event {
-                    time: time_seconds,
-                    addr: format!("0x{:02X}", 0x30 + ym2151_channel),
-                    data: format!("0x{:02X}", kf),
-                });
-
-                // Key ON (0x78 = all operators on)
-                ym2151_events.push(Ym2151Event {
-                    time: time_seconds,
-                    addr: "0x08".to_string(),
-                    data: format!("0x{:02X}", 0x78 | ym2151_channel),
-                });
-
-                active_notes.insert((ym2151_channel, *note));
-            }
-
-            // Handle Note Off events
-            MidiEvent::NoteOff {
-                ticks,
-                channel,
-                note,
-                ..
-            } => {
-                // Get allocated YM2151 channel(s) for this MIDI channel
-                let ym2151_channels = allocation.midi_to_ym2151.get(channel);
-                if ym2151_channels.is_none() {
-                    continue;
-                }
-
-                let time_seconds =
-                    ticks_to_seconds_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
-
-                // Find which YM2151 channel has this note active and turn it off
-                for &ym2151_channel in ym2151_channels.unwrap() {
-                    if active_notes.contains(&(ym2151_channel, *note)) {
-                        // Key OFF
-                        ym2151_events.push(Ym2151Event {
-                            time: time_seconds,
-                            addr: "0x08".to_string(),
-                            data: format!("0x{:02X}", ym2151_channel),
-                        });
-
-                        active_notes.remove(&(ym2151_channel, *note));
-                        break; // Only turn off one voice
-                    }
-                }
-            }
-
-            // Handle Program Change events
-            MidiEvent::ProgramChange {
-                ticks,
-                channel,
-                program,
-            } => {
-                // Get allocated YM2151 channel(s) for this MIDI channel
-                let ym2151_channels = allocation.midi_to_ym2151.get(channel);
-                if ym2151_channels.is_none() {
-                    continue;
-                }
-
-                let time_seconds =
-                    ticks_to_seconds_with_tempo_map(*ticks, ticks_per_beat, &tempo_map);
-
-                // Apply program change to all allocated YM2151 channels for this MIDI channel
-                for &ym2151_channel in ym2151_channels.unwrap() {
-                    // Try to load tone from external file, fallback to default
-                    let tone_events = match load_tone_for_program(*program) {
-                        Ok(Some(tone)) => {
-                            // Apply the loaded tone to the channel
-                            apply_tone_to_channel(&tone, ym2151_channel, time_seconds)
-                        }
-                        Ok(None) | Err(_) => {
-                            // Use default tone if file doesn't exist or can't be loaded
-                            default_tone_events(ym2151_channel, time_seconds)
-                        }
-                    };
-
-                    // Add the tone change events
-                    ym2151_events.extend(tone_events);
-
-                    // Update the channel's current program
-                    channel_programs.insert(ym2151_channel, *program);
-                }
-            }
-        }
+        let events = process_event(event, &mut ctx);
+        ym2151_events.extend(events);
     }
 
     Ok(Ym2151Log {
@@ -243,6 +124,7 @@ pub fn save_ym2151_log(log: &Ym2151Log, filename: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::midi::MidiEvent;
 
     #[test]
     fn test_convert_empty_midi() {
