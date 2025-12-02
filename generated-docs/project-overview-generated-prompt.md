@@ -1,4 +1,4 @@
-Last updated: 2025-12-02
+Last updated: 2025-12-03
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -313,6 +313,12 @@ cargo audit
   📖 30.md
   📖 32.md
   📖 33.md
+  📖 34.md
+  📖 36.md
+  📖 38.md
+  📖 39.md
+  📖 41.md
+  📖 43.md
 📁 src/
   📄 error.rs
   📄 lib.rs
@@ -323,11 +329,15 @@ cargo audit
     📄 parser.rs
     📄 utils.rs
   📁 ym2151/
+    📄 channel_allocation.rs
     📄 converter.rs
+    📄 converter_tests.rs
+    📄 event_processor.rs
     📄 events.rs
     📄 init.rs
     📄 mod.rs
     📄 note_table.rs
+    📄 tempo_map.rs
     📄 tone.rs
 📁 tests/
   📄 create_test_midi.py
@@ -362,6 +372,12 @@ issue-notes/28.md
 issue-notes/30.md
 issue-notes/32.md
 issue-notes/33.md
+issue-notes/34.md
+issue-notes/36.md
+issue-notes/38.md
+issue-notes/39.md
+issue-notes/41.md
+issue-notes/43.md
 tones/000.json
 tones/README.md
 
@@ -375,4 +391,4 @@ tones/README.md
 
 
 ---
-Generated at: 2025-12-02 07:07:07 JST
+Generated at: 2025-12-03 07:07:10 JST

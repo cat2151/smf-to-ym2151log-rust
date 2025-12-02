@@ -1,4 +1,4 @@
-Last updated: 2025-12-02
+Last updated: 2025-12-03
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -214,6 +214,12 @@ Last updated: 2025-12-02
 - issue-notes/30.md
 - issue-notes/32.md
 - issue-notes/33.md
+- issue-notes/34.md
+- issue-notes/36.md
+- issue-notes/38.md
+- issue-notes/39.md
+- issue-notes/41.md
+- issue-notes/43.md
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -221,11 +227,15 @@ Last updated: 2025-12-02
 - src/midi/mod.rs
 - src/midi/parser.rs
 - src/midi/utils.rs
+- src/ym2151/channel_allocation.rs
 - src/ym2151/converter.rs
+- src/ym2151/converter_tests.rs
+- src/ym2151/event_processor.rs
 - src/ym2151/events.rs
 - src/ym2151/init.rs
 - src/ym2151/mod.rs
 - src/ym2151/note_table.rs
+- src/ym2151/tempo_map.rs
 - src/ym2151/tone.rs
 - tests/create_test_midi.py
 - tests/integration_tests.rs
@@ -271,6 +281,7 @@ Last updated: 2025-12-02
 ## ドキュメントで言及されているファイルの内容
 ### .github/actions-tmp/issue-notes/2.md
 ```md
+{% raw %}
 # issue GitHub Actions「関数コールグラフhtmlビジュアライズ生成」を共通ワークフロー化する #2
 [issues #2](https://github.com/cat2151/github-actions/issues/2)
 
@@ -440,10 +451,12 @@ jobs:
 # closeとする
 - もしhtml内容が0件NG、などになったら、別issueとするつもり
 
+{% endraw %}
 ```
 
 ### .github/actions-tmp/issue-notes/22.md
 ```md
+{% raw %}
 # issue project-summary の development-status 生成時、Geminiに与えたprompt、もcommit push、を試す #22
 [issues #22](https://github.com/cat2151/github-actions/issues/22)
 
@@ -476,19 +489,23 @@ jobs:
 
 # closeとする
 
+{% endraw %}
 ```
 
 ### issue-notes/22.md
 ```md
+{% raw %}
 # issue tones/000.json～127.json を、ym2151-tone-editorを利用して作成する #22
 [issues #22](https://github.com/cat2151/smf-to-ym2151log-rust/issues/22)
 
 
 
+{% endraw %}
 ```
 
 ### .github/actions-tmp/issue-notes/3.md
 ```md
+{% raw %}
 # issue GitHub Actions「issue note生成」を共通ワークフロー化する #3
 [issues #3](https://github.com/cat2151/github-actions/issues/3)
 
@@ -564,19 +581,23 @@ env: で値を渡し、process.env で参照するのが正しい
 - test green
 - closeとする
 
+{% endraw %}
 ```
 
 ### issue-notes/33.md
 ```md
+{% raw %}
 # issue 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。 #33
 [issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
 
 
 
+{% endraw %}
 ```
 
 ### tones/000.json
 ```json
+{% raw %}
 {
   "events": [
     {
@@ -712,30 +733,33 @@ env: で値を渡し、process.env で参照するのが正しい
   ]
 }
 
+{% endraw %}
 ```
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-e2a62b2 Google検索にindexさせる用
-46dc9a8 Google検索にindexさせる用
-c1525ea Update project summaries (overview & development status) [auto]
-05ede15 Auto-translate README.ja.md to README.md [auto]
-a1a345a link場所変更。そしてJSON互換性の記述を削除（f64 secondsにしたので）
-73638ef Auto-translate README.ja.md to README.md [auto]
-5275af6 Update README.ja.md with breaking changes note
-159d01b Update project summaries (overview & development status) [auto]
-52488c9 不要documentを削除
+fb1dc41 Merge pull request #44 from cat2151/copilot/refactor-src-large-files
+0eb81cd Refactor: Split converter.rs tests into separate file (659 lines)
+9bc9c1e Initial plan
+a2de1ac Add issue note for #43 [auto]
+2acb6d4 Merge pull request #42 from cat2151/copilot/refactor-source-files-split
+e5b56bd Address code review: use if-let-else pattern for Option handling
+8255a67 Refactor: Extract event_processor module from converter.rs
+cdbb06e Initial plan
+8f981cf Add issue note for #41 [auto]
+ac6f4cd Merge pull request #40 from cat2151/copilot/refactor-source-files-according-srp
 
 ### 変更されたファイル:
-README.ja.md
-README.md
-_config.yml
-generated-docs/development-status-generated-prompt.md
-generated-docs/development-status.md
-generated-docs/project-overview-generated-prompt.md
-generated-docs/project-overview.md
-googled947dc864c270e07.html
+issue-notes/38.md
+issue-notes/39.md
+issue-notes/41.md
+issue-notes/43.md
+src/ym2151/converter.rs
+src/ym2151/converter_tests.rs
+src/ym2151/event_processor.rs
+src/ym2151/mod.rs
+src/ym2151/tempo_map.rs
 
 
 ---
-Generated at: 2025-12-02 07:07:07 JST
+Generated at: 2025-12-03 07:07:10 JST
