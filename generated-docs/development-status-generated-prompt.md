@@ -1,4 +1,4 @@
-Last updated: 2025-12-03
+Last updated: 2025-12-04
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -220,6 +220,7 @@ Last updated: 2025-12-03
 - issue-notes/39.md
 - issue-notes/41.md
 - issue-notes/43.md
+- issue-notes/45.md
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -738,28 +739,30 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+7359113 Merge pull request #46 from cat2151/copilot/organize-smf-binary-tone-data
+e54cb78 docs: Add investigation results and API design for issue #45
+50a8630 Initial plan
+ba1c3e0 Add issue note for #45 [auto]
+74955fa Update project summaries (overview & development status) [auto]
 fb1dc41 Merge pull request #44 from cat2151/copilot/refactor-src-large-files
 0eb81cd Refactor: Split converter.rs tests into separate file (659 lines)
 9bc9c1e Initial plan
 a2de1ac Add issue note for #43 [auto]
 2acb6d4 Merge pull request #42 from cat2151/copilot/refactor-source-files-split
-e5b56bd Address code review: use if-let-else pattern for Option handling
-8255a67 Refactor: Extract event_processor module from converter.rs
-cdbb06e Initial plan
-8f981cf Add issue note for #41 [auto]
-ac6f4cd Merge pull request #40 from cat2151/copilot/refactor-source-files-according-srp
 
 ### 変更されたファイル:
-issue-notes/38.md
-issue-notes/39.md
+generated-docs/development-status-generated-prompt.md
+generated-docs/development-status.md
+generated-docs/project-overview-generated-prompt.md
+generated-docs/project-overview.md
 issue-notes/41.md
 issue-notes/43.md
+issue-notes/45.md
 src/ym2151/converter.rs
 src/ym2151/converter_tests.rs
 src/ym2151/event_processor.rs
 src/ym2151/mod.rs
-src/ym2151/tempo_map.rs
 
 
 ---
-Generated at: 2025-12-03 07:07:10 JST
+Generated at: 2025-12-04 07:08:09 JST
