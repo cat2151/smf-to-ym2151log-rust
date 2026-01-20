@@ -1,4 +1,4 @@
-Last updated: 2025-12-04
+Last updated: 2026-01-21
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -106,11 +106,13 @@ Last updated: 2025-12-04
 - .github/actions-tmp/.github/workflows/call-callgraph.yml
 - .github/actions-tmp/.github/workflows/call-daily-project-summary.yml
 - .github/actions-tmp/.github/workflows/call-issue-note.yml
+- .github/actions-tmp/.github/workflows/call-rust-windows-check.yml
 - .github/actions-tmp/.github/workflows/call-translate-readme.yml
 - .github/actions-tmp/.github/workflows/callgraph.yml
 - .github/actions-tmp/.github/workflows/check-recent-human-commit.yml
 - .github/actions-tmp/.github/workflows/daily-project-summary.yml
 - .github/actions-tmp/.github/workflows/issue-note.yml
+- .github/actions-tmp/.github/workflows/rust-windows-check.yml
 - .github/actions-tmp/.github/workflows/translate-readme.yml
 - .github/actions-tmp/.github_automation/callgraph/codeql-queries/callgraph.ql
 - .github/actions-tmp/.github_automation/callgraph/codeql-queries/codeql-pack.lock.yml
@@ -221,6 +223,7 @@ Last updated: 2025-12-04
 - issue-notes/41.md
 - issue-notes/43.md
 - issue-notes/45.md
+- issue-notes/47.md
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -249,6 +252,28 @@ Last updated: 2025-12-04
 - tones/README.md
 
 ## 現在のオープンIssues
+## [Issue #47](../issue-notes/47.md): ブラウザ対応: SMFバイナリをJSONに変換するWASMインターフェースの実装
+[issue-notes/47.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/47.md)
+
+...
+ラベル: 
+--- issue-notes/47.md の内容 ---
+
+```markdown
+# issue ブラウザ対応: SMFバイナリをJSONに変換するWASMインターフェースの実装 #47
+[issues #47](https://github.com/cat2151/smf-to-ym2151log-rust/issues/47)
+
+## agentに投げるprompt案
+- 現在CLIとして動作しているこのツールについて、変換機能を、Webブラウザ上（JavaScript）からも利用可能にしたいと考えています。  
+- そのために wasm-bindgen を導入し、SMFのバイナリデータを受け取って解析結果をJSON文字列として返すWASM関数を実装してください。
+- 必要に応じて、バイナリデータをSMFとしてparseする処理なども、ライブラリクレートとして分離するようリファクタリングしてください。
+- それらを呼び出すWASM用のエントリポイントを追加してください。
+- 完了条件
+    - WASMビルドが成功し、pkgディレクトリに成果物が配置されること。
+    - 既存のCLIツールとしての機能（cargo run）が破壊されず、そのまま動作すること。
+
+```
+
 ## [Issue #33](../issue-notes/33.md): 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。
 [issue-notes/33.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/33.md)
 
@@ -585,6 +610,18 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
+### .github/actions-tmp/issue-notes/7.md
+```md
+{% raw %}
+# issue issue note生成できるかのtest用 #7
+[issues #7](https://github.com/cat2151/github-actions/issues/7)
+
+- 生成できた
+- closeとする
+
+{% endraw %}
+```
+
 ### issue-notes/33.md
 ```md
 {% raw %}
@@ -592,6 +629,24 @@ env: で値を渡し、process.env で参照するのが正しい
 [issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
 
 
+
+{% endraw %}
+```
+
+### issue-notes/47.md
+```md
+{% raw %}
+# issue ブラウザ対応: SMFバイナリをJSONに変換するWASMインターフェースの実装 #47
+[issues #47](https://github.com/cat2151/smf-to-ym2151log-rust/issues/47)
+
+## agentに投げるprompt案
+- 現在CLIとして動作しているこのツールについて、変換機能を、Webブラウザ上（JavaScript）からも利用可能にしたいと考えています。  
+- そのために wasm-bindgen を導入し、SMFのバイナリデータを受け取って解析結果をJSON文字列として返すWASM関数を実装してください。
+- 必要に応じて、バイナリデータをSMFとしてparseする処理なども、ライブラリクレートとして分離するようリファクタリングしてください。
+- それらを呼び出すWASM用のエントリポイントを追加してください。
+- 完了条件
+    - WASMビルドが成功し、pkgディレクトリに成果物が配置されること。
+    - 既存のCLIツールとしての機能（cargo run）が破壊されず、そのまま動作すること。
 
 {% endraw %}
 ```
@@ -739,30 +794,18 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-7359113 Merge pull request #46 from cat2151/copilot/organize-smf-binary-tone-data
-e54cb78 docs: Add investigation results and API design for issue #45
-50a8630 Initial plan
-ba1c3e0 Add issue note for #45 [auto]
-74955fa Update project summaries (overview & development status) [auto]
-fb1dc41 Merge pull request #44 from cat2151/copilot/refactor-src-large-files
-0eb81cd Refactor: Split converter.rs tests into separate file (659 lines)
-9bc9c1e Initial plan
-a2de1ac Add issue note for #43 [auto]
-2acb6d4 Merge pull request #42 from cat2151/copilot/refactor-source-files-split
+69e3997 Enhance tool for WASM support and refactor logic #47
+8acf76d Enhance issue #47 with WASM implementation prompts
+0625878 Add issue note for #47 [auto]
 
 ### 変更されたファイル:
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
-issue-notes/41.md
-issue-notes/43.md
 issue-notes/45.md
-src/ym2151/converter.rs
-src/ym2151/converter_tests.rs
-src/ym2151/event_processor.rs
-src/ym2151/mod.rs
+issue-notes/47.md
 
 
 ---
-Generated at: 2025-12-04 07:08:09 JST
+Generated at: 2026-01-21 07:09:10 JST
