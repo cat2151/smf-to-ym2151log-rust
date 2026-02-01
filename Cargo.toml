@@ -17,6 +17,9 @@ serde_json = "1.0"
 anyhow = "1.0"
 thiserror = "1.0"
 
+# WASM support
+wasm-bindgen = { version = "0.2", optional = true }
+
 [dev-dependencies]
 
 [[bin]]
@@ -26,3 +29,8 @@ path = "src/main.rs"
 [lib]
 name = "smf_to_ym2151log"
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+wasm = ["wasm-bindgen"]
