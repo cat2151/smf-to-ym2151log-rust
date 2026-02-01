@@ -1150,4 +1150,3 @@ fn test_convert_smf_bytes_to_json_end_to_end() {
         assert!(data.starts_with("0x"), "data should start with 0x");
     }
 }
-

@@ -71,6 +71,7 @@ Standard MIDI Files (SMF) をYM2151 FM音源チップのレジスタ書き込み
   - **パスA**: MIDIファイル → 中間イベントJSON（デバッグ用）
   - **パスB**: 中間イベント → YM2151レジスタログJSON（最終出力）
 - **プログラムチェンジ対応**: 外部JSONファイルからカスタムYM2151音色を読み込み (MIDIプログラム0-127)
+- **WebAssembly対応**: WASMによるWebブラウザでの実行が可能 ([WASM_USAGE.md](WASM_USAGE.md)を参照)
 - **型安全性**: Rustの型システムによる堅牢性
 - **高パフォーマンス**: ネイティブコンパイルによる高速処理
 - **テスト駆動開発**: 包括的なユニットテストと統合テスト (73 tests)
@@ -112,6 +113,22 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
 詳細なAPIドキュメント: `cargo doc --open`
+
+### WebAssembly（ブラウザ）での使用
+
+Webブラウザでビルドして使用する：
+
+```bash
+# wasm-packをインストール
+cargo install wasm-pack
+
+# WASMパッケージをビルド
+wasm-pack build --target web --features wasm
+```
+
+詳細な使用方法と例については、[WASM_USAGE.md](WASM_USAGE.md)を参照してください。
+
+完全なデモは`demo.html`で利用可能です。
 
 ### 出力例
 

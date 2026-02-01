@@ -70,6 +70,7 @@ It converts Standard MIDI Files (SMF) into register write logs (JSON format) for
   - **Pass A**: MIDI file → Intermediate Event JSON (for debugging)
   - **Pass B**: Intermediate Events → YM2151 Register Log JSON (final output)
 - **Program Change Support**: Loads custom YM2151 tones from external JSON files (MIDI Programs 0-127)
+- **WebAssembly Support**: Run in web browsers via WASM (see [WASM_USAGE.md](WASM_USAGE.md))
 - **Type Safety**: Robustness through Rust's type system
 - **High Performance**: Fast processing due to native compilation
 - **Test-Driven Development**: Comprehensive unit and integration tests (73 tests)
@@ -111,6 +112,22 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
 Detailed API documentation: `cargo doc --open`
+
+### WebAssembly (Browser) Usage
+
+Build and use in web browsers:
+
+```bash
+# Install wasm-pack
+cargo install wasm-pack
+
+# Build WASM package
+wasm-pack build --target web --features wasm
+```
+
+For detailed usage instructions and examples, see [WASM_USAGE.md](WASM_USAGE.md).
+
+A complete demo is available in `demo.html`.
 
 ### Output Example
 
