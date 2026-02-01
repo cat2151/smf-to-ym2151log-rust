@@ -5,17 +5,17 @@
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
 </p>
 
-**Rust implementation to convert Standard MIDI Files (SMF) into YM2151 register write logs (JSON format)**
+**Rust implementation to convert Standard MIDI Files (SMF) to YM2151 register write logs (JSON format)**
 
 ## WIP
 
-Currently, it can only convert basic do-re-mi notes into a minimal JSON format.
+Currently, it can only convert basic notes to a minimal JSON format.
 
-More advanced features will be implemented in the future.
+More advanced implementations are planned for the future.
 
 Frequent breaking changes are expected.
 
-## Purpose
+## Usage
 
 It is used as a library by `cat-play-mml`.
 
@@ -28,19 +28,19 @@ The current implementation uses a **chord-count-based static channel assignment 
 **1. Chord Count Analysis Phase**:
 Before conversion, the MIDI file is analyzed to measure the maximum chord count (polyphony) for each MIDI channel by tracking overlapping note events.
 
-**2. Static Assignment based on Chord Count**:
-YM2151 channels (0-7, total 8 channels) are assigned based on the chord count requirements of each MIDI channel.
-- MIDI channels with a high chord count receive multiple YM2151 channels.
-- Example: If MIDI ch0 requires 3 simultaneous notes and MIDI ch1 requires 1:
+**2. Static Assignment Based on Chord Count**:
+YM2151 channels (0-7, 8 channels total) are assigned based on the chord count requirements of each MIDI channel.
+- MIDI channels with higher chord counts acquire multiple YM2151 channels.
+- Example: If MIDI ch0 needs 3 notes and MIDI ch1 needs 1 note:
   - MIDI ch0 gets YM2151 ch0, ch1, ch2 (3 channels)
   - MIDI ch1 gets YM2151 ch3 (1 channel)
   - YM2151 ch4-ch7 remain available
 
-**3. Drum Channel Priority Reordering**:
-After initial assignment, if MIDI channel 9 (General MIDI drum channel) exists, the assignment is reordered:
+**3. Drum Channel Prioritization Rearrangement**:
+After initial assignment, if MIDI channel 9 (General MIDI drum channel) is present, the assignment is rearranged:
 - MIDI channel 9 is prioritized to use YM2151 channel 0.
-- Other channel assignments are swapped as appropriate.
-- **Reason**: Drums often have multiple note-on events at the same tick. Since the YM2151 processes channels sequentially and requires a specified register access cycle, assigning drums to channel 0 ensures they sound first, improving sound quality.
+- Other channel assignments are swapped accordingly.
+- **Reason**: Drums often have multiple note-on events on the same tick. YM2151 processes channels sequentially and requires a defined register access cycle, so assigning drums to channel 0 ensures they sound first, improving sound quality.
 
 **Voice Management**:
 - If a MIDI channel is assigned multiple YM2151 channels (chord count > 1), notes are distributed in a round-robin fashion.
@@ -49,7 +49,7 @@ After initial assignment, if MIDI channel 9 (General MIDI drum channel) exists, 
 
 **Limitations**:
 - A total of 8 YM2151 channels are available.
-- If the total chord count across all MIDI channels exceeds 8, overflowed notes will use the last assigned channel.
+- If the total chord count of all MIDI channels exceeds 8, overflowed notes will use the last assigned channel.
 - No dynamic voice stealing during playback (all assignments are static/pre-determined).
 
 **Out of Scope**:
@@ -66,18 +66,18 @@ It converts Standard MIDI Files (SMF) into register write logs (JSON format) for
 
 ## Features
 
-- **2-Pass Processing Architecture**:
+- **Two-Pass Processing Architecture**:
   - **Pass A**: MIDI file → Intermediate Event JSON (for debugging)
   - **Pass B**: Intermediate Events → YM2151 Register Log JSON (final output)
-- **Program Change Support**: Loads custom YM2151 tones from external JSON files (MIDI Programs 0-127)
-- **WebAssembly Support**: Run in web browsers via WASM (see [WASM_USAGE.md](WASM_USAGE.md))
-- **Type Safety**: Robustness through Rust's type system
-- **High Performance**: Fast processing due to native compilation
-- **Test-Driven Development**: Comprehensive unit and integration tests (73 tests)
-- **Standard Compliance**: Supports SMF Format 0 and Format 1
-- **Library API**: Convenient API usable by other Rust projects
+- **Program Change Support**: Loads custom YM2151 tones from external JSON files (MIDI programs 0-127).
+- **WebAssembly Support**: Can be executed in web browsers via WASM (see [WASM_USAGE.md](WASM_USAGE.md)).
+- **Type Safety**: Robustness provided by Rust's type system.
+- **High Performance**: Fast processing due to native compilation.
+- **Test-Driven Development**: Comprehensive unit and integration tests (73 tests).
+- **Standard Compliant**: Supports SMF Format 0 and Format 1.
+- **Library API**: Provides a convenient API for use in other Rust projects.
 
-## Usage
+## How to Use
 
 ### Installation
 
@@ -97,13 +97,13 @@ cargo install --path .
 smf-to-ym2151log-rust song.mid
 
 # Output files:
-# - song_events.json  (Pass A: intermediate events for debugging)
+# - song_events.json  (Pass A: Debugging intermediate events)
 # - song_ym2151.json  (Pass B: YM2151 register log)
 ```
 
-### Using as a library
+### Usage as a Library
 
-It can be used as a library from other Rust projects:
+You can use it as a library from other Rust projects:
 
 ```toml
 # Cargo.toml
@@ -115,17 +115,17 @@ Detailed API documentation: `cargo doc --open`
 
 ### WebAssembly (Browser) Usage
 
-Build and use in web browsers:
+To build and use in a web browser:
 
 ```bash
 # Install wasm-pack
 cargo install wasm-pack
 
-# Build WASM package
+# Build the WASM package
 wasm-pack build --target web --features wasm
 ```
 
-For detailed usage instructions and examples, see [WASM_USAGE.md](WASM_USAGE.md).
+For detailed usage instructions and examples, refer to [WASM_USAGE.md](WASM_USAGE.md).
 
 A complete demo is available in `demo.html`.
 
@@ -156,11 +156,11 @@ Saving YM2151 log JSON...
 
 ## Program Change Support
 
-The converter supports tone changes via MIDI Program Change events (0-127). When a Program Change event is detected, the converter performs the following:
+The converter supports tone switching via MIDI program change events (0-127). When a program change event is detected, the converter performs the following actions:
 
-1. **Searches for an external tone file**: `tones/{program:03}.json` (e.g., `tones/042.json` for program 42)
+1. **Searches for an external tone file**: `tones/{program:03}.json` (e.g., `tones/042.json` for program 42).
 2. **Loads and applies the tone** if the file exists.
-3. **Uses a built-in default tone** if the file does not exist.
+3. **Uses the built-in default tone** if the file does not exist.
 
 ### Custom Tone Files
 
@@ -195,7 +195,7 @@ EOF
 smf-to-ym2151log-rust song.mid
 
 # The converter will automatically use tones/042.json
-# when Program 42 is specified by a program change.
+# when Program 42 is specified in a program change.
 ```
 
 ## Development
@@ -239,6 +239,6 @@ cargo audit
 
 ## References
 
-- [Python implementation](https://github.com/cat2151/smf-to-ym2151log): The original Python implementation of this project
-- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): The source of the output JSON format specification
-- [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): Official specification document for the YM2151 chip
+- [Python implementation](https://github.com/cat2151/smf-to-ym2151log): The original Python implementation of this project.
+- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): The source for the output JSON format specification.
+- [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): Official specification for the YM2151 chip.
