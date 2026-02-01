@@ -1113,7 +1113,7 @@ fn test_wasm_smf_to_ym2151_json_empty_data() {
 }
 
 #[test]
-fn test_convert_smf_bytes_to_json_end_to_end() {
+fn test_convert_smf_to_ym2151_log_end_to_end() {
     // This test is always available and tests the convenience function
     let midi_path = "tests/test_data/simple_melody.mid";
     let smf_bytes = fs::read(midi_path).expect("Failed to read test MIDI file");

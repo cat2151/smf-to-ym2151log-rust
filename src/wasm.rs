@@ -30,7 +30,14 @@ use wasm_bindgen::prelude::*;
 pub fn smf_to_ym2151_json(smf_data: &[u8]) -> String {
     match crate::convert_smf_to_ym2151_log(smf_data) {
         Ok(json) => json,
-        Err(e) => format!("{{\"error\": \"{}\"}}", e),
+        Err(e) => {
+            // Use serde_json to properly escape error messages
+            let error_obj = serde_json::json!({
+                "error": e.to_string()
+            });
+            serde_json::to_string(&error_obj)
+                .unwrap_or_else(|_| r#"{"error": "Unknown error"}"#.to_string())
+        }
     }
 }
 
@@ -45,5 +52,28 @@ mod tests {
         let empty_smf: Vec<u8> = vec![];
         let result = smf_to_ym2151_json(&empty_smf);
         assert!(result.contains("error") || result.contains("events"));
+    }
+
+    #[test]
+    #[cfg(feature = "wasm")]
+    fn test_wasm_error_json_escaping() {
+        // Test that error messages with special characters are properly escaped
+        let invalid_data = vec![0x00, 0x01, 0x02];
+        let result = smf_to_ym2151_json(&invalid_data);
+
+        // Result should be valid JSON
+        let parsed: Result<serde_json::Value, _> = serde_json::from_str(&result);
+        assert!(
+            parsed.is_ok(),
+            "Error response should be valid JSON: {}",
+            result
+        );
+
+        // Should have an error field
+        let json = parsed.unwrap();
+        assert!(
+            json.get("error").is_some(),
+            "Error response should have error field"
+        );
     }
 }
