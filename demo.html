@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMF to YM2151 WASM Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        #file-input {
+            margin: 20px 0;
+        }
+        #output {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>SMF to YM2151 WASM Demo</h1>
+    <p>This demo shows how to use the WASM build of smf-to-ym2151log-rust in a browser.</p>
+    
+    <div>
+        <label for="file-input">Select a MIDI file (.mid):</label><br>
+        <input type="file" id="file-input" accept=".mid,.midi">
+    </div>
+    
+    <div id="output">
+        <p>Select a MIDI file to see the YM2151 register log JSON output...</p>
+    </div>
+
+    <script type="module">
+        // Import the WASM module
+        import init, { smf_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
+
+        // Initialize WASM
+        async function initWasm() {
+            try {
+                await init();
+                console.log('WASM module initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize WASM:', error);
+                document.getElementById('output').innerHTML = 
+                    '<p class="error">Failed to initialize WASM module: ' + error.message + '</p>';
+            }
+        }
+
+        // Handle file input
+        document.getElementById('file-input').addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Processing ' + file.name + '...</p>';
+
+            try {
+                // Read file as array buffer
+                const arrayBuffer = await file.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+
+                // Convert SMF to YM2151 JSON
+                const result = smf_to_ym2151_json(uint8Array);
+
+                // Parse and display result
+                try {
+                    const json = JSON.parse(result);
+                    if (json.error) {
+                        output.innerHTML = '<p class="error">Error: ' + json.error + '</p>';
+                    } else {
+                        output.innerHTML = 
+                            '<p class="success">Successfully converted!</p>' +
+                            '<p><strong>Event count:</strong> ' + json.event_count + '</p>' +
+                            '<pre>' + JSON.stringify(json, null, 2) + '</pre>';
+                    }
+                } catch (e) {
+                    // If not JSON, display as plain text (shouldn't happen)
+                    output.innerHTML = '<pre>' + result + '</pre>';
+                }
+            } catch (error) {
+                output.innerHTML = '<p class="error">Error processing file: ' + error.message + '</p>';
+                console.error('Error:', error);
+            }
+        });
+
+        // Initialize on page load
+        initWasm();
+    </script>
+</body>
+</html>
