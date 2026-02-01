@@ -59,8 +59,12 @@
                 console.log('WASM module initialized successfully');
             } catch (error) {
                 console.error('Failed to initialize WASM:', error);
-                document.getElementById('output').innerHTML = 
-                    '<p class="error">Failed to initialize WASM module: ' + error.message + '</p>';
+                const output = document.getElementById('output');
+                output.innerHTML = '';
+                const errorParagraph = document.createElement('p');
+                errorParagraph.className = 'error';
+                errorParagraph.textContent = 'Failed to initialize WASM module: ' + error.message;
+                output.appendChild(errorParagraph);
             }
         }
 
@@ -70,7 +74,10 @@
             if (!file) return;
 
             const output = document.getElementById('output');
-            output.innerHTML = '<p>Processing ' + file.name + '...</p>';
+            output.innerHTML = '';
+            const processingParagraph = document.createElement('p');
+            processingParagraph.textContent = 'Processing ' + file.name + '...';
+            output.appendChild(processingParagraph);
 
             try {
                 // Read file as array buffer
@@ -83,20 +90,43 @@
                 // Parse and display result
                 try {
                     const json = JSON.parse(result);
+                    output.innerHTML = '';
+                    
                     if (json.error) {
-                        output.innerHTML = '<p class="error">Error: ' + json.error + '</p>';
+                        const errorParagraph = document.createElement('p');
+                        errorParagraph.className = 'error';
+                        errorParagraph.textContent = 'Error: ' + json.error;
+                        output.appendChild(errorParagraph);
                     } else {
-                        output.innerHTML = 
-                            '<p class="success">Successfully converted!</p>' +
-                            '<p><strong>Event count:</strong> ' + json.event_count + '</p>' +
-                            '<pre>' + JSON.stringify(json, null, 2) + '</pre>';
+                        const successParagraph = document.createElement('p');
+                        successParagraph.className = 'success';
+                        successParagraph.textContent = 'Successfully converted!';
+                        output.appendChild(successParagraph);
+                        
+                        const eventCountParagraph = document.createElement('p');
+                        const strongElement = document.createElement('strong');
+                        strongElement.textContent = 'Event count:';
+                        eventCountParagraph.appendChild(strongElement);
+                        eventCountParagraph.appendChild(document.createTextNode(' ' + json.event_count));
+                        output.appendChild(eventCountParagraph);
+                        
+                        const preElement = document.createElement('pre');
+                        preElement.textContent = JSON.stringify(json, null, 2);
+                        output.appendChild(preElement);
                     }
                 } catch (e) {
                     // If not JSON, display as plain text (shouldn't happen)
-                    output.innerHTML = '<pre>' + result + '</pre>';
+                    output.innerHTML = '';
+                    const preElement = document.createElement('pre');
+                    preElement.textContent = result;
+                    output.appendChild(preElement);
                 }
             } catch (error) {
-                output.innerHTML = '<p class="error">Error processing file: ' + error.message + '</p>';
+                output.innerHTML = '';
+                const errorParagraph = document.createElement('p');
+                errorParagraph.className = 'error';
+                errorParagraph.textContent = 'Error processing file: ' + error.message;
+                output.appendChild(errorParagraph);
                 console.error('Error:', error);
             }
         });

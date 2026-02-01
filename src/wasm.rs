@@ -3,7 +3,7 @@
 //! This module provides WebAssembly bindings to convert SMF binary data to JSON
 //! for use in web browsers via JavaScript.
 
-#[cfg(feature = "wasm")]
+#[cfg(all(feature = "wasm", target_arch = "wasm32"))]
 use wasm_bindgen::prelude::*;
 
 /// Convert SMF binary data to YM2151 register log JSON (WASM entry point)
@@ -14,7 +14,8 @@ use wasm_bindgen::prelude::*;
 /// * `smf_data` - Standard MIDI File binary data as bytes
 ///
 /// # Returns
-/// YM2151 register log as JSON string on success, or error message on failure
+/// YM2151 register log as a JSON string on success, or a JSON string containing an
+/// `error` field (e.g. `{"error": "<message>"}`) on failure.
 ///
 /// # Example (JavaScript)
 /// ```javascript
@@ -26,7 +27,7 @@ use wasm_bindgen::prelude::*;
 /// console.log(jsonResult);
 /// ```
 #[cfg(feature = "wasm")]
-#[wasm_bindgen]
+#[cfg_attr(all(feature = "wasm", target_arch = "wasm32"), wasm_bindgen)]
 pub fn smf_to_ym2151_json(smf_data: &[u8]) -> String {
     match crate::convert_smf_to_ym2151_log(smf_data) {
         Ok(json) => json,

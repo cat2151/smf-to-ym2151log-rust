@@ -10,6 +10,10 @@ readme = "README.md"
 keywords = ["midi", "ym2151", "fm-synthesis", "audio", "converter"]
 categories = ["multimedia", "command-line-utilities"]
 
+# Note: wasm-opt is disabled to avoid requiring network access during build.
+# This increases WASM binary size but ensures builds work in network-restricted environments.
+# For production deployments, consider enabling wasm-opt by removing this configuration
+# or running wasm-opt manually on the generated .wasm file.
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
 
