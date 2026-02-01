@@ -10,12 +10,22 @@ readme = "README.md"
 keywords = ["midi", "ym2151", "fm-synthesis", "audio", "converter"]
 categories = ["multimedia", "command-line-utilities"]
 
+# Note: wasm-opt is disabled to avoid requiring network access during build.
+# This increases WASM binary size but ensures builds work in network-restricted environments.
+# For production deployments, consider enabling wasm-opt by removing this configuration
+# or running wasm-opt manually on the generated .wasm file.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
 [dependencies]
 midly = "0.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
 thiserror = "1.0"
+
+# WASM support
+wasm-bindgen = { version = "0.2", optional = true }
 
 [dev-dependencies]
 
@@ -26,3 +36,8 @@ path = "src/main.rs"
 [lib]
 name = "smf_to_ym2151log"
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+wasm = ["wasm-bindgen"]

@@ -33,3 +33,7 @@ target
 tones/*.json
 !tones/000.json
 !tones/README.md
+
+# WASM build artifacts
+pkg
+*.wasm

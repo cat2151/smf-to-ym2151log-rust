@@ -39,6 +39,9 @@ pub mod error;
 pub mod midi;
 pub mod ym2151;
 
+#[cfg(feature = "wasm")]
+pub mod wasm;
+
 // Re-export commonly used types
 pub use error::{Error, Result};
 
