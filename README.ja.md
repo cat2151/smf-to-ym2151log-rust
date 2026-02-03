@@ -128,7 +128,7 @@ wasm-pack build --target web --features wasm
 
 詳細な使用方法と例については、[WASM_USAGE.md](WASM_USAGE.md)を参照してください。
 
-完全なデモは`demo.html`で利用可能です。
+完全なデモは`index.html`で利用可能です。
 
 ### 出力例
 

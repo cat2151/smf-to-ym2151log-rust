@@ -127,7 +127,7 @@ wasm-pack build --target web --features wasm
 
 For detailed usage instructions and examples, refer to [WASM_USAGE.md](WASM_USAGE.md).
 
-A complete demo is available in `demo.html`.
+A complete demo is available in `index.html`.
 
 ### Output Example
 
