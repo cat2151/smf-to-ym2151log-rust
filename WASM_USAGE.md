@@ -152,7 +152,22 @@ This format is compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151
 
 ## Demo
 
-A complete working demo is available in `index.html`. To use it:
+A complete working demo is available in `index.html`. 
+
+### Online Demo
+
+The demo is automatically deployed to GitHub Pages at:
+https://cat2151.github.io/smf-to-ym2151log-rust/
+
+The GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) automatically:
+1. Builds the WASM package using wasm-pack
+2. Deploys the demo page with the WASM module to GitHub Pages
+
+This runs automatically on every push to the `main` branch.
+
+### Local Demo
+
+To run the demo locally:
 
 1. Build the WASM package (see above)
 2. Serve the directory with a local web server:

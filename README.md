@@ -115,7 +115,9 @@ Detailed API documentation: `cargo doc --open`
 
 ### WebAssembly (Browser) Usage
 
-To build and use in a web browser:
+**Online Demo**: Try the converter in your browser at https://cat2151.github.io/smf-to-ym2151log-rust/
+
+To build and use in a web browser locally:
 
 ```bash
 # Install wasm-pack
