@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMF to YM2151 WASM Demo</title>
+    <title>SMF/MML to YM2151 WASM Demo</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,9 +17,101 @@
         h1 {
             color: #333;
         }
-        #file-input {
+        
+        /* Tab styles */
+        .tab-container {
             margin: 20px 0;
         }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            background-color: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .tab-button:hover {
+            color: #333;
+        }
+        .tab-button.active {
+            color: #2c5aa0;
+            border-bottom-color: #2c5aa0;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Input styles */
+        #file-input {
+            margin: 10px 0;
+        }
+        #mml-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .convert-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #2c5aa0;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .convert-button:hover {
+            background-color: #1e3d6f;
+        }
+        .convert-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Examples */
+        .examples {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #2c5aa0;
+        }
+        .examples h3 {
+            margin-top: 0;
+            font-size: 14px;
+            color: #2c5aa0;
+        }
+        .examples p {
+            margin: 5px 0;
+            font-size: 13px;
+        }
+        .example-link {
+            color: #2c5aa0;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .example-link:hover {
+            color: #1e3d6f;
+        }
+        
+        /* Output styles */
         #output {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
@@ -47,6 +139,43 @@
             h1 {
                 color: #e0e0e0;
             }
+            .tabs {
+                border-bottom-color: #444444;
+            }
+            .tab-button {
+                color: #999;
+            }
+            .tab-button:hover {
+                color: #ccc;
+            }
+            .tab-button.active {
+                color: #6ba3ff;
+                border-bottom-color: #6ba3ff;
+            }
+            #mml-input {
+                background-color: #2a2a2a;
+                border-color: #444444;
+                color: #e0e0e0;
+            }
+            .convert-button {
+                background-color: #2c5aa0;
+            }
+            .convert-button:hover {
+                background-color: #3d6bb8;
+            }
+            .examples {
+                background-color: #2a2a2a;
+                border-left-color: #6ba3ff;
+            }
+            .examples h3 {
+                color: #6ba3ff;
+            }
+            .example-link {
+                color: #6ba3ff;
+            }
+            .example-link:hover {
+                color: #8bb8ff;
+            }
             #output {
                 background-color: #2a2a2a;
                 border: 1px solid #444444;
@@ -62,21 +191,45 @@
     </style>
 </head>
 <body>
-    <h1>SMF to YM2151 WASM Demo</h1>
-    <p>This demo shows how to use the WASM build of smf-to-ym2151log-rust in a browser.</p>
+    <h1>SMF/MML to YM2151 WASM Demo</h1>
+    <p>Convert MIDI files or MML (Music Macro Language) to YM2151 register logs using WebAssembly.</p>
     
-    <div>
-        <label for="file-input">Select a MIDI file (.mid):</label><br>
-        <input type="file" id="file-input" accept=".mid,.midi">
+    <div class="tab-container">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="midi">MIDI File</button>
+            <button class="tab-button" data-tab="mml">MML Input</button>
+        </div>
+        
+        <!-- MIDI File Tab -->
+        <div class="tab-content active" id="midi-tab">
+            <label for="file-input">Select a MIDI file (.mid):</label><br>
+            <input type="file" id="file-input" accept=".mid,.midi">
+        </div>
+        
+        <!-- MML Input Tab -->
+        <div class="tab-content" id="mml-tab">
+            <label for="mml-input">Enter MML code:</label>
+            <textarea id="mml-input" placeholder="Enter MML code here, e.g., cdefgab"></textarea>
+            <button class="convert-button" id="convert-button">Convert to YM2151</button>
+            
+            <div class="examples">
+                <h3>📝 MML Examples (click to try):</h3>
+                <p><span class="example-link" data-mml="cdefgab">Simple melody</span>: cdefgab</p>
+                <p><span class="example-link" data-mml="o5 l4 cdefgab">With octave and length</span>: o5 l4 cdefgab</p>
+                <p><span class="example-link" data-mml="c;e;g">C major chord</span>: c;e;g</p>
+                <p><span class="example-link" data-mml="o4 c c g g a a g2 f f e e d d c2">Twinkle Twinkle</span>: o4 c c g g a a g2 f f e e d d c2</p>
+                <p><span class="example-link" data-mml="o5 l8 v15 c d e f g v10 g g v8 a a v5 g">With dynamics</span>: o5 l8 v15 c d e f g v10 g g v8 a a v5 g</p>
+            </div>
+        </div>
     </div>
     
     <div id="output">
-        <p>Select a MIDI file to see the YM2151 register log JSON output...</p>
+        <p>Select a MIDI file or enter MML code to see the YM2151 register log JSON output...</p>
     </div>
 
     <script type="module">
         // Import the WASM module
-        import init, { smf_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
+        import init, { smf_to_ym2151_json, mml_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
 
         // Initialize WASM
         async function initWasm() {
@@ -94,7 +247,62 @@
             }
         }
 
-        // Handle file input
+        // Tab switching
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                
+                // Update active tab button
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update active tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabName + '-tab').classList.add('active');
+            });
+        });
+
+        // Display result in output div
+        function displayResult(result) {
+            const output = document.getElementById('output');
+            try {
+                const json = JSON.parse(result);
+                output.innerHTML = '';
+                
+                if (json.error) {
+                    const errorParagraph = document.createElement('p');
+                    errorParagraph.className = 'error';
+                    errorParagraph.textContent = 'Error: ' + json.error;
+                    output.appendChild(errorParagraph);
+                } else {
+                    const successParagraph = document.createElement('p');
+                    successParagraph.className = 'success';
+                    successParagraph.textContent = '✓ Successfully converted!';
+                    output.appendChild(successParagraph);
+                    
+                    const eventCountParagraph = document.createElement('p');
+                    const strongElement = document.createElement('strong');
+                    strongElement.textContent = 'Event count:';
+                    eventCountParagraph.appendChild(strongElement);
+                    eventCountParagraph.appendChild(document.createTextNode(' ' + json.event_count));
+                    output.appendChild(eventCountParagraph);
+                    
+                    const preElement = document.createElement('pre');
+                    preElement.textContent = JSON.stringify(json, null, 2);
+                    output.appendChild(preElement);
+                }
+            } catch (e) {
+                // If not JSON, display as plain text (shouldn't happen)
+                output.innerHTML = '';
+                const preElement = document.createElement('pre');
+                preElement.textContent = result;
+                output.appendChild(preElement);
+            }
+        }
+
+        // Handle MIDI file input
         document.getElementById('file-input').addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (!file) return;
@@ -112,41 +320,7 @@
 
                 // Convert SMF to YM2151 JSON
                 const result = smf_to_ym2151_json(uint8Array);
-
-                // Parse and display result
-                try {
-                    const json = JSON.parse(result);
-                    output.innerHTML = '';
-                    
-                    if (json.error) {
-                        const errorParagraph = document.createElement('p');
-                        errorParagraph.className = 'error';
-                        errorParagraph.textContent = 'Error: ' + json.error;
-                        output.appendChild(errorParagraph);
-                    } else {
-                        const successParagraph = document.createElement('p');
-                        successParagraph.className = 'success';
-                        successParagraph.textContent = 'Successfully converted!';
-                        output.appendChild(successParagraph);
-                        
-                        const eventCountParagraph = document.createElement('p');
-                        const strongElement = document.createElement('strong');
-                        strongElement.textContent = 'Event count:';
-                        eventCountParagraph.appendChild(strongElement);
-                        eventCountParagraph.appendChild(document.createTextNode(' ' + json.event_count));
-                        output.appendChild(eventCountParagraph);
-                        
-                        const preElement = document.createElement('pre');
-                        preElement.textContent = JSON.stringify(json, null, 2);
-                        output.appendChild(preElement);
-                    }
-                } catch (e) {
-                    // If not JSON, display as plain text (shouldn't happen)
-                    output.innerHTML = '';
-                    const preElement = document.createElement('pre');
-                    preElement.textContent = result;
-                    output.appendChild(preElement);
-                }
+                displayResult(result);
             } catch (error) {
                 output.innerHTML = '';
                 const errorParagraph = document.createElement('p');
@@ -154,6 +328,53 @@
                 errorParagraph.textContent = 'Error processing file: ' + error.message;
                 output.appendChild(errorParagraph);
                 console.error('Error:', error);
+            }
+        });
+
+        // Handle MML input conversion
+        document.getElementById('convert-button').addEventListener('click', async () => {
+            const mmlInput = document.getElementById('mml-input').value.trim();
+            
+            if (!mmlInput) {
+                alert('Please enter MML code first.');
+                return;
+            }
+
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            const processingParagraph = document.createElement('p');
+            processingParagraph.textContent = 'Converting MML...';
+            output.appendChild(processingParagraph);
+
+            try {
+                // Convert MML to YM2151 JSON
+                const result = mml_to_ym2151_json(mmlInput);
+                displayResult(result);
+            } catch (error) {
+                output.innerHTML = '';
+                const errorParagraph = document.createElement('p');
+                errorParagraph.className = 'error';
+                errorParagraph.textContent = 'Error converting MML: ' + error.message;
+                output.appendChild(errorParagraph);
+                console.error('Error:', error);
+            }
+        });
+
+        // Handle example clicks
+        document.querySelectorAll('.example-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const mml = link.getAttribute('data-mml');
+                document.getElementById('mml-input').value = mml;
+                // Auto-convert
+                document.getElementById('convert-button').click();
+            });
+        });
+
+        // Allow Enter key in textarea (Ctrl+Enter to convert)
+        document.getElementById('mml-input').addEventListener('keydown', (event) => {
+            if (event.ctrlKey && event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('convert-button').click();
             }
         });
 
