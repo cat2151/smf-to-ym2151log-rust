@@ -152,7 +152,7 @@ This format is compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151
 
 ## Demo
 
-A complete working demo is available in `index.html`. 
+A complete working demo is available in `index.html`.
 
 ### Online Demo
 
