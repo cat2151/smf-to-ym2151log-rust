@@ -152,7 +152,7 @@ This format is compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151
 
 ## Demo
 
-A complete working demo is available in `demo.html`. To use it:
+A complete working demo is available in `index.html`. To use it:
 
 1. Build the WASM package (see above)
 2. Serve the directory with a local web server:
@@ -163,7 +163,7 @@ A complete working demo is available in `demo.html`. To use it:
    # Using Node.js
    npx http-server
    ```
-3. Open http://localhost:8000/demo.html in your browser
+3. Open http://localhost:8000/ in your browser
 4. Select a MIDI file to see the conversion result
 
 ## Browser Compatibility
