@@ -34,19 +34,26 @@ This will create a `pkg` directory containing:
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SMF to YM2151 Converter</title>
+    <title>SMF/MML to YM2151 Converter</title>
 </head>
 <body>
+    <h2>MIDI File Input</h2>
     <input type="file" id="midi-file" accept=".mid,.midi">
+    
+    <h2>MML Input</h2>
+    <textarea id="mml-input" placeholder="Enter MML code, e.g., cdefgab"></textarea>
+    <button id="convert-mml">Convert MML</button>
+    
+    <h2>Output</h2>
     <pre id="output"></pre>
 
     <script type="module">
-        import init, { smf_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
+        import init, { smf_to_ym2151_json, mml_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
 
         // Initialize WASM module
         await init();
 
-        // Handle file selection
+        // Handle MIDI file selection
         document.getElementById('midi-file').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -61,6 +68,18 @@ This will create a `pkg` directory containing:
             // Display result
             document.getElementById('output').textContent = result;
         });
+
+        // Handle MML conversion
+        document.getElementById('convert-mml').addEventListener('click', () => {
+            const mml = document.getElementById('mml-input').value;
+            if (!mml) return;
+
+            // Convert MML to YM2151 JSON
+            const result = mml_to_ym2151_json(mml);
+            
+            // Display result
+            document.getElementById('output').textContent = result;
+        });
     </script>
 </body>
 </html>
@@ -69,7 +88,7 @@ This will create a `pkg` directory containing:
 ### TypeScript Example
 
 ```typescript
-import init, { smf_to_ym2151_json } from './pkg/smf_to_ym2151log';
+import init, { smf_to_ym2151_json, mml_to_ym2151_json } from './pkg/smf_to_ym2151log';
 
 async function convertMidiFile(file: File): Promise<string> {
     // Initialize WASM (only needed once)
@@ -85,10 +104,38 @@ async function convertMidiFile(file: File): Promise<string> {
     return jsonResult;
 }
 
-// Error handling
-async function safeConvert(file: File): Promise<object> {
+async function convertMML(mml: string): Promise<string> {
+    // Initialize WASM (only needed once)
+    await init();
+
+    // Convert MML to YM2151 JSON
+    const jsonResult = mml_to_ym2151_json(mml);
+    
+    return jsonResult;
+}
+
+// Error handling for MIDI file
+async function safeConvertMidi(file: File): Promise<object> {
     try {
         const jsonString = await convertMidiFile(file);
+        const result = JSON.parse(jsonString);
+        
+        if (result.error) {
+            console.error('Conversion error:', result.error);
+            return { error: result.error };
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('Failed to convert:', error);
+        return { error: error.message };
+    }
+}
+
+// Error handling for MML
+async function safeConvertMML(mml: string): Promise<object> {
+    try {
+        const jsonString = await convertMML(mml);
         const result = JSON.parse(jsonString);
         
         if (result.error) {
@@ -138,6 +185,49 @@ Converts Standard MIDI File binary data to YM2151 register log JSON.
 }
 ```
 
+### `mml_to_ym2151_json(mml: string): string`
+
+Converts MML (Music Macro Language) string to YM2151 register log JSON.
+
+**Parameters:**
+- `mml`: string - MML code (e.g., "cdefgab", "o5 l4 c;e;g")
+
+**Returns:**
+- String - JSON string containing YM2151 register log
+
+**Supported MML Commands:**
+- `c d e f g a b` - Notes (case-insensitive)
+- `#` or `+` - Sharp (e.g., `c#`, `f+`)
+- `-` - Flat (e.g., `b-`, `e-`)
+- `o<n>` - Set octave (e.g., `o4`, `o5`)
+- `>` - Increase octave by 1
+- `<` - Decrease octave by 1
+- `l<n>` - Set default note length (e.g., `l4` for quarter note, `l8` for eighth)
+- `<note><n>` - Note-specific length (e.g., `c4`, `d8`, `e2`)
+- `v<n>` - Set volume/velocity (0-15, where 15 is loudest)
+- `r` - Rest
+- `;` - Channel separator (for multi-channel/chords)
+
+**MML Examples:**
+```javascript
+// Simple melody
+mml_to_ym2151_json("cdefgab");
+
+// With octave and length
+mml_to_ym2151_json("o5 l4 cdefgab");
+
+// C major chord (multi-channel)
+mml_to_ym2151_json("c;e;g");
+
+// Twinkle Twinkle Little Star
+mml_to_ym2151_json("o4 c c g g a a g2 f f e e d d c2");
+
+// With dynamics (volume changes)
+mml_to_ym2151_json("o5 l8 v15 c d e f g v10 g g v8 a a v5 g");
+```
+
+**Output Format:** Same as `smf_to_ym2151_json` (success or error)
+
 ## Output Format
 
 The YM2151 register log JSON has the following structure:
@@ -152,12 +242,19 @@ This format is compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151
 
 ## Demo
 
-A complete working demo is available in `index.html`.
+A complete working demo with both MIDI file upload and MML textarea input is available in `index.html`.
 
 ### Online Demo
 
 The demo is automatically deployed to GitHub Pages at:
 https://cat2151.github.io/smf-to-ym2151log-rust/
+
+**Features:**
+- **MIDI File Tab**: Upload .mid files for conversion
+- **MML Input Tab**: Enter MML code directly in the browser with clickable examples
+- Supports both light and dark mode
+- Real-time conversion in the browser (no server required)
+- Example MML snippets included (simple melodies, chords, Twinkle Twinkle, etc.)
 
 The GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) automatically:
 1. Builds the WASM package using wasm-pack
@@ -179,7 +276,9 @@ To run the demo locally:
    npx http-server
    ```
 3. Open http://localhost:8000/ in your browser
-4. Select a MIDI file to see the conversion result
+4. Try either:
+   - **MIDI File tab**: Select a MIDI file to see the conversion result
+   - **MML Input tab**: Enter MML code or click an example to convert
 
 ## Browser Compatibility
 
