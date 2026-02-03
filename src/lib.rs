@@ -37,6 +37,7 @@
 
 pub mod error;
 pub mod midi;
+pub mod mml;
 pub mod ym2151;
 
 #[cfg(feature = "wasm")]
@@ -79,4 +80,36 @@ pub fn convert_smf_to_ym2151_log(smf_data: &[u8]) -> Result<String> {
     let json = serde_json::to_string_pretty(&ym2151_log)?;
 
     Ok(json)
+}
+
+/// Convert MML (Music Macro Language) string to YM2151 register log JSON
+///
+/// This is a convenience function that provides a complete pipeline:
+/// - Parse MML string to SMF (Standard MIDI File)
+/// - Parse MIDI data from SMF bytes
+/// - Convert to YM2151 register log
+///
+/// # Arguments
+/// * `mml` - MML string (e.g., "cdefgab", "o5 l4 c;e;g")
+///
+/// # Returns
+/// YM2151 register log as JSON string
+///
+/// # Errors
+/// Returns an error if parsing or conversion fails
+///
+/// # Example
+/// ```no_run
+/// use smf_to_ym2151log::convert_mml_to_ym2151_log;
+///
+/// let mml = "cdefgab";
+/// let ym2151_json = convert_mml_to_ym2151_log(mml).unwrap();
+/// println!("{}", ym2151_json);
+/// ```
+pub fn convert_mml_to_ym2151_log(mml: &str) -> Result<String> {
+    // Parse MML to SMF bytes
+    let smf_data = mml::parse_mml(mml)?;
+
+    // Convert SMF to YM2151 log
+    convert_smf_to_ym2151_log(&smf_data)
 }
