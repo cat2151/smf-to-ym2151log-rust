@@ -48,16 +48,15 @@ use midly::{Format, Header, MetaMessage, MidiMessage, Timing, TrackEvent, TrackE
 /// Returns an error if the MML string is invalid or cannot be converted
 pub fn parse_mml(mml: &str) -> Result<Vec<u8>> {
     let channels = split_channels(mml);
-    
+
     // Handle empty MML string
     if channels.is_empty() {
         // Create a minimal valid MIDI file with a single empty track
         let header = Header::new(Format::SingleTrack, Timing::Metrical(480.into()));
-        let mut track = Vec::new();
-        track.push(TrackEvent {
+        let track = vec![TrackEvent {
             delta: 0.into(),
             kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
-        });
+        }];
         let smf = midly::Smf {
             header,
             tracks: vec![track],
@@ -67,7 +66,7 @@ pub fn parse_mml(mml: &str) -> Result<Vec<u8>> {
             .map_err(|e| Error::MidiParse(format!("Failed to write SMF: {}", e)))?;
         return Ok(bytes);
     }
-    
+
     let has_multiple_channels = channels.len() > 1;
 
     let format = if has_multiple_channels {
@@ -81,15 +80,16 @@ pub fn parse_mml(mml: &str) -> Result<Vec<u8>> {
 
     if has_multiple_channels {
         // Format 1: Create tempo track + channel tracks
-        let mut tempo_track = Vec::new();
-        tempo_track.push(TrackEvent {
-            delta: 0.into(),
-            kind: TrackEventKind::Meta(MetaMessage::Tempo(500000.into())), // 120 BPM
-        });
-        tempo_track.push(TrackEvent {
-            delta: 0.into(),
-            kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
-        });
+        let tempo_track = vec![
+            TrackEvent {
+                delta: 0.into(),
+                kind: TrackEventKind::Meta(MetaMessage::Tempo(500000.into())), // 120 BPM
+            },
+            TrackEvent {
+                delta: 0.into(),
+                kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
+            },
+        ];
         tracks.push(tempo_track);
 
         // Create a track for each channel
