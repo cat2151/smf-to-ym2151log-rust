@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main, copilot/fix-demo-upload-response ]
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -61,6 +61,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           cp _config.yml _site/
+          # Google Search Console verification file (if exists)
           cp googled947dc864c270e07.html _site/ 2>/dev/null || true
           cp -r pkg _site/
           cp -r generated-docs _site/ 2>/dev/null || true
