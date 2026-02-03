@@ -1,4 +1,4 @@
-Last updated: 2026-01-21
+Last updated: 2026-02-04
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -199,15 +199,18 @@ Last updated: 2026-01-21
 - .github/workflows/call-issue-note.yml
 - .github/workflows/call-translate-readme.yml
 - .github/workflows/ci.yml
+- .github/workflows/deploy-pages.yml
 - .gitignore
 - Cargo.lock
 - Cargo.toml
 - LICENSE
 - README.ja.md
 - README.md
+- WASM_USAGE.md
 - _config.yml
 - generated-docs/project-overview-generated-prompt.md
 - googled947dc864c270e07.html
+- index.html
 - issue-notes/21.md
 - issue-notes/22.md
 - issue-notes/23.md
@@ -224,6 +227,8 @@ Last updated: 2026-01-21
 - issue-notes/43.md
 - issue-notes/45.md
 - issue-notes/47.md
+- issue-notes/49.md
+- issue-notes/51.md
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -231,6 +236,7 @@ Last updated: 2026-01-21
 - src/midi/mod.rs
 - src/midi/parser.rs
 - src/midi/utils.rs
+- src/wasm.rs
 - src/ym2151/channel_allocation.rs
 - src/ym2151/converter.rs
 - src/ym2151/converter_tests.rs
@@ -252,28 +258,6 @@ Last updated: 2026-01-21
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #47](../issue-notes/47.md): ブラウザ対応: SMFバイナリをJSONに変換するWASMインターフェースの実装
-[issue-notes/47.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/47.md)
-
-...
-ラベル: 
---- issue-notes/47.md の内容 ---
-
-```markdown
-# issue ブラウザ対応: SMFバイナリをJSONに変換するWASMインターフェースの実装 #47
-[issues #47](https://github.com/cat2151/smf-to-ym2151log-rust/issues/47)
-
-## agentに投げるprompt案
-- 現在CLIとして動作しているこのツールについて、変換機能を、Webブラウザ上（JavaScript）からも利用可能にしたいと考えています。  
-- そのために wasm-bindgen を導入し、SMFのバイナリデータを受け取って解析結果をJSON文字列として返すWASM関数を実装してください。
-- 必要に応じて、バイナリデータをSMFとしてparseする処理なども、ライブラリクレートとして分離するようリファクタリングしてください。
-- それらを呼び出すWASM用のエントリポイントを追加してください。
-- 完了条件
-    - WASMビルドが成功し、pkgディレクトリに成果物が配置されること。
-    - 既存のCLIツールとしての機能（cargo run）が破壊されず、そのまま動作すること。
-
-```
-
 ## [Issue #33](../issue-notes/33.md): 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。
 [issue-notes/33.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/33.md)
 
@@ -610,18 +594,6 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
-### .github/actions-tmp/issue-notes/7.md
-```md
-{% raw %}
-# issue issue note生成できるかのtest用 #7
-[issues #7](https://github.com/cat2151/github-actions/issues/7)
-
-- 生成できた
-- closeとする
-
-{% endraw %}
-```
-
 ### issue-notes/33.md
 ```md
 {% raw %}
@@ -629,24 +601,6 @@ env: で値を渡し、process.env で参照するのが正しい
 [issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
 
 
-
-{% endraw %}
-```
-
-### issue-notes/47.md
-```md
-{% raw %}
-# issue ブラウザ対応: SMFバイナリをJSONに変換するWASMインターフェースの実装 #47
-[issues #47](https://github.com/cat2151/smf-to-ym2151log-rust/issues/47)
-
-## agentに投げるprompt案
-- 現在CLIとして動作しているこのツールについて、変換機能を、Webブラウザ上（JavaScript）からも利用可能にしたいと考えています。  
-- そのために wasm-bindgen を導入し、SMFのバイナリデータを受け取って解析結果をJSON文字列として返すWASM関数を実装してください。
-- 必要に応じて、バイナリデータをSMFとしてparseする処理なども、ライブラリクレートとして分離するようリファクタリングしてください。
-- それらを呼び出すWASM用のエントリポイントを追加してください。
-- 完了条件
-    - WASMビルドが成功し、pkgディレクトリに成果物が配置されること。
-    - 既存のCLIツールとしての機能（cargo run）が破壊されず、そのまま動作すること。
 
 {% endraw %}
 ```
@@ -794,18 +748,32 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-69e3997 Enhance tool for WASM support and refactor logic #47
-8acf76d Enhance issue #47 with WASM implementation prompts
-0625878 Add issue note for #47 [auto]
+a287083 Merge pull request #52 from cat2151/copilot/fix-demo-upload-response
+4a31794 Address PR review feedback: use cargo install for wasm-pack and fix trailing whitespace
+3dc51fc Improve deployment script clarity with grouped file copies
+a065e43 Address code review feedback: remove test branch trigger and add comment
+1a464bd Update documentation with GitHub Pages demo information
+8f018ba Add current branch to deploy workflow triggers for testing
+67f8d70 Add GitHub Actions workflow to build WASM and deploy to GitHub Pages
+87dfd82 Auto-translate README.ja.md to README.md [auto]
+bf9609e Initial plan
+1c33239 Merge pull request #50 from cat2151/copilot/fix-deploy-location-for-demo
 
 ### 変更されたファイル:
-generated-docs/development-status-generated-prompt.md
-generated-docs/development-status.md
-generated-docs/project-overview-generated-prompt.md
-generated-docs/project-overview.md
-issue-notes/45.md
-issue-notes/47.md
+.github/workflows/deploy-pages.yml
+.gitignore
+Cargo.lock
+Cargo.toml
+README.ja.md
+README.md
+WASM_USAGE.md
+index.html
+issue-notes/49.md
+issue-notes/51.md
+src/lib.rs
+src/wasm.rs
+tests/integration_tests.rs
 
 
 ---
-Generated at: 2026-01-21 07:09:10 JST
+Generated at: 2026-02-04 07:12:31 JST

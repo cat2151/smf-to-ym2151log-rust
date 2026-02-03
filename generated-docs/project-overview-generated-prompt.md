@@ -1,4 +1,4 @@
-Last updated: 2026-01-21
+Last updated: 2026-02-04
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -134,6 +134,7 @@ Standard MIDI Files (SMF) をYM2151 FM音源チップのレジスタ書き込み
   - **パスA**: MIDIファイル → 中間イベントJSON（デバッグ用）
   - **パスB**: 中間イベント → YM2151レジスタログJSON（最終出力）
 - **プログラムチェンジ対応**: 外部JSONファイルからカスタムYM2151音色を読み込み (MIDIプログラム0-127)
+- **WebAssembly対応**: WASMによるWebブラウザでの実行が可能 ([WASM_USAGE.md](WASM_USAGE.md)を参照)
 - **型安全性**: Rustの型システムによる堅牢性
 - **高パフォーマンス**: ネイティブコンパイルによる高速処理
 - **テスト駆動開発**: 包括的なユニットテストと統合テスト (73 tests)
@@ -175,6 +176,22 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
 詳細なAPIドキュメント: `cargo doc --open`
+
+### WebAssembly（ブラウザ）での使用
+
+Webブラウザでビルドして使用する：
+
+```bash
+# wasm-packをインストール
+cargo install wasm-pack
+
+# WASMパッケージをビルド
+wasm-pack build --target web --features wasm
+```
+
+詳細な使用方法と例については、[WASM_USAGE.md](WASM_USAGE.md)を参照してください。
+
+完全なデモは`index.html`で利用可能です。
 
 ### 出力例
 
@@ -301,9 +318,11 @@ cargo audit
 📄 LICENSE
 📖 README.ja.md
 📖 README.md
+📖 WASM_USAGE.md
 📄 _config.yml
 📁 generated-docs/
 🌐 googled947dc864c270e07.html
+🌐 index.html
 📁 issue-notes/
   📖 21.md
   📖 22.md
@@ -321,6 +340,8 @@ cargo audit
   📖 43.md
   📖 45.md
   📖 47.md
+  📖 49.md
+  📖 51.md
 📁 src/
   📄 error.rs
   📄 lib.rs
@@ -330,6 +351,7 @@ cargo audit
     📄 mod.rs
     📄 parser.rs
     📄 utils.rs
+  📄 wasm.rs
   📁 ym2151/
     📄 channel_allocation.rs
     📄 converter.rs
@@ -359,13 +381,19 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
+**index.html** (139行, 5314バイト)
+  - 関数: なし
+  - インポート: なし
+
 ## 関数呼び出し階層
 関数呼び出し階層を分析できませんでした
 
 ## プロジェクト構造（ファイル一覧）
 README.ja.md
 README.md
+WASM_USAGE.md
 googled947dc864c270e07.html
+index.html
 issue-notes/21.md
 issue-notes/22.md
 issue-notes/23.md
@@ -382,6 +410,8 @@ issue-notes/41.md
 issue-notes/43.md
 issue-notes/45.md
 issue-notes/47.md
+issue-notes/49.md
+issue-notes/51.md
 tones/000.json
 tones/README.md
 
@@ -395,4 +425,4 @@ tones/README.md
 
 
 ---
-Generated at: 2026-01-21 07:09:10 JST
+Generated at: 2026-02-04 07:12:31 JST

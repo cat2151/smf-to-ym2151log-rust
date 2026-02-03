@@ -1,137 +1,116 @@
-Last updated: 2026-01-21
+Last updated: 2026-02-04
 
 # Project Overview
 
 ## プロジェクト概要
-- Standard MIDI Files (SMF) をYM2151 FM音源チップのレジスタ書き込みログに変換するRustツールです。
-- 複雑なチャンネル割り当て戦略と2パス処理アーキテクチャで、高品質なYM2151出力を生成します。
-- カスタムYM2151音色に対応し、他のRustプロジェクトからライブラリとしても利用可能です。
+- Standard MIDI Files (SMF) を、ヤマハYM2151 FM音源チップ用のレジスタ書き込みログ（JSON形式）に変換するツールです。
+- Rustで実装されており、高いパフォーマンスと型安全性を実現し、Webブラウザ (WebAssembly) でも利用できます。
+- MIDIのプログラムチェンジに対応し、カスタム音色を外部JSONファイルから読み込んで適用することが可能です。
 
 ## 技術スタック
-- フロントエンド: このプロジェクトはコマンドラインツールであり、直接的なフロントエンド技術は使用していません。
-- 音楽・オーディオ:
-    - **YM2151 FM音源チップ**: 変換後のターゲットとなるヤマハ製のFM音源チップ。そのレジスタ操作をJSON形式で出力します。
-    - **Standard MIDI Files (SMF)**: プロジェクトの入力となる標準MIDIファイル形式（Format 0および1をサポート）です。
-- 開発ツール:
-    - **Rust**: 高パフォーマンスと型安全性を特徴とするシステムプログラミング言語で、このプロジェクトの主要な実装言語です。
-    - **Cargo**: Rustの公式ビルドシステムおよびパッケージマネージャーで、プロジェクトのビルド、テスト、依存関係管理に使用されます。
-    - **Git**: ソースコードのバージョン管理システムです。
-- テスト:
-    - **`cargo test`**: Rustプロジェクトのユニットテストおよび統合テストを実行するためのコマンドです。
-    - **`cargo tarpaulin`**: Rustプロジェクトのテストカバレッジを測定し、レポートを生成するツールです。
-- ビルドツール:
-    - **Cargo**: Rustのビルドシステムとして、プロジェクトのコンパイルと実行可能ファイルの生成を管理します。
-- 言語機能:
-    - **Rustの型安全性**: コンパイル時に多くのエラーを捕捉し、堅牢なコードを保証します。
-    - **Rustの高パフォーマンス**: ネイティブコードにコンパイルされるため、高速な処理が可能です。
-- 自動化・CI/CD: 明示的なCI/CDツールに関する情報はありません。
-- 開発標準:
-    - **`cargo fmt`**: Rustコードのスタイルを自動的にフォーマットし、コードの一貫性を保ちます。
-    - **`cargo clippy`**: Rustコードの一般的な間違いや非効率なパターンを検出するLintツールです。
-    - **`cargo audit`**: プロジェクトの依存関係に既知のセキュリティ脆弱性がないかをチェックします。
+- フロントエンド: WebAssembly (WASM) 対応によりWebブラウザ上での実行を可能にします。クライアント側でのHTML、CSS、JavaScriptによるデモ提供も行われています。
+- 音楽・オーディオ: Standard MIDI Files (SMF) の解析と、ヤマハYM2151 FM音源チップのレジスタ操作に関する知識が基盤となっています。
+- 開発ツール: Git (バージョン管理)、Cargo (Rustのビルドシステム/パッケージマネージャ)、wasm-pack (WebAssemblyパッケージングツール)。
+- テスト: `cargo test` (ユニットテスト、統合テスト)、`cargo tarpaulin` (テストカバレッジレポート生成)。
+- ビルドツール: Cargo (Rustプロジェクトのビルドと依存関係管理)。
+- 言語機能: Rust言語 (型安全性、メモリ安全性、高パフォーマンス)。
+- 自動化・CI/CD: `cargo fmt --check` (コードフォーマットチェック)、`cargo clippy -- -D warnings` (コード品質リンティング)、`cargo audit` (セキュリティ脆弱性チェック) など、継続的インテグレーションで利用されるツール群。
+- 開発標準: `cargo fmt` (自動コードフォーマッタ)、`cargo clippy` (コード品質向上リンター)。
 
 ## ファイル階層ツリー
 ```
-📄 .gitignore
-📄 Cargo.lock
-📄 Cargo.toml
-📄 LICENSE
-📖 README.ja.md
-📖 README.md
-📄 _config.yml
-📁 generated-docs/
-🌐 googled947dc864c270e07.html
-📁 issue-notes/
-  📖 21.md
-  📖 22.md
-  📖 23.md
-  📖 25.md
-  📖 28.md
-  📖 30.md
-  📖 32.md
-  📖 33.md
-  📖 34.md
-  📖 36.md
-  📖 38.md
-  📖 39.md
-  📖 41.md
-  📖 43.md
-  📖 45.md
-  📖 47.md
-📁 src/
-  📄 error.rs
-  📄 lib.rs
-  📄 main.rs
-  📁 midi/
-    📄 events.rs
-    📄 mod.rs
-    📄 parser.rs
-    📄 utils.rs
-  📁 ym2151/
-    📄 channel_allocation.rs
-    📄 converter.rs
-    📄 converter_tests.rs
-    📄 event_processor.rs
-    📄 events.rs
-    📄 init.rs
-    📄 mod.rs
-    📄 note_table.rs
-    📄 tempo_map.rs
-    📄 tone.rs
-📁 tests/
-  📄 create_test_midi.py
-  📄 integration_tests.rs
-  📁 test_data/
-    📄 multi_channel.mid
-    📄 multi_track.mid
-    📄 program_change.mid
-    📄 simple_melody.mid
-    📄 tempo_change.mid
-📁 tones/
-  📊 000.json
-  📖 README.md
+.
+├── .gitignore
+├── Cargo.lock
+├── Cargo.toml
+├── LICENSE
+├── README.ja.md
+├── README.md
+├── WASM_USAGE.md
+├── _config.yml
+├── googled947dc864c270e07.html
+├── index.html
+├── src/
+│   ├── error.rs
+│   ├── lib.rs
+│   ├── main.rs
+│   ├── midi/
+│   │   ├── events.rs
+│   │   ├── mod.rs
+│   │   ├── parser.rs
+│   │   └── utils.rs
+│   ├── wasm.rs
+│   └── ym2151/
+│       ├── channel_allocation.rs
+│       ├── converter.rs
+│       ├── converter_tests.rs
+│       ├── event_processor.rs
+│       ├── events.rs
+│       ├── init.rs
+│       ├── mod.rs
+│       ├── note_table.rs
+│       ├── tempo_map.rs
+│       └── tone.rs
+├── tests/
+│   ├── create_test_midi.py
+│   ├── integration_tests.rs
+│   └── test_data/
+│       ├── multi_channel.mid
+│       ├── multi_track.mid
+│       ├── program_change.mid
+│       ├── simple_melody.mid
+│       └── tempo_change.mid
+└── tones/
+    ├── 000.json
+    └── README.md
 ```
 
 ## ファイル詳細説明
-- **`.gitignore`**: Gitがバージョン管理の対象としないファイルやディレクトリを指定します。
-- **`Cargo.lock`**: Cargoがプロジェクトの依存関係を解決した際の具体的なバージョン情報を記録し、ビルドの再現性を保証します。
-- **`Cargo.toml`**: Rustプロジェクトのマニフェストファイル。プロジェクト名、バージョン、依存クレート、ビルド設定などを定義します。
-- **`LICENSE`**: プロジェクトの配布および使用に関するライセンス情報を提供します。
-- **`README.ja.md`**: プロジェクトの目的、機能、使い方などを日本語で説明する主要なドキュメントです。
-- **`README.md`**: プロジェクトの目的、機能、使い方などを英語で説明する主要なドキュメントです。
-- **`_config.yml`**: GitHub Pagesなどの静的サイトジェネレーターの設定ファイルです。
-- **`generated-docs/`**: `cargo doc` コマンドで生成されるAPIドキュメントなどの成果物を格納するディレクトリです。
-- **`googled947dc864c270e07.html`**: Googleサービスにおけるサイトの所有権確認に使用されるファイルです。
-- **`issue-notes/`**: 開発中の課題や検討事項に関するメモがMarkdown形式で保存されています。
-- **`src/error.rs`**: アプリケーション全体で発生しうるカスタムエラー型を定義し、エラーハンドリングを一元化します。
-- **`src/lib.rs`**: このプロジェクトがライブラリとして提供するパブリックAPIのエントリポイントです。主要な変換ロジックやデータ構造が含まれます。
-- **`src/main.rs`**: コマンドラインツールとしてのアプリケーションのエントリポイントです。`lib.rs` の機能を利用してMIDIファイルのパースとYM2151ログへの変換処理を実行します。
-- **`src/midi/events.rs`**: Standard MIDI File内の様々なイベント（NoteOn, NoteOff, TempoChangeなど）を表現するためのデータ構造と関連ロジックを定義します。
-- **`src/midi/mod.rs`**: `src/midi` モジュールのルートファイルであり、このディレクトリ内のサブモジュールを公開します。
-- **`src/midi/parser.rs`**: Standard MIDI Fileのバイナリデータを読み込み、内部的なMIDIイベントのシーケンスに変換するパーシングロジックを実装しています。
-- **`src/midi/utils.rs`**: MIDIイベント処理やパーシングを補助するユーティリティ関数やヘルパー関数を提供します。
-- **`src/ym2151/channel_allocation.rs`**: MIDIチャンネルからのノートイベントをYM2151の限られた8つのFMチャンネルに割り当てるための複雑な戦略（和音数ベース、ドラム優先など）を実装しています。
-- **`src/ym2151/converter.rs`**: 中間MIDIイベントから最終的なYM2151レジスタ書き込みログへの変換処理を統合する主要なモジュールです。
-- **`src/ym2151/converter_tests.rs`**: `src/ym2151/converter.rs` で実装された変換ロジックの単体テストを定義しています。
-- **`src/ym2151/event_processor.rs`**: YM2151のレジスタイベントをタイムラインに沿って処理し、チップの状態を管理するロジックを実装しています。
-- **`src/ym2151/events.rs`**: YM2151のレジスタ書き込みを表現するデータ構造と、それらをJSON形式で出力するためのシリアライゼーションロジックを定義しています。
-- **`src/ym2151/init.rs`**: YM2151チップが起動時に必要な初期設定レジスタの値を定義しています。
-- **`src/ym2151/mod.rs`**: `src/ym2151` モジュールのルートファイルであり、このディレクトリ内のサブモジュールを公開します。
-- **`src/ym2151/note_table.rs`**: MIDIノート番号とYM2151チップが認識する周波数パラメータ（Key Code, Fraction）間のマッピングを管理するテーブルと関連ロジックを定義しています。
-- **`src/ym2151/tempo_map.rs`**: MIDIファイル内のテンポ変更イベントを解析し、MIDIティックと実時間（秒）間の変換マップを構築・管理するロジックを実装しています。
-- **`src/ym2151/tone.rs`**: YM2151の音色データ構造を定義し、プログラムチェンジによって読み込まれるカスタム音色ファイルの処理ロジックを扱います。
-- **`tests/create_test_midi.py`**: 統合テストで使用されるサンプルMIDIファイルをプログラム的に生成するためのPythonスクリプトです。
-- **`tests/integration_tests.rs`**: プロジェクトの主要な機能が連携して正しく動作するかを検証する統合テストを定義しています。
-- **`tests/test_data/`**: 統合テストや機能デモンストレーションに使用される、様々な種類のサンプルMIDIファイル（複数チャンネル、プログラムチェンジ、テンポ変更など）を格納するディレクトリです。
-- **`tones/000.json`**: MIDIプログラム0番（アコースティックグランドピアノ）に対応するYM2151カスタム音色の定義ファイルです。プログラムチェンジイベントによりロードされます。
-- **`tones/README.md`**: `tones/` ディレクトリに配置するカスタムYM2151音色ファイルのJSONフォーマットと作成方法に関する説明です。
+- **.gitignore**: Gitがバージョン管理の対象外とするファイルやディレクトリを指定します。
+- **Cargo.lock**: プロジェクトの正確な依存関係のバージョンを記録し、再現性のあるビルドを保証します。
+- **Cargo.toml**: Rustプロジェクトの設定ファイル。依存関係、ビルド設定、メタデータなどが記述されています。
+- **LICENSE**: プロジェクトのライセンス情報（著作権や利用条件）を定義します。
+- **README.ja.md**: プロジェクトの日本語版概要、使い方、開発情報などをまとめたドキュメントです。
+- **README.md**: プロジェクトの英語版概要、使い方、開発情報などをまとめたドキュメントです。
+- **WASM_USAGE.md**: WebAssembly版の利用方法に関する詳細な説明ドキュメントです。
+- **_config.yml**: GitHub Pagesなどの静的サイトジェネレータで使用される設定ファイルです。
+- **googled947dc864c270e07.html**: Googleサイト認証のために使用されるファイルです。
+- **index.html**: WebAssembly版のデモンストレーションページを提供するHTMLファイルです。
+- **src/**: プロジェクトのRustソースコードが格納されているディレクトリです。
+    - **error.rs**: プロジェクト全体で利用されるカスタムエラー型とエラーハンドリングロジックを定義します。
+    - **lib.rs**: ライブラリとしての公開APIエントリーポイントです。他のRustプロジェクトからこのライブラリを利用する際に参照されます。
+    - **main.rs**: コマンドラインアプリケーションのエントリーポイントです。CLIツールとして実行される際のメインロジックを含みます。
+    - **midi/**: MIDIファイルの解析とイベント処理に関連するモジュールを格納するディレクトリです。
+        - **events.rs**: Standard MIDI File内の様々なMIDIイベントのデータ構造を定義します。
+        - **mod.rs**: `midi`モジュールのルートファイルで、配下のサブモジュールを公開します。
+        - **parser.rs**: MIDIファイルを読み込み、その内容を内部表現のMIDIイベントにパースするロジックを実装します。
+        - **utils.rs**: MIDIデータ処理に関するユーティリティ関数やヘルパーを格納します。
+    - **wasm.rs**: WebAssembly (WASM) 向けのバインディングとAPIを提供し、JavaScriptからRustの機能を呼び出せるようにします。
+    - **ym2151/**: YM2151 FM音源チップへの変換と関連ロジックを格納するディレクトリです。
+        - **channel_allocation.rs**: MIDIチャンネルからYM2151の限られた8つのチャンネルへの割り当て戦略を実装します。
+        - **converter.rs**: MIDIイベントをYM2151のレジスタ書き込みログ（JSON形式）に変換する主要なロジックを含みます。
+        - **converter_tests.rs**: `ym2151/converter.rs`のユニットテストコードです。
+        - **event_processor.rs**: YM2151レジスタイベントを時間順に処理し、出力ログを生成するロジックを実装します。
+        - **events.rs**: YM2151レジスタ書き込みログとして出力されるイベントのデータ構造を定義します。
+        - **init.rs**: YM2151チップの初期化レジスタ設定に関するロジックを定義します。
+        - **mod.rs**: `ym2151`モジュールのルートファイルで、配下のサブモジュールを公開します。
+        - **note_table.rs**: MIDIノート番号とYM2151の音高レジスタ値（F-number/Block）のマッピングテーブルを管理します。
+        - **tempo_map.rs**: MIDIファイルのテンポ情報（テンポチェンジイベントなど）を管理し、タイムスタンプを変換するロジックを提供します。
+        - **tone.rs**: プログラムチェンジイベントに対応するYM2151の音色データ（レジスタ設定）の読み込みと管理を扱います。
+- **tests/**: 統合テストのコードとテストデータが格納されているディレクトリです。
+    - **create_test_midi.py**: テスト目的でダミーのMIDIファイルを生成するためのPythonスクリプトです。
+    - **integration_tests.rs**: プロジェクト全体の主要な機能が正しく連携しているかを検証する統合テストコードです。
+    - **test_data/**: 統合テストで使用されるサンプルMIDIファイル群が格納されています。
+- **tones/**: カスタムYM2151音色（プログラムチェンジ用）のJSONファイルが格納されているディレクトリです。
+    - **000.json**: MIDIプログラム0番に割り当てられるYM2151のカスタム音色定義ファイル（例）です。
+    - **README.md**: `tones`ディレクトリ内のJSONファイル形式に関する説明ドキュメントです。
 
 ## 関数詳細説明
-提供されたプロジェクト情報からは、Rustコード内の具体的な関数名、その引数、戻り値、詳細な機能を特定できません。したがって、個々の関数の詳細な説明は提供できません。
+プロジェクト情報に具体的な関数の詳細な説明が提供されていないため、個々の関数については言及を控えます。コードベースを直接参照することで詳細な機能を確認できます。
 
 ## 関数呼び出し階層ツリー
 ```
 関数呼び出し階層を分析できませんでした
 
 ---
-Generated at: 2026-01-21 07:09:36 JST
+Generated at: 2026-02-04 07:12:52 JST
