@@ -1,4 +1,4 @@
-Last updated: 2026-02-04
+Last updated: 2026-02-05
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -203,7 +203,9 @@ Last updated: 2026-02-04
 - .gitignore
 - Cargo.lock
 - Cargo.toml
+- DEMO_README.md
 - LICENSE
+- MML_INTEGRATION.md
 - README.ja.md
 - README.md
 - WASM_USAGE.md
@@ -229,13 +231,20 @@ Last updated: 2026-02-04
 - issue-notes/47.md
 - issue-notes/49.md
 - issue-notes/51.md
+- issue-notes/53.md
+- issue-notes/55.md
+- issue-notes/57.md
+- issue-notes/58.md
+- package.json
 - src/error.rs
 - src/lib.rs
 - src/main.rs
+- src/main.ts
 - src/midi/events.rs
 - src/midi/mod.rs
 - src/midi/parser.rs
 - src/midi/utils.rs
+- src/style.css
 - src/wasm.rs
 - src/ym2151/channel_allocation.rs
 - src/ym2151/converter.rs
@@ -256,8 +265,40 @@ Last updated: 2026-02-04
 - tests/test_data/tempo_change.mid
 - tones/000.json
 - tones/README.md
+- tsconfig.json
+- vite.config.ts
 
 ## 現在のオープンIssues
+## [Issue #58](../issue-notes/58.md): ライブラリとしてweb-ym2151から使えるところまで持っていくため、ライブラリとして利用した場合の最低限のdemo、を別建てで用意し、それもdeploy対象にする
+[issue-notes/58.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/58.md)
+
+...
+ラベル: 
+--- issue-notes/58.md の内容 ---
+
+```markdown
+# issue ライブラリとしてweb-ym2151から使えるところまで持っていくため、ライブラリとして利用した場合の最低限のdemo、を別建てで用意し、それもdeploy対象にする #58
+[issues #58](https://github.com/cat2151/smf-to-ym2151log-rust/issues/58)
+
+
+
+```
+
+## [Issue #57](../issue-notes/57.md): demoの左下に小さくGitHubという文言で、リポジトリへのリンクをつける
+[issue-notes/57.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/57.md)
+
+...
+ラベル: 
+--- issue-notes/57.md の内容 ---
+
+```markdown
+# issue demoの左下に小さくGitHubという文言で、リポジトリへのリンクをつける #57
+[issues #57](https://github.com/cat2151/smf-to-ym2151log-rust/issues/57)
+
+
+
+```
+
 ## [Issue #33](../issue-notes/33.md): 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。
 [issue-notes/33.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/33.md)
 
@@ -594,11 +635,124 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
+### .github/actions-tmp/issue-notes/7.md
+```md
+{% raw %}
+# issue issue note生成できるかのtest用 #7
+[issues #7](https://github.com/cat2151/github-actions/issues/7)
+
+- 生成できた
+- closeとする
+
+{% endraw %}
+```
+
+### .github/actions-tmp/issue-notes/8.md
+```md
+{% raw %}
+# issue 関数コールグラフhtmlビジュアライズ生成の対象ソースファイルを、呼び出し元ymlで指定できるようにする #8
+[issues #8](https://github.com/cat2151/github-actions/issues/8)
+
+# これまでの課題
+- 以下が決め打ちになっていた
+```
+  const allowedFiles = [
+    'src/main.js',
+    'src/mml2json.js',
+    'src/play.js'
+  ];
+```
+
+# 対策
+- 呼び出し元ymlで指定できるようにする
+
+# agent
+- agentにやらせることができれば楽なので、初手agentを試した
+- 失敗
+    - ハルシネーションしてscriptを大量破壊した
+- 分析
+    - 修正対象scriptはagentが生成したもの
+    - 低品質な生成結果でありソースが巨大
+    - ハルシネーションで破壊されやすいソース
+    - AIの生成したソースは、必ずしもAIフレンドリーではない
+
+# 人力リファクタリング
+- 低品質コードを、最低限agentが扱えて、ハルシネーションによる大量破壊を防止できる内容、にする
+- 手短にやる
+    - そもそもビジュアライズは、agentに雑に指示してやらせたもので、
+    - 今後別のビジュアライザを選ぶ可能性も高い
+    - 今ここで手間をかけすぎてコンコルド効果（サンクコストバイアス）を増やすのは、project群をトータルで俯瞰して見たとき、損
+- 対象
+    - allowedFiles のあるソース
+        - callgraph-utils.cjs
+            - たかだか300行未満のソースである
+            - この程度でハルシネーションされるのは予想外
+            - やむなし、リファクタリングでソース分割を進める
+
+# agentに修正させる
+## prompt
+```
+allowedFilesを引数で受け取るようにしたいです。
+ないならエラー。
+最終的に呼び出し元すべてに波及して修正したいです。
+
+呼び出し元をたどってエントリポイントも見つけて、
+エントリポイントにおいては、
+引数で受け取ったjsonファイル名 allowedFiles.js から
+jsonファイル allowedFiles.jsonの内容をreadして
+変数 allowedFilesに格納、
+後続処理に引き渡す、としたいです。
+
+まずplanしてください。
+planにおいては、修正対象のソースファイル名と関数名を、呼び出し元を遡ってすべて特定し、listしてください。
+```
+
+# 修正が順調にできた
+- コマンドライン引数から受け取る作りになっていなかったので、そこだけ指示して修正させた
+- yml側は人力で修正した
+
+# 他のリポジトリから呼び出した場合にバグらないよう修正する
+- 気付いた
+    - 共通ワークフローとして他のリポジトリから使った場合はバグるはず。
+        - ymlから、共通ワークフロー側リポジトリのcheckoutが漏れているので。
+- 他のyml同様に修正する
+- あわせて全体にymlをリファクタリングし、修正しやすくし、今後のyml読み書きの学びにしやすくする
+
+# local WSL + act : test green
+
+# closeとする
+- もし生成されたhtmlがNGの場合は、別issueとするつもり
+
+{% endraw %}
+```
+
 ### issue-notes/33.md
 ```md
 {% raw %}
 # issue 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。 #33
 [issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/57.md
+```md
+{% raw %}
+# issue demoの左下に小さくGitHubという文言で、リポジトリへのリンクをつける #57
+[issues #57](https://github.com/cat2151/smf-to-ym2151log-rust/issues/57)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/58.md
+```md
+{% raw %}
+# issue ライブラリとしてweb-ym2151から使えるところまで持っていくため、ライブラリとして利用した場合の最低限のdemo、を別建てで用意し、それもdeploy対象にする #58
+[issues #58](https://github.com/cat2151/smf-to-ym2151log-rust/issues/58)
 
 
 
@@ -748,32 +902,37 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-a287083 Merge pull request #52 from cat2151/copilot/fix-demo-upload-response
-4a31794 Address PR review feedback: use cargo install for wasm-pack and fix trailing whitespace
-3dc51fc Improve deployment script clarity with grouped file copies
-a065e43 Address code review feedback: remove test branch trigger and add comment
-1a464bd Update documentation with GitHub Pages demo information
-8f018ba Add current branch to deploy workflow triggers for testing
-67f8d70 Add GitHub Actions workflow to build WASM and deploy to GitHub Pages
-87dfd82 Auto-translate README.ja.md to README.md [auto]
-bf9609e Initial plan
-1c33239 Merge pull request #50 from cat2151/copilot/fix-deploy-location-for-demo
+197b5e9 Merge pull request #56 from cat2151/copilot/implement-mml-input-support
+249e7b2 Remove old backup HTML files and update CI to build Vite project
+debae41 Add issue note for #58 [auto]
+1d4c1a6 Add issue note for #57 [auto]
+a0d7486 Refactor demo with Vite and TypeScript for better maintainability
+cbb39c9 Add MML input support via mmlabc-to-smf-rust integration
+c37bb2d Delete analysis document as requested
+b604b1e Revert implementation, provide analysis of mmlabc-to-smf-rust WASM compatibility
+cc585fa Address PR feedback: fix tempo, note clamping, docs, and add tests
+e679700 Fix formatting and clippy warnings in mml.rs
 
 ### 変更されたファイル:
 .github/workflows/deploy-pages.yml
 .gitignore
-Cargo.lock
-Cargo.toml
-README.ja.md
-README.md
-WASM_USAGE.md
+DEMO_README.md
+MML_INTEGRATION.md
+generated-docs/development-status-generated-prompt.md
+generated-docs/development-status.md
+generated-docs/project-overview-generated-prompt.md
+generated-docs/project-overview.md
 index.html
-issue-notes/49.md
-issue-notes/51.md
-src/lib.rs
-src/wasm.rs
-tests/integration_tests.rs
+issue-notes/53.md
+issue-notes/55.md
+issue-notes/57.md
+issue-notes/58.md
+package.json
+src/main.ts
+src/style.css
+tsconfig.json
+vite.config.ts
 
 
 ---
-Generated at: 2026-02-04 07:12:31 JST
+Generated at: 2026-02-05 07:09:38 JST

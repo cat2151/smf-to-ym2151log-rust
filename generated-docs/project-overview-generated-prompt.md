@@ -1,4 +1,4 @@
-Last updated: 2026-02-04
+Last updated: 2026-02-05
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -60,7 +60,7 @@ Last updated: 2026-02-04
 以下のプロジェクト情報を参考にして要約を生成してください：
 
 ## プロジェクト情報
-名前: 
+名前: smf-to-ym2151-demo
 説明: # smf-to-ym2151log-rust
 
 <p align="left">
@@ -309,13 +309,21 @@ cargo audit
 
 
 依存関係:
-{}
+{
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11"
+  }
+}
 
 ## ファイル階層ツリー
 📄 .gitignore
 📄 Cargo.lock
 📄 Cargo.toml
+📖 DEMO_README.md
 📄 LICENSE
+📖 MML_INTEGRATION.md
 📖 README.ja.md
 📖 README.md
 📖 WASM_USAGE.md
@@ -342,15 +350,22 @@ cargo audit
   📖 47.md
   📖 49.md
   📖 51.md
+  📖 53.md
+  📖 55.md
+  📖 57.md
+  📖 58.md
+📊 package.json
 📁 src/
   📄 error.rs
   📄 lib.rs
   📄 main.rs
+  📘 main.ts
   📁 midi/
     📄 events.rs
     📄 mod.rs
     📄 parser.rs
     📄 utils.rs
+  🎨 style.css
   📄 wasm.rs
   📁 ym2151/
     📄 channel_allocation.rs
@@ -375,20 +390,47 @@ cargo audit
 📁 tones/
   📊 000.json
   📖 README.md
+📊 tsconfig.json
+📘 vite.config.ts
 
 ## ファイル詳細分析
 **googled947dc864c270e07.html** (1行, 53バイト)
   - 関数: なし
   - インポート: なし
 
-**index.html** (139行, 5314バイト)
+**index.html** (67行, 3044バイト)
   - 関数: なし
   - インポート: なし
 
+**src/main.ts** (248行, 8302バイト)
+  - 関数: initWasm, checkMMLWasm, displayResult, showError, setupFileInput, convertMML, loadMMLExample, switchTab, setupEventListeners, catch, if
+  - インポート: ../pkg/smf_to_ym2151log.js
+
+**src/style.css** (174行, 2897バイト)
+  - 関数: なし
+  - インポート: なし
+
+**vite.config.ts** (14行, 203バイト)
+  - 関数: なし
+  - インポート: vite
+
 ## 関数呼び出し階層
-関数呼び出し階層を分析できませんでした
+- catch (src/main.ts)
+  - initWasm (src/main.ts)
+    - checkMMLWasm ()
+      - displayResult ()
+      - showError ()
+      - setupFileInput ()
+      - convertMML ()
+      - loadMMLExample ()
+      - switchTab ()
+      - setupEventListeners ()
+- if (src/main.ts)
+
 
 ## プロジェクト構造（ファイル一覧）
+DEMO_README.md
+MML_INTEGRATION.md
 README.ja.md
 README.md
 WASM_USAGE.md
@@ -412,8 +454,11 @@ issue-notes/45.md
 issue-notes/47.md
 issue-notes/49.md
 issue-notes/51.md
-tones/000.json
-tones/README.md
+issue-notes/53.md
+issue-notes/55.md
+issue-notes/57.md
+issue-notes/58.md
+package.json
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
 特に以下の点を重視してください：
@@ -425,4 +470,4 @@ tones/README.md
 
 
 ---
-Generated at: 2026-02-04 07:12:31 JST
+Generated at: 2026-02-05 07:09:38 JST
