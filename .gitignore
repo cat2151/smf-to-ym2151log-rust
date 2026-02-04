@@ -37,3 +37,9 @@ tones/*.json
 # WASM build artifacts
 pkg
 *.wasm
+
+# Node.js and Vite
+node_modules
+dist
+*.log
+package-lock.json

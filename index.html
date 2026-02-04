@@ -3,162 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMF to YM2151 WASM Demo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #ffffff;
-            color: #333333;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        h1 {
-            color: #333;
-        }
-        #file-input {
-            margin: 20px 0;
-        }
-        #output {
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: 500px;
-            overflow-y: auto;
-            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-        }
-        .error {
-            color: red;
-        }
-        .success {
-            color: green;
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #1a1a1a;
-                color: #e0e0e0;
-            }
-            h1 {
-                color: #e0e0e0;
-            }
-            #output {
-                background-color: #2a2a2a;
-                border: 1px solid #444444;
-                color: #e0e0e0;
-            }
-            .error {
-                color: #ff6b6b;
-            }
-            .success {
-                color: #51cf66;
-            }
-        }
-    </style>
+    <title>SMF/MML to YM2151 WASM Demo</title>
 </head>
 <body>
-    <h1>SMF to YM2151 WASM Demo</h1>
-    <p>This demo shows how to use the WASM build of smf-to-ym2151log-rust in a browser.</p>
-    
-    <div>
-        <label for="file-input">Select a MIDI file (.mid):</label><br>
-        <input type="file" id="file-input" accept=".mid,.midi">
+    <h1>SMF/MML to YM2151 WASM Demo</h1>
+    <p>Convert MIDI files or MML (Music Macro Language) to YM2151 register logs using WebAssembly.</p>
+
+    <div class="tabs">
+        <button class="tab-button active">MIDI File</button>
+        <button class="tab-button">MML Input</button>
     </div>
-    
+
+    <!-- MIDI File Tab -->
+    <div id="midi-tab" class="tab-content active">
+        <div>
+            <label for="file-input">Select a MIDI file (.mid):</label><br>
+            <input type="file" id="file-input" accept=".mid,.midi">
+        </div>
+    </div>
+
+    <!-- MML Input Tab -->
+    <div id="mml-tab" class="tab-content">
+        <div class="info-box">
+            <h3>⚠️ Setup Required</h3>
+            <p>MML input requires the <code>mmlabc-to-smf-wasm</code> module from the <a href="https://github.com/cat2151/mmlabc-to-smf-rust" target="_blank">mmlabc-to-smf-rust</a> repository.</p>
+            <p><strong>Setup Instructions:</strong></p>
+            <ol>
+                <li>Clone mmlabc-to-smf-rust repository</li>
+                <li>Build WASM module: <code>cd mmlabc-to-smf-wasm && wasm-pack build --target web</code></li>
+                <li>Build tree-sitter grammar: <code>cd tree-sitter-mml && npx tree-sitter build-wasm</code></li>
+                <li>Copy the following files to this demo directory:
+                    <ul>
+                        <li><code>mmlabc-to-smf-wasm/pkg/</code> → <code>./mmlabc-pkg/</code></li>
+                        <li><code>tree-sitter-mml/tree-sitter-mml.wasm</code> → <code>./</code></li>
+                        <li><code>node_modules/web-tree-sitter/*.{js,wasm}</code> → <code>./</code></li>
+                    </ul>
+                </li>
+            </ol>
+            <p>See <a href="https://github.com/cat2151/mmlabc-to-smf-rust/blob/main/demo/README.md" target="_blank">demo/README.md</a> in mmlabc-to-smf-rust for detailed instructions.</p>
+        </div>
+        
+        <label for="mml-input">Enter MML code:</label>
+        <textarea id="mml-input" placeholder="Enter MML code here, e.g., cdefgab"></textarea>
+        
+        <button id="convert-mml-button">Convert to YM2151</button>
+        
+        <div class="example-buttons">
+            <p><strong>📝 MML Examples (click to try):</strong></p>
+            <button class="example-button">Simple melody: cdefgab</button>
+            <button class="example-button">With octave and length: o5 l4 cdefgab</button>
+            <button class="example-button">C major chord: c;e;g</button>
+            <button class="example-button">Twinkle Twinkle: o4 c c g g a a g2 f f e e d d c2</button>
+        </div>
+    </div>
+
     <div id="output">
-        <p>Select a MIDI file to see the YM2151 register log JSON output...</p>
+        <p>Select a MIDI file or enter MML code to see the YM2151 register log JSON output...</p>
     </div>
 
-    <script type="module">
-        // Import the WASM module
-        import init, { smf_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
-
-        // Initialize WASM
-        async function initWasm() {
-            try {
-                await init();
-                console.log('WASM module initialized successfully');
-            } catch (error) {
-                console.error('Failed to initialize WASM:', error);
-                const output = document.getElementById('output');
-                output.innerHTML = '';
-                const errorParagraph = document.createElement('p');
-                errorParagraph.className = 'error';
-                errorParagraph.textContent = 'Failed to initialize WASM module: ' + error.message;
-                output.appendChild(errorParagraph);
-            }
-        }
-
-        // Handle file input
-        document.getElementById('file-input').addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const output = document.getElementById('output');
-            output.innerHTML = '';
-            const processingParagraph = document.createElement('p');
-            processingParagraph.textContent = 'Processing ' + file.name + '...';
-            output.appendChild(processingParagraph);
-
-            try {
-                // Read file as array buffer
-                const arrayBuffer = await file.arrayBuffer();
-                const uint8Array = new Uint8Array(arrayBuffer);
-
-                // Convert SMF to YM2151 JSON
-                const result = smf_to_ym2151_json(uint8Array);
-
-                // Parse and display result
-                try {
-                    const json = JSON.parse(result);
-                    output.innerHTML = '';
-                    
-                    if (json.error) {
-                        const errorParagraph = document.createElement('p');
-                        errorParagraph.className = 'error';
-                        errorParagraph.textContent = 'Error: ' + json.error;
-                        output.appendChild(errorParagraph);
-                    } else {
-                        const successParagraph = document.createElement('p');
-                        successParagraph.className = 'success';
-                        successParagraph.textContent = 'Successfully converted!';
-                        output.appendChild(successParagraph);
-                        
-                        const eventCountParagraph = document.createElement('p');
-                        const strongElement = document.createElement('strong');
-                        strongElement.textContent = 'Event count:';
-                        eventCountParagraph.appendChild(strongElement);
-                        eventCountParagraph.appendChild(document.createTextNode(' ' + json.event_count));
-                        output.appendChild(eventCountParagraph);
-                        
-                        const preElement = document.createElement('pre');
-                        preElement.textContent = JSON.stringify(json, null, 2);
-                        output.appendChild(preElement);
-                    }
-                } catch (e) {
-                    // If not JSON, display as plain text (shouldn't happen)
-                    output.innerHTML = '';
-                    const preElement = document.createElement('pre');
-                    preElement.textContent = result;
-                    output.appendChild(preElement);
-                }
-            } catch (error) {
-                output.innerHTML = '';
-                const errorParagraph = document.createElement('p');
-                errorParagraph.className = 'error';
-                errorParagraph.textContent = 'Error processing file: ' + error.message;
-                output.appendChild(errorParagraph);
-                console.error('Error:', error);
-            }
-        });
-
-        // Initialize on page load
-        initWasm();
-    </script>
+    <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
