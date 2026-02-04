@@ -53,6 +53,18 @@ jobs:
         run: |
           wasm-pack build --target web --features wasm
       
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install Node.js dependencies
+        run: npm install
+      
+      - name: Build Vite project
+        run: npm run build
+      
       - name: Setup Pages
         uses: actions/configure-pages@v4
       
@@ -60,10 +72,11 @@ jobs:
         run: |
           mkdir -p _site
           
-          # Required files
-          cp index.html _site/
+          # Copy Vite build output
+          cp -r dist/* _site/
+          
+          # Required files for Jekyll
           cp _config.yml _site/
-          cp -r pkg _site/
           
           # Optional files (fail silently if not present)
           # Google Search Console verification file
