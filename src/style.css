@@ -170,4 +170,30 @@ button:disabled {
     .info-box h3 {
         color: #64B5F6;
     }
+    .github-link a {
+        color: #64B5F6;
+    }
+    .github-link a:hover {
+        color: #90CAF9;
+    }
+}
+
+/* GitHub link in bottom-left corner */
+.github-link {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    font-size: 12px;
+    z-index: 1000;
+}
+
+.github-link a {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.github-link a:hover {
+    color: #333;
+    text-decoration: underline;
 }
