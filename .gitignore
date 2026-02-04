@@ -38,6 +38,9 @@ tones/*.json
 pkg
 *.wasm
 
+# Optional MML support (stub - should be replaced if MML support is needed)
+mmlabc-pkg
+
 # Node.js and Vite
 node_modules
 dist

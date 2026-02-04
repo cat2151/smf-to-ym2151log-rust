@@ -1,7 +1,6 @@
 import './style.css';
 
 // Import the WASM module for SMF to YM2151 conversion
-// @ts-expect-error - WASM module types not available
 import init, { smf_to_ym2151_json } from '../pkg/smf_to_ym2151log.js';
 
 let wasmInitialized = false;
