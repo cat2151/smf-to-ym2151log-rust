@@ -62,6 +62,17 @@ jobs:
       - name: Install Node.js dependencies
         run: npm install
       
+      - name: Create MML stub (optional dependency)
+        run: |
+          mkdir -p mmlabc-pkg
+          cat > mmlabc-pkg/mmlabc_to_smf_wasm.js << 'EOF'
+          // Stub module for optional MML support
+          // The actual mmlabc-to-smf-wasm module should be copied here if MML support is needed
+          export default async function() {
+              throw new Error('MML support not configured. See MML_INTEGRATION.md for setup instructions.');
+          }
+          EOF
+      
       - name: Build Vite project
         run: npm run build
       

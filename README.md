@@ -116,6 +116,8 @@ Detailed API documentation: `cargo doc --open`
 
 **Online Demo**: Try the converter in your browser at https://cat2151.github.io/smf-to-ym2151log-rust/
 
+**Library Demo**: See a minimal library usage example at https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/
+
 To build and use in a web browser locally:
 
 ```bash
@@ -128,7 +130,7 @@ wasm-pack build --target web --features wasm
 
 For detailed usage and examples, please refer to [WASM_USAGE.md](WASM_USAGE.md).
 
-A complete demo is available in `index.html`.
+A complete demo is available in `index.html`, and a minimal library usage demo is in `demo-library/`.
 
 ### Example Output
 

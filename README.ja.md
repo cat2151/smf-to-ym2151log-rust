@@ -117,6 +117,10 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 ### WebAssembly（ブラウザ）での使用
 
+**オンラインデモ**: https://cat2151.github.io/smf-to-ym2151log-rust/ でブラウザから試せます
+
+**ライブラリデモ**: 最小限のライブラリ使用例は https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/ で確認できます
+
 Webブラウザでビルドして使用する：
 
 ```bash
@@ -129,7 +133,7 @@ wasm-pack build --target web --features wasm
 
 詳細な使用方法と例については、[WASM_USAGE.md](WASM_USAGE.md)を参照してください。
 
-完全なデモは`index.html`で利用可能です。
+完全なデモは`index.html`で、最小限のライブラリ使用デモは`demo-library/`で利用可能です。
 
 ### 出力例
 
