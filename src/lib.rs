@@ -33,6 +33,7 @@
 //!
 //! - [`midi`] - MIDI file parsing and event handling (Pass A)
 //! - [`ym2151`] - YM2151 conversion and register mapping (Pass B)
+//! - [`mml`] - Simple MML (Music Macro Language) parser for WASM/browser use
 //! - [`error`] - Error types and result handling
 
 pub mod error;

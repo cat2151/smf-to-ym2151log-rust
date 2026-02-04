@@ -12,8 +12,11 @@
 //! - `<` - Decrease octave by 1
 //! - `l<n>` - Set default note length (e.g., `l4` for quarter note, `l8` for eighth note)
 //! - `v<n>` - Set volume/velocity (0-15, where 15 is loudest)
-//! - `t<n>` - Set tempo in BPM (e.g., `t120`)
 //! - `;` - Channel separator (for multi-channel)
+//!
+//! ## Note
+//!
+//! Tempo is fixed at 120 BPM in the current implementation.
 //!
 //! ## Examples
 //!
@@ -98,8 +101,16 @@ pub fn parse_mml(mml: &str) -> Result<Vec<u8>> {
             tracks.push(track);
         }
     } else {
-        // Format 0: Single track
-        let track = parse_channel(&channels[0], 0)?;
+        // Format 0: Single track with tempo meta event
+        let mut track = parse_channel(&channels[0], 0)?;
+        // Insert tempo event at the beginning
+        track.insert(
+            0,
+            TrackEvent {
+                delta: 0.into(),
+                kind: TrackEventKind::Meta(MetaMessage::Tempo(500000.into())), // 120 BPM
+            },
+        );
         tracks.push(track);
     }
 
@@ -159,7 +170,7 @@ fn parse_channel(mml: &str, channel: u8) -> Result<Vec<TrackEvent<'static>>> {
                 if i < chars.len() {
                     match chars[i] {
                         '+' | '#' => {
-                            modified_note += 1;
+                            modified_note = modified_note.saturating_add(1);
                             i += 1;
                         }
                         '-' => {
@@ -169,6 +180,9 @@ fn parse_channel(mml: &str, channel: u8) -> Result<Vec<TrackEvent<'static>>> {
                         _ => {}
                     }
                 }
+
+                // Clamp to valid MIDI note range (0-127)
+                let clamped_note = modified_note.min(127);
 
                 // Check for note length
                 let (length, new_i) = parse_number(&chars, i);
@@ -181,7 +195,7 @@ fn parse_channel(mml: &str, channel: u8) -> Result<Vec<TrackEvent<'static>>> {
                     kind: TrackEventKind::Midi {
                         channel: channel.into(),
                         message: MidiMessage::NoteOn {
-                            key: modified_note.into(),
+                            key: clamped_note.into(),
                             vel: velocity.into(),
                         },
                     },
@@ -194,7 +208,7 @@ fn parse_channel(mml: &str, channel: u8) -> Result<Vec<TrackEvent<'static>>> {
                     kind: TrackEventKind::Midi {
                         channel: channel.into(),
                         message: MidiMessage::NoteOff {
-                            key: modified_note.into(),
+                            key: clamped_note.into(),
                             vel: 0.into(),
                         },
                     },
@@ -246,12 +260,12 @@ fn parse_channel(mml: &str, channel: u8) -> Result<Vec<TrackEvent<'static>>> {
                     velocity = ((vol_val.min(15) * 127 / 15) as u8).max(1);
                 }
             }
-            // Tempo (ignored for now, as it would need tempo track handling)
+            // Note: Tempo commands (t) are ignored in this simple parser
+            // Tempo is fixed at 120 BPM
             't' | 'T' => {
                 i += 1;
                 let (_tempo, new_i) = parse_number(&chars, i);
                 i = new_i;
-                // TODO: Handle tempo changes
             }
             _ => {
                 i += 1;

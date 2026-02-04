@@ -1150,3 +1150,95 @@ fn test_convert_smf_to_ym2151_log_end_to_end() {
         assert!(data.starts_with("0x"), "data should start with 0x");
     }
 }
+
+#[test]
+fn test_convert_mml_to_ym2151_log_end_to_end() {
+    // Test the MML to YM2151 conversion pipeline
+    let mml = "cdefgab";
+
+    let result = smf_to_ym2151log::convert_mml_to_ym2151_log(mml);
+    assert!(
+        result.is_ok(),
+        "Should successfully convert MML to YM2151 log: {:?}",
+        result.err()
+    );
+
+    let json_string = result.unwrap();
+
+    // Verify it's valid JSON
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_string).expect("Output should be valid JSON");
+
+    // Verify structure
+    assert!(
+        parsed.get("event_count").is_some(),
+        "Should have event_count"
+    );
+    assert!(parsed.get("events").is_some(), "Should have events array");
+
+    let event_count = parsed["event_count"]
+        .as_u64()
+        .expect("event_count should be number");
+    assert!(event_count > 0, "Should have at least one event");
+
+    let events = parsed["events"].as_array().expect("events should be array");
+    assert!(!events.is_empty(), "Should have events");
+
+    // Verify event structure
+    for event in events {
+        assert!(event.get("time").is_some(), "Event should have time field");
+        assert!(event.get("addr").is_some(), "Event should have addr field");
+        assert!(event.get("data").is_some(), "Event should have data field");
+
+        let addr = event["addr"].as_str().expect("addr should be string");
+        let data = event["data"].as_str().expect("data should be string");
+
+        assert!(addr.starts_with("0x"), "addr should start with 0x");
+        assert!(data.starts_with("0x"), "data should start with 0x");
+    }
+}
+
+#[test]
+fn test_convert_mml_multi_channel() {
+    // Test MML with multi-channel (chord)
+    let mml = "c;e;g"; // C major chord
+
+    let result = smf_to_ym2151log::convert_mml_to_ym2151_log(mml);
+    assert!(
+        result.is_ok(),
+        "Should successfully convert multi-channel MML: {:?}",
+        result.err()
+    );
+
+    let json_string = result.unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_string).expect("Output should be valid JSON");
+
+    let event_count = parsed["event_count"]
+        .as_u64()
+        .expect("event_count should be number");
+    assert!(event_count > 0, "Should have events for multi-channel MML");
+}
+
+#[test]
+fn test_convert_mml_with_octave_and_length() {
+    // Test MML with octave and length settings
+    let mml = "o5 l4 cdefgab";
+
+    let result = smf_to_ym2151log::convert_mml_to_ym2151_log(mml);
+    assert!(
+        result.is_ok(),
+        "Should successfully convert MML with octave and length: {:?}",
+        result.err()
+    );
+
+    let json_string = result.unwrap();
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_string).expect("Output should be valid JSON");
+
+    assert!(parsed.get("event_count").is_some());
+    let event_count = parsed["event_count"]
+        .as_u64()
+        .expect("event_count should be number");
+    assert!(event_count > 0, "Should have events");
+}
