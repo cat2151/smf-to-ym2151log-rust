@@ -8,6 +8,6 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 8000,
+    port: 8001,  // Different port to avoid conflict with main demo
   },
 });

@@ -59,7 +59,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       
-      - name: Install Node.js dependencies
+      - name: Install Node.js dependencies (main demo)
         run: npm install
       
       - name: Create MML stub (optional dependency)
@@ -73,8 +73,19 @@ jobs:
           }
           EOF
       
-      - name: Build Vite project
+      - name: Build main demo
         run: npm run build
+      
+      - name: Build demo-library (standalone)
+        run: |
+          # Copy WASM package to demo-library (library user workflow)
+          cp -r pkg demo-library/pkg
+          
+          # Build demo-library as standalone project
+          cd demo-library
+          npm install
+          npm run build
+          cd ..
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -83,8 +94,12 @@ jobs:
         run: |
           mkdir -p _site
           
-          # Copy Vite build output
+          # Copy main demo build output
           cp -r dist/* _site/
+          
+          # Copy demo-library build output
+          mkdir -p _site/demo-library
+          cp -r demo-library/dist/* _site/demo-library/
           
           # Required files for Jekyll
           cp _config.yml _site/
