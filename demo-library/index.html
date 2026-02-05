@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Demo - SMF to YM2151</title>
+</head>
+<body>
+    <h1>Library Usage Demo</h1>
+    <p>This is a minimal demonstration of using smf-to-ym2151log-rust as a library.</p>
+    
+    <div class="demo-section">
+        <h2>Convert MIDI File to YM2151 Log</h2>
+        <div>
+            <label for="file-input">Select a MIDI file (.mid):</label><br>
+            <input type="file" id="file-input" accept=".mid,.midi">
+        </div>
+    </div>
+
+    <div id="output">
+        <p>Select a MIDI file to see the conversion result...</p>
+    </div>
+
+    <footer class="github-link">
+        <a href="https://github.com/cat2151/smf-to-ym2151log-rust" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+
+    <script type="module" src="/library-demo.ts"></script>
+</body>
+</html>
