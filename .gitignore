@@ -52,3 +52,5 @@ demo-library/node_modules
 demo-library/dist
 demo-library/package-lock.json
 demo-library/pkg
+_site/
+mmlabc-pkg/
