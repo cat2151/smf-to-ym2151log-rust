@@ -138,14 +138,18 @@ button:disabled {
 }
 
 .github-link a {
-    color: #666;
+    color: #333;
     text-decoration: none;
-    transition: color 0.3s;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    transition: background-color 0.3s ease;
+    display: inline-block;
 }
 
 .github-link a:hover {
-    color: #333;
-    text-decoration: underline;
+    background: rgba(255, 255, 255, 0.92);
 }
 
 /* Dark mode support */
@@ -191,9 +195,10 @@ button:disabled {
         color: #64B5F6;
     }
     .github-link a {
-        color: #64B5F6;
+        color: #e0e0e0;
+        background: rgba(42, 42, 42, 0.75);
     }
     .github-link a:hover {
-        color: #90CAF9;
+        background: rgba(42, 42, 42, 0.92);
     }
 }
