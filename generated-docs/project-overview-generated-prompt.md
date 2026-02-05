@@ -1,4 +1,4 @@
-Last updated: 2026-02-05
+Last updated: 2026-02-06
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -80,7 +80,8 @@ Last updated: 2026-02-05
 
 ## 用途
 
-ライブラリとして、 `cat-play-mml` から利用しています
+- ライブラリとして、 `cat-play-mml` から利用しています。ネイティブアプリ用のRustライブラリクレートです（利用方式1）。
+- ライブラリとして、`web-ym2151` から利用予定です。ブラウザ用のWASMライブラリです（利用方式2）。
 
 ### 現在の制約
 
@@ -179,6 +180,10 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 ### WebAssembly（ブラウザ）での使用
 
+**オンラインデモ**: https://cat2151.github.io/smf-to-ym2151log-rust/ でブラウザから試せます
+
+**ライブラリデモ**: 最小限のライブラリ使用例は https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/ で確認できます
+
 Webブラウザでビルドして使用する：
 
 ```bash
@@ -191,7 +196,7 @@ wasm-pack build --target web --features wasm
 
 詳細な使用方法と例については、[WASM_USAGE.md](WASM_USAGE.md)を参照してください。
 
-完全なデモは`index.html`で利用可能です。
+完全なデモは`index.html`で、最小限のライブラリ使用デモは`demo-library/`で利用可能です。
 
 ### 出力例
 
@@ -328,6 +333,15 @@ cargo audit
 📖 README.md
 📖 WASM_USAGE.md
 📄 _config.yml
+📁 demo-library/
+  📄 .gitignore
+  📖 README.md
+  🌐 index.html
+  📘 library-demo.ts
+  📊 package.json
+  🎨 style.css
+  📊 tsconfig.json
+  📘 vite.config.ts
 📁 generated-docs/
 🌐 googled947dc864c270e07.html
 🌐 index.html
@@ -394,19 +408,35 @@ cargo audit
 📘 vite.config.ts
 
 ## ファイル詳細分析
+**demo-library/index.html** (31行, 937バイト)
+  - 関数: なし
+  - インポート: なし
+
+**demo-library/library-demo.ts** (119行, 4069バイト)
+  - 関数: initWasm, displayResult, showError, setupFileInput, catch, if
+  - インポート: ./pkg/smf_to_ym2151log.js
+
+**demo-library/style.css** (96行, 1508バイト)
+  - 関数: なし
+  - インポート: なし
+
+**demo-library/vite.config.ts** (14行, 255バイト)
+  - 関数: なし
+  - インポート: vite
+
 **googled947dc864c270e07.html** (1行, 53バイト)
   - 関数: なし
   - インポート: なし
 
-**index.html** (67行, 3044バイト)
+**index.html** (71行, 3212バイト)
   - 関数: なし
   - インポート: なし
 
-**src/main.ts** (248行, 8302バイト)
+**src/main.ts** (247行, 8248バイト)
   - 関数: initWasm, checkMMLWasm, displayResult, showError, setupFileInput, convertMML, loadMMLExample, switchTab, setupEventListeners, catch, if
   - インポート: ../pkg/smf_to_ym2151log.js
 
-**src/style.css** (174行, 2897バイト)
+**src/style.css** (200行, 3325バイト)
   - 関数: なし
   - インポート: なし
 
@@ -415,17 +445,17 @@ cargo audit
   - インポート: vite
 
 ## 関数呼び出し階層
-- catch (src/main.ts)
-  - initWasm (src/main.ts)
-    - checkMMLWasm ()
-      - displayResult ()
+- catch (demo-library/library-demo.ts)
+  - initWasm (demo-library/library-demo.ts)
+    - displayResult ()
       - showError ()
       - setupFileInput ()
+      - checkMMLWasm ()
       - convertMML ()
       - loadMMLExample ()
       - switchTab ()
       - setupEventListeners ()
-- if (src/main.ts)
+- if (demo-library/library-demo.ts)
 
 
 ## プロジェクト構造（ファイル一覧）
@@ -434,6 +464,13 @@ MML_INTEGRATION.md
 README.ja.md
 README.md
 WASM_USAGE.md
+demo-library/README.md
+demo-library/index.html
+demo-library/library-demo.ts
+demo-library/package.json
+demo-library/style.css
+demo-library/tsconfig.json
+demo-library/vite.config.ts
 googled947dc864c270e07.html
 index.html
 issue-notes/21.md
@@ -452,12 +489,6 @@ issue-notes/41.md
 issue-notes/43.md
 issue-notes/45.md
 issue-notes/47.md
-issue-notes/49.md
-issue-notes/51.md
-issue-notes/53.md
-issue-notes/55.md
-issue-notes/57.md
-issue-notes/58.md
 package.json
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
@@ -470,4 +501,4 @@ package.json
 
 
 ---
-Generated at: 2026-02-05 07:09:38 JST
+Generated at: 2026-02-06 07:10:37 JST

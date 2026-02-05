@@ -1,41 +1,21 @@
-Last updated: 2026-02-05
+Last updated: 2026-02-06
 
 # Project Overview
 
 ## プロジェクト概要
-- Standard MIDIファイル（SMF）をYM2151 FM音源チップのレジスタ書き込みログ（JSON形式）に変換するRust製ツールおよびライブラリです。
-- MIDIチャンネルの和音数に基づくYM2151チャンネル割り当てやドラムチャンネル優先処理などの高度なボイス管理機能を持ちます。
-- WebAssembly対応によるブラウザ実行、カスタム音色ファイルによるプログラムチェンジ対応、そしてライブラリAPI提供により多様な用途で利用可能です。
+-   Standard MIDIファイルを、レトロなYM2151 FM音源チップで演奏可能なデータ形式に変換します。
+-   ネイティブアプリケーションやWebブラウザ（WebAssembly経由）で利用できる高性能なRustライブラリです。
+-   複雑なMIDIイベントやプログラムチェンジにも対応し、カスタム音色定義も可能です。
 
 ## 技術スタック
-- フロントエンド:
-    - **WebAssembly (WASM)**: RustコードをWebブラウザで実行可能にする技術です。
-    - **TypeScript**: Webデモ（`src/main.ts`）のロジックを記述するために使用されるJavaScriptのスーパーセットです。
-    - **HTML/CSS**: WebAssemblyデモのユーザーインターフェース（`index.html`, `src/style.css`）を構築するために使用されます。
-    - **Vite**: WebAssemblyデモの高速な開発とビルドを可能にする、モダンなフロントエンド開発サーバーおよびビルドツールです。
-- 音楽・オーディオ:
-    - **Standard MIDI Files (SMF)**: プロジェクトの入力となる、音楽データの標準フォーマットです。
-    - **YM2151**: 出力ターゲットとなるヤマハ製のFM音源チップで、そのレジスタ制御ログを生成します。
-- 開発ツール:
-    - **Rust**: プロジェクトの主要なプログラミング言語であり、型安全性と高パフォーマンスを提供します。
-    - **Cargo**: Rustの公式なビルドシステムとパッケージマネージャです。
-    - **git**: ソースコードのバージョン管理に使用されます。
-    - **wasm-pack**: RustプロジェクトをWebAssemblyにビルドし、npmパッケージとして公開するためのツールです。
-- テスト:
-    - **cargo test**: Rustの標準テストフレームワークで、ユニットテストと統合テストの実行に使用されます。
-    - **cargo tarpaulin**: Rustプロジェクトのコードカバレッジを測定し、レポートを生成するツールです。
-- ビルドツール:
-    - **Cargo**: Rustのソースコードをコンパイルし、実行可能ファイルやライブラリを生成します。
-    - **wasm-pack**: RustのコードをWebAssemblyモジュールに変換する際に使用されます。
-    - **Vite**: Webアプリケーションのビルドプロセスを管理します。
-- 言語機能:
-    - **Rustの型システム**: コンパイル時に多くのバグを捕捉し、堅牢で安全なコードを作成するのに役立ちます。
-- 自動化・CI/CD:
-    - 特に明示的なCI/CDパイプラインは記述されていませんが、以下のツールは自動化された品質チェックに利用できます。
-- 開発標準:
-    - **cargo fmt**: Rustコードの自動フォーマットを行い、コードスタイルの一貫性を保ちます。
-    - **cargo clippy**: Rustコードの一般的な間違いや非効率性を検出するLintツールです。
-    - **cargo audit**: プロジェクトの依存関係に既知のセキュリティ脆弱性がないかを確認します。
+-   フロントエンド: WebAssembly (WASM) によるRustコードのブラウザ実行、TypeScriptでのWebアプリケーションロジック記述、HTML/CSSによるユーザーインターフェース構築、Viteによるモダンなフロントエンド開発。
+-   音楽・オーディオ: Standard MIDI Files (SMF) を入力とし、YM2151 FM音源チップ向けのレジスタ書き込みログ（JSON形式）を出力。カスタムYM2151音色定義にはJSONファイルを使用。
+-   開発ツール: 主要なプログラミング言語としてRustを使用し、Cargoがビルドと依存関係管理を担います。WebAssemblyへのコンパイルには`wasm-pack`を使用。
+-   テスト: Rustの組み込みテストフレームワークと`cargo tarpaulin`によるテストカバレッジ計測、包括的なユニットテストと統合テストを実施。
+-   ビルドツール: RustプロジェクトのビルドはCargo、WebAssemblyパッケージのビルドは`wasm-pack`、フロントエンドのアセットビルドはViteを使用。
+-   言語機能: Rustの強力な型システムによる堅牢なコードと、所有権システムによるメモリ安全性を確保。
+-   自動化・CI/CD: GitHub Pagesの構成ファイル`_config.yml`が含まれており、Webサイトのデプロイ自動化を示唆します。
+-   開発標準: `cargo fmt`によるコードフォーマット、`cargo clippy`によるLintチェック、`cargo audit`による依存関係のセキュリティ監査を通じて、高いコード品質を維持。テスト駆動開発を採用。
 
 ## ファイル階層ツリー
 ```
@@ -49,6 +29,15 @@ Last updated: 2026-02-05
 📖 README.md
 📖 WASM_USAGE.md
 📄 _config.yml
+📁 demo-library/
+  📄 .gitignore
+  📖 README.md
+  🌐 index.html
+  📘 library-demo.ts
+  📊 package.json
+  🎨 style.css
+  📊 tsconfig.json
+  📘 vite.config.ts
 📁 generated-docs/
 🌐 googled947dc864c270e07.html
 🌐 index.html
@@ -116,111 +105,117 @@ Last updated: 2026-02-05
 ```
 
 ## ファイル詳細説明
-- **.gitignore**: Gitが追跡しないファイルやディレクトリを指定する設定ファイルです。
-- **Cargo.lock**: プロジェクトの依存関係の正確なバージョンを記録し、再現可能なビルドを保証するファイルです。
-- **Cargo.toml**: Rustプロジェクトの設定ファイルで、プロジェクト名、バージョン、依存関係などが定義されています。
-- **DEMO_README.md**: デモの使用方法に関する詳細を記述したMarkdownドキュメントです。
-- **LICENSE**: プロジェクトのライセンス情報が記述されています。
-- **MML_INTEGRATION.md**: MML (Music Macro Language) との統合に関する詳細を記述したドキュメントです。
-- **README.ja.md**: プロジェクトの概要と使い方を日本語で説明するメインのドキュメントです。
-- **README.md**: プロジェクトの概要と使い方を英語で説明するメインのドキュメントです。
-- **WASM_USAGE.md**: WebAssembly版の使用方法に関する詳細を記述したMarkdownドキュメントです。
-- **_config.yml**: GitHub Pagesなどのサイト設定に使用される設定ファイルです。
-- **generated-docs/**: `cargo doc`などで生成されたAPIドキュメントが格納されるディレクトリです。
-- **googled947dc864c270e07.html**: Googleサイト認証のために使用されるHTMLファイルです。
-- **index.html**: WebAssemblyデモのメインページとなるHTMLファイルで、ブラウザから変換ツールを試せるインターフェースを提供します。
-- **issue-notes/**: 開発中の課題やメモを記録したMarkdownファイルが格納されているディレクトリです。
-    - **21.md** ～ **58.md**: 個別の課題やメモを記述したファイルです。
-- **package.json**: Node.jsプロジェクトの設定ファイルで、フロントエンドの依存関係やスクリプトが定義されています。
-- **src/**: RustとTypeScriptのソースコードが格納されている主要なディレクトリです。
-    - **error.rs**: プロジェクト全体で発生する可能性のあるカスタムエラー型が定義されています。
-    - **lib.rs**: このプロジェクトがライブラリとして提供される際のエントリポイントとなるRustソースファイルです。
-    - **main.rs**: コマンドラインツールとして実行される際のエントリポイントとなるRustソースファイルです。
-    - **main.ts**: WebAssemblyデモのフロントエンドロジックを実装するTypeScriptファイルです。ファイル選択、変換実行、結果表示などのUI操作を扱います。
-    - **style.css**: WebAssemblyデモのUIデザインを定義するCSSファイルです。
-    - **wasm.rs**: RustコードをWebAssemblyに公開するためのブリッジとなるRustソースファイルです。
-    - **midi/**: MIDIファイルのパースとイベント処理に関連するRustモジュールです。
-        - **events.rs**: Standard MIDI File (SMF) から抽出される各種MIDIイベントのデータ構造を定義します。
-        - **mod.rs**: `midi`モジュール内のサブモジュール（`events`, `parser`, `utils`）を宣言します。
-        - **parser.rs**: MIDIファイルのバイナリデータを読み込み、構造化されたMIDIイベントに解析するロジックを実装します。
-        - **utils.rs**: MIDI処理に役立つヘルパー関数やユーティリティが含まれています。
-    - **ym2151/**: YM2151レジスタログへの変換ロジックに関連するRustモジュールです。
-        - **channel_allocation.rs**: MIDIチャンネルからYM2151の8つのボイスチャンネルへの割り当て戦略（和音数ベース、ドラム優先など）を管理します。
-        - **converter.rs**: MIDIイベントをYM2151のレジスタ書き込みログに変換する主要なロジックを実装します。
-        - **converter_tests.rs**: `converter.rs`モジュール内の機能に対するユニットテストが含まれています。
-        - **event_processor.rs**: 変換プロセスにおいて、YM2151イベントを順序立てて処理するロジックを提供します。
-        - **events.rs**: YM2151レジスタ書き込みイベントのデータ構造を定義します。
-        - **init.rs**: YM2151チップの初期化レジスタ設定に関するロジックが含まれています。
-        - **mod.rs**: `ym2151`モジュール内のサブモジュールを宣言します。
-        - **note_table.rs**: MIDIノート番号とYM2151が必要とする周波数やレジスタ値のマッピングを提供します。
-        - **tempo_map.rs**: MIDIファイルのテンポチェンジイベントを管理し、正確なタイミング計算を可能にするテンポマップを構築します。
-        - **tone.rs**: YM2151の音色（プログラムチェンジによって切り替わる音色データ）のロードと管理を行います。
-- **tests/**: プロジェクトの統合テストやテストデータが格納されているディレクトリです。
-    - **create_test_midi.py**: テスト目的で特定のMIDIファイルを生成するためのPythonスクリプトです。
-    - **integration_tests.rs**: プロジェクト全体の主要な機能に対する統合テストケースを定義します。
-    - **test_data/**: 統合テストで使用されるサンプルMIDIファイルが格納されています。
-        - **multi_channel.mid**: 複数のMIDIチャンネルが使用されているテスト用MIDIファイルです。
-        - **multi_track.mid**: 複数のトラックが使用されているテスト用MIDIファイルです。
-        - **program_change.mid**: プログラムチェンジイベントを含むテスト用MIDIファイルです。
-        - **simple_melody.mid**: 単純なメロディを含むテスト用MIDIファイルです。
-        - **tempo_change.mid**: テンポチェンジイベントを含むテスト用MIDIファイルです。
-- **tones/**: カスタムYM2151音色を定義するJSONファイルが格納されているディレクトリです。
-    - **000.json**: MIDIプログラム番号0に対応するデフォルトのYM2151音色データです。
-    - **README.md**: `tones`ディレクトリ内のJSONファイルのフォーマットや使用方法を説明するドキュメントです。
-- **tsconfig.json**: TypeScriptコンパイラの設定ファイルです。
-- **vite.config.ts**: Viteビルドツール用の設定ファイルで、フロントエンドのビルドオプションを定義します。
+-   `.gitignore`: Gitによるバージョン管理から除外するファイルやディレクトリを指定します。
+-   `Cargo.lock`: プロジェクトの依存関係の正確なバージョンを固定し、ビルドの再現性を保証します。
+-   `Cargo.toml`: Rustプロジェクトの設定ファイルで、プロジェクト名、バージョン、依存クレートなどが記述されています。
+-   `DEMO_README.md`: デモに関する追加情報や使用方法を説明するドキュメントです。
+-   `LICENSE`: プロジェクトのライセンス情報が記載されています。
+-   `MML_INTEGRATION.md`: Music Macro Language (MML) との統合に関する詳細情報が記載されています。
+-   `README.ja.md`: プロジェクトの日本語版概要ドキュメントです。
+-   `README.md`: プロジェクトの英語版概要ドキュメントです。
+-   `WASM_USAGE.md`: WebAssembly (WASM) としてこのライブラリを利用する方法に関する詳細なドキュメントです。
+-   `_config.yml`: GitHub Pagesのサイト設定ファイルです。
+-   `demo-library/`: WebAssembly版ライブラリの最小限のデモサイト関連ファイル群です。
+    -   `demo-library/.gitignore`: デモライブラリ固有のGit除外ファイル指定です。
+    -   `demo-library/README.md`: デモライブラリの概要ドキュメントです。
+    -   `demo-library/index.html`: デモサイトのメインHTMLファイルです。
+    -   `demo-library/library-demo.ts`: デモサイトのTypeScriptロジックで、WASMライブラリの使用例を含みます。
+    -   `demo-library/package.json`: デモライブラリのJavaScriptプロジェクト設定ファイルで、依存関係が記述されています。
+    -   `demo-library/style.css`: デモサイトのCSSスタイルシートです。
+    -   `demo-library/tsconfig.json`: TypeScriptコンパイラの設定ファイルです。
+    -   `demo-library/vite.config.ts`: Viteビルドツールの設定ファイルです。
+-   `generated-docs/`: プロジェクトの自動生成ドキュメントが格納されるディレクトリです。
+-   `googled947dc864c270e07.html`: Googleサイト認証用のファイルです。
+-   `index.html`: WebインターフェースデモのメインHTMLファイルです。
+-   `issue-notes/`: 開発中の特定の課題や設計上のメモが記録されているディレクトリです。
+-   `package.json`: JavaScript/TypeScript関連の依存関係やスクリプトが定義されているファイルです。
+-   `src/`: プロジェクトの主要なRustソースコードが格納されているディレクトリです。
+    -   `src/error.rs`: エラーハンドリングに関連する定義が含まれています。
+    -   `src/lib.rs`: ライブラリのエントリーポイント。主要な公開APIが含まれます。
+    -   `src/main.rs`: コマンドラインアプリケーションのエントリーポイントです。
+    -   `src/main.ts`: Webインターフェースデモの主要なTypeScriptロジックです。
+    -   `src/midi/`: MIDIファイル解析に関連するモジュール群です。
+        -   `src/midi/events.rs`: MIDIイベントのデータ構造を定義します。
+        -   `src/midi/mod.rs`: `midi`モジュールのルートファイルです。
+        -   `src/midi/parser.rs`: Standard MIDIファイルを解析し、中間イベントに変換するロジックが含まれます（パスA）。
+        -   `src/midi/utils.rs`: MIDI関連のユーティリティ関数が含まれます。
+    -   `src/style.css`: WebインターフェースデモのCSSスタイルシートです。
+    -   `src/wasm.rs`: WebAssemblyバインディングのためのコードが含まれています。JavaScriptからRust関数を呼び出すためのインターフェースを提供します。
+    -   `src/ym2151/`: YM2151関連の変換ロジックが格納されているモジュール群です。
+        -   `src/ym2151/channel_allocation.rs`: YM2151チャンネルの割り当て戦略を実装します。
+        -   `src/ym2151/converter.rs`: 中間イベントをYM2151レジスタログに変換する主要なロジックが含まれます（パスB）。
+        -   `src/ym2151/converter_tests.rs`: `converter.rs`のテストコードです。
+        -   `src/ym2151/event_processor.rs`: YM2151イベントの処理ロジックが含まれます。
+        -   `src/ym2151/events.rs`: YM2151レジスタイベントのデータ構造を定義します。
+        -   `src/ym2151/init.rs`: YM2151初期化に関連するロジックが含まれます。
+        -   `src/ym2151/mod.rs`: `ym2151`モジュールのルートファイルです。
+        -   `src/ym2151/note_table.rs`: ノート周波数などのテーブルデータが含まれます。
+        -   `src/ym2151/tempo_map.rs`: テンポマップの管理ロジックが含まれます。
+        -   `src/ym2151/tone.rs`: YM2151の音色（トーン）に関する定義と読み込みロジックが含まれます。
+-   `tests/`: 統合テスト関連のファイル群です。
+    -   `tests/create_test_midi.py`: テスト用のMIDIファイルを生成するPythonスクリプトです。
+    -   `tests/integration_tests.rs`: プロジェクト全体の統合テストコードです。
+    -   `tests/test_data/`: テストに使用されるMIDIファイルなどのデータが格納されています。
+-   `tones/`: プログラムチェンジで利用されるカスタムYM2151音色定義JSONファイル群です。
+    -   `tones/000.json`: プログラム番号000に対応するYM2151音色定義です。
+    -   `tones/README.md`: `tones`ディレクトリ内のJSONファイルのフォーマットと使用方法を説明します。
+-   `tsconfig.json`: ルートディレクトリのTypeScriptコンパイラ設定ファイルです。
+-   `vite.config.ts`: ルートディレクトリのViteビルドツールの設定ファイルです。
 
 ## 関数詳細説明
-- **initWasm** (src/main.ts): WebAssemblyモジュールを初期化し、ブラウザ上でRustコードを実行可能にする準備を行います。
-    - 役割: WASMモジュールのロードと初期化。
-    - 引数: なし
-    - 戻り値: Promise<void>
-- **checkMMLWasm** (src/main.ts): MML-WASMモジュールのロード状態や準備状況をチェックします。
-    - 役割: MML関連のWebAssembly機能が利用可能か確認する。
-    - 引数: なし
-    - 戻り値: Promise<void>
-- **displayResult** (src/main.ts): 変換処理の結果（YM2151ログJSONや中間イベントJSON）をWebページの指定された領域に表示します。
-    - 役割: UIに結果を表示する。
-    - 引数: `result`: 表示する文字列。
-    - 戻り値: `void`
-- **showError** (src/main.ts): エラーメッセージをWebページのユーザーインターフェースに表示し、ユーザーに問題が発生したことを通知します。
-    - 役割: UIにエラーメッセージを表示する。
-    - 引数: `message`: 表示するエラーメッセージの文字列。
-    - 戻り値: `void`
-- **setupFileInput** (src/main.ts): MIDIファイル入力フィールドのイベントリスナーを設定し、ユーザーがファイルをアップロードした際の処理を定義します。
-    - 役割: ファイル入力要素にイベントリスナーを登録する。
-    - 引数: なし
-    - 戻り値: `void`
-- **convertMML** (src/main.ts): MML形式の入力をYM2151レジスタログに変換する処理をトリガーします。
-    - 役割: MML文字列をYM2151ログに変換し、結果をUIに表示する。
-    - 引数: なし
-    - 戻り値: Promise<void>
-- **loadMMLExample** (src/main.ts): 事前定義されたMMLのサンプルコードをロードし、Webページの入力エリアに表示します。
-    - 役割: サンプルMMLをロードしてUIに設定する。
-    - 引数: `exampleId`: ロードするMMLサンプルの識別子。
-    - 戻り値: `void`
-- **switchTab** (src/main.ts): WebUIの異なるタブ（例: MIDI変換タブ、MML変換タブ）を切り替えるロジックを管理します。
-    - 役割: UIのタブ表示を切り替える。
-    - 引数: `tabId`: 切り替えるタブの識別子。
-    - 戻り値: `void`
-- **setupEventListeners** (src/main.ts): アプリケーション全体で必要なUIイベントリスナー（ボタンクリック、ファイル変更など）をまとめて設定します。
-    - 役割: ページ上の各種UI要素にイベントリスナーを登録する。
-    - 引数: なし
-    - 戻り値: `void`
+-   `catch` (demo-library/library-demo.ts, src/main.ts)
+    -   **役割**: エラー発生時の処理を捕捉し、適切にハンドリングします。通常、エラーメッセージの表示などを行います。
+    -   **引数**: エラーオブジェクト。
+    -   **戻り値**: なし。
+-   `initWasm` (demo-library/library-demo.ts, src/main.ts)
+    -   **役割**: WebAssemblyモジュールを初期化し、Rustでコンパイルされた機能をJavaScript環境で利用可能にします。
+    -   **引数**: なし、またはWASMモジュールのパスなど。
+    -   **戻り値**: 初期化されたWASMモジュールオブジェクト。
+-   `displayResult` (demo-library/library-demo.ts, src/main.ts)
+    -   **役割**: 変換結果（YM2151レジスタログJSONなど）をWebインターフェース上に表示します。
+    -   **引数**: 変換結果データ。
+    -   **戻り値**: なし。
+-   `showError` (demo-library/library-demo.ts, src/main.ts)
+    -   **役割**: エラーメッセージをWebインターフェース上に表示します。
+    -   **引数**: エラーメッセージ文字列。
+    -   **戻り値**: なし。
+-   `setupFileInput` (demo-library/library-demo.ts, src/main.ts)
+    -   **役割**: ファイル入力要素を設定し、ユーザーがMIDIファイルをアップロードした際のイベントハンドリングを定義します。
+    -   **引数**: なし。
+    -   **戻り値**: なし。
+-   `checkMMLWasm` (src/main.ts)
+    -   **役割**: Music Macro Language (MML) 関連のWebAssembly機能が利用可能かどうかをチェックします。
+    -   **引数**: なし。
+    -   **戻り値**: 真偽値（利用可能ならtrue）。
+-   `convertMML` (src/main.ts)
+    -   **役割**: MML形式の入力をYM2151ログに変換します。
+    -   **引数**: MMLデータ文字列。
+    -   **戻り値**: 変換されたYM2151ログデータ。
+-   `loadMMLExample` (src/main.ts)
+    -   **役割**: MMLのサンプルデータをロードし、入力フィールドに表示します。
+    -   **引数**: なし。
+    -   **戻り値**: なし。
+-   `switchTab` (src/main.ts)
+    -   **役割**: Webインターフェースのタブを切り替える機能を実装します。
+    -   **引数**: 選択されたタブのIDなど。
+    -   **戻り値**: なし。
+-   `setupEventListeners` (src/main.ts)
+    -   **役割**: Webページ内の様々なUI要素（ボタン、入力フィールドなど）に対するイベントリスナーを設定します。
+    -   **引数**: なし。
+    -   **戻り値**: なし。
 
 ## 関数呼び出し階層ツリー
 ```
-- catch (src/main.ts)
-  - initWasm (src/main.ts)
-    - checkMMLWasm ()
-      - displayResult ()
+- catch (demo-library/library-demo.ts)
+  - initWasm (demo-library/library-demo.ts)
+    - displayResult ()
       - showError ()
       - setupFileInput ()
+      - checkMMLWasm ()
       - convertMML ()
       - loadMMLExample ()
       - switchTab ()
       - setupEventListeners ()
-- if (src/main.ts)
 
 ---
-Generated at: 2026-02-05 07:10:06 JST
+Generated at: 2026-02-06 07:11:13 JST
