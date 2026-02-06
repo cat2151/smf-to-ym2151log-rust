@@ -7,9 +7,12 @@
  * 
  * Usage: node verify-demos.js [base-url]
  * Example: node verify-demos.js https://cat2151.github.io/smf-to-ym2151log-rust
+ * 
+ * Default: http://localhost:5173 (Vite dev server default port)
+ * Note: For production builds via 'npm run preview', use http://localhost:4173
  */
 
-const BASE_URL = process.argv[2] || 'http://localhost:8000';
+const BASE_URL = process.argv[2] || process.env.DEMO_BASE_URL || 'http://localhost:5173';
 
 console.log(`\n🔍 Verifying demos at: ${BASE_URL}\n`);
 

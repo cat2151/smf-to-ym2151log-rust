@@ -64,6 +64,7 @@ jobs:
       
       - name: Create MML stub (optional dependency)
         run: |
+          # Create root-level MML stub
           mkdir -p mmlabc-pkg
           cat > mmlabc-pkg/mmlabc_to_smf_wasm.js << 'EOF'
           // Stub module for optional MML support
@@ -73,8 +74,9 @@ jobs:
           }
           EOF
           
-          # Also create stub for demo-mml
-          cp -r mmlabc-pkg demo-mml/mmlabc-pkg
+          # Copy stub to demo-mml (ensure directory structure exists)
+          mkdir -p demo-mml/mmlabc-pkg
+          cp mmlabc-pkg/mmlabc_to_smf_wasm.js demo-mml/mmlabc-pkg/
       
       - name: Build main demo
         run: npm run build
