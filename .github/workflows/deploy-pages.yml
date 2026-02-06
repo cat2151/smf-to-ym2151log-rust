@@ -64,6 +64,7 @@ jobs:
       
       - name: Create MML stub (optional dependency)
         run: |
+          # Create root-level MML stub
           mkdir -p mmlabc-pkg
           cat > mmlabc-pkg/mmlabc_to_smf_wasm.js << 'EOF'
           // Stub module for optional MML support
@@ -72,6 +73,10 @@ jobs:
               throw new Error('MML support not configured. See MML_INTEGRATION.md for setup instructions.');
           }
           EOF
+          
+          # Copy stub to demo-mml (ensure directory structure exists)
+          mkdir -p demo-mml/mmlabc-pkg
+          cp mmlabc-pkg/mmlabc_to_smf_wasm.js demo-mml/mmlabc-pkg/
       
       - name: Build main demo
         run: npm run build
@@ -83,6 +88,17 @@ jobs:
           
           # Build demo-library as standalone project
           cd demo-library
+          npm install
+          npm run build
+          cd ..
+      
+      - name: Build demo-mml (standalone)
+        run: |
+          # Copy WASM package to demo-mml
+          cp -r pkg demo-mml/pkg
+          
+          # Build demo-mml as standalone project
+          cd demo-mml
           npm install
           npm run build
           cd ..
@@ -100,6 +116,10 @@ jobs:
           # Copy demo-library build output
           mkdir -p _site/demo-library
           cp -r demo-library/dist/* _site/demo-library/
+          
+          # Copy demo-mml build output
+          mkdir -p _site/demo-mml
+          cp -r demo-mml/dist/* _site/demo-mml/
           
           # Required files for Jekyll
           cp _config.yml _site/

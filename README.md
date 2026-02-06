@@ -3,7 +3,8 @@
 <p align="left">
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/🚀-Live%20Demo-brightgreen.svg" alt="Live Demo"></a>
+  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/🚀-MIDI%20Demo-brightgreen.svg" alt="MIDI Demo"></a>
+  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-mml/"><img src="https://img.shields.io/badge/🎵-MML%20Demo-orange.svg" alt="MML Demo"></a>
   <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
 </p>
 

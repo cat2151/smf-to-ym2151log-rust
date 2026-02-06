@@ -50,5 +50,12 @@ dist
 demo-library/node_modules
 demo-library/dist
 demo-library/pkg
+
+# demo-mml build artifacts (standalone project)
+demo-mml/node_modules
+demo-mml/dist
+demo-mml/pkg
+demo-mml/mmlabc-pkg
+
 _site/
 mmlabc-pkg/
