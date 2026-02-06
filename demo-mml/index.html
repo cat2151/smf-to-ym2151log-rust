@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MML Demo - SMF to YM2151</title>
+</head>
+<body>
+    <h1>MML to YM2151 Demo</h1>
+    <p>Convert MML (Music Macro Language) to YM2151 register logs using WebAssembly.</p>
+
+    <div class="info-box">
+        <h3>⚠️ Setup Required</h3>
+        <p>This demo requires the <code>mmlabc-to-smf-wasm</code> module from the <a href="https://github.com/cat2151/mmlabc-to-smf-rust" target="_blank">mmlabc-to-smf-rust</a> repository.</p>
+        <p><strong>Setup Instructions:</strong></p>
+        <ol>
+            <li>Clone mmlabc-to-smf-rust repository</li>
+            <li>Build WASM module: <code>cd mmlabc-to-smf-wasm && wasm-pack build --target web</code></li>
+            <li>Build tree-sitter grammar: <code>cd tree-sitter-mml && npx tree-sitter build-wasm</code></li>
+            <li>Copy the following files to this demo directory:
+                <ul>
+                    <li><code>mmlabc-to-smf-wasm/pkg/</code> → <code>./mmlabc-pkg/</code></li>
+                    <li><code>tree-sitter-mml/tree-sitter-mml.wasm</code> → <code>./</code></li>
+                    <li><code>node_modules/web-tree-sitter/*.{js,wasm}</code> → <code>./</code></li>
+                </ul>
+            </li>
+        </ol>
+        <p>See <a href="https://github.com/cat2151/mmlabc-to-smf-rust/blob/main/demo/README.md" target="_blank">demo/README.md</a> in mmlabc-to-smf-rust for detailed instructions.</p>
+        <p>See <a href="../MML_INTEGRATION.md" target="_blank">MML_INTEGRATION.md</a> for integration details.</p>
+    </div>
+    
+    <label for="mml-input">Enter MML code:</label>
+    <textarea id="mml-input" placeholder="Enter MML code here, e.g., cdefgab"></textarea>
+    
+    <button id="convert-mml-button">Convert to YM2151</button>
+    
+    <div class="example-buttons">
+        <p><strong>📝 MML Examples (click to try):</strong></p>
+        <button class="example-button">Simple melody: cdefgab</button>
+        <button class="example-button">With octave and length: o5 l4 cdefgab</button>
+        <button class="example-button">C major chord: c;e;g</button>
+        <button class="example-button">Twinkle Twinkle: o4 c c g g a a g2 f f e e d d c2</button>
+    </div>
+
+    <div id="output">
+        <p>Enter MML code and click "Convert to YM2151" to see the output...</p>
+    </div>
+
+    <footer class="github-link">
+        <a href="https://github.com/cat2151/smf-to-ym2151log-rust" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <span style="margin: 0 8px;">|</span>
+        <a href="../">MIDI Demo</a>
+        <span style="margin: 0 8px;">|</span>
+        <a href="../demo-library/">Library Demo</a>
+    </footer>
+
+    <script type="module" src="/mml-demo.ts"></script>
+</body>
+</html>
