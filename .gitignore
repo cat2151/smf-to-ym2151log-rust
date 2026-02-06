@@ -45,10 +45,10 @@ mmlabc-pkg
 node_modules
 dist
 *.log
-package-lock.json
 
 # demo-library build artifacts (standalone project)
 demo-library/node_modules
 demo-library/dist
-demo-library/package-lock.json
 demo-library/pkg
+_site/
+mmlabc-pkg/
