@@ -1,4 +1,4 @@
-Last updated: 2026-02-06
+Last updated: 2026-02-07
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -66,6 +66,9 @@ Last updated: 2026-02-06
 <p align="left">
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
+  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/🚀-MIDI%20Demo-brightgreen.svg" alt="MIDI Demo"></a>
+  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-mml/"><img src="https://img.shields.io/badge/🎵-MML%20Demo-orange.svg" alt="MML Demo"></a>
+  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
 </p>
 
 **Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装**
@@ -327,6 +330,7 @@ cargo audit
 📄 Cargo.lock
 📄 Cargo.toml
 📖 DEMO_README.md
+📖 DEMO_SEPARATION.md
 📄 LICENSE
 📖 MML_INTEGRATION.md
 📖 README.ja.md
@@ -338,6 +342,17 @@ cargo audit
   📖 README.md
   🌐 index.html
   📘 library-demo.ts
+  📊 package-lock.json
+  📊 package.json
+  🎨 style.css
+  📊 tsconfig.json
+  📘 vite.config.ts
+📁 demo-mml/
+  📄 .gitignore
+  📖 README.md
+  🌐 index.html
+  📘 mml-demo.ts
+  📊 package-lock.json
   📊 package.json
   🎨 style.css
   📊 tsconfig.json
@@ -368,6 +383,12 @@ cargo audit
   📖 55.md
   📖 57.md
   📖 58.md
+  📖 61.md
+  📖 63.md
+  📖 65.md
+  📖 66-resolution.md
+  📖 66.md
+📊 package-lock.json
 📊 package.json
 📁 src/
   📄 error.rs
@@ -405,10 +426,11 @@ cargo audit
   📊 000.json
   📖 README.md
 📊 tsconfig.json
+📜 verify-demos.js
 📘 vite.config.ts
 
 ## ファイル詳細分析
-**demo-library/index.html** (31行, 937バイト)
+**demo-library/index.html** (33行, 1019バイト)
   - 関数: なし
   - インポート: なし
 
@@ -424,20 +446,40 @@ cargo audit
   - 関数: なし
   - インポート: vite
 
+**demo-mml/index.html** (60行, 2847バイト)
+  - 関数: なし
+  - インポート: なし
+
+**demo-mml/mml-demo.ts** (134行, 4374バイト)
+  - 関数: initWasm, checkMMLWasm, showError, convertMML, loadMMLExample, setupEventListeners, catch, if
+  - インポート: ../pkg/smf_to_ym2151log.js
+
+**demo-mml/style.css** (205行, 3563バイト)
+  - 関数: なし
+  - インポート: なし
+
+**demo-mml/vite.config.ts** (14行, 203バイト)
+  - 関数: なし
+  - インポート: vite
+
 **googled947dc864c270e07.html** (1行, 53バイト)
   - 関数: なし
   - インポート: なし
 
-**index.html** (71行, 3212バイト)
+**index.html** (32行, 1009バイト)
   - 関数: なし
   - インポート: なし
 
-**src/main.ts** (247行, 8248バイト)
-  - 関数: initWasm, checkMMLWasm, displayResult, showError, setupFileInput, convertMML, loadMMLExample, switchTab, setupEventListeners, catch, if
+**src/main.ts** (130行, 4317バイト)
+  - 関数: initWasm, displayResult, showError, setupFileInput, setupEventListeners, catch, if
   - インポート: ../pkg/smf_to_ym2151log.js
 
-**src/style.css** (200行, 3325バイト)
+**src/style.css** (205行, 3563バイト)
   - 関数: なし
+  - インポート: なし
+
+**verify-demos.js** (77行, 2250バイト)
+  - 関数: verifyPage, main, if, catch, for
   - インポート: なし
 
 **vite.config.ts** (14行, 203バイト)
@@ -445,21 +487,24 @@ cargo audit
   - インポート: vite
 
 ## 関数呼び出し階層
-- catch (demo-library/library-demo.ts)
+- if (demo-library/library-demo.ts)
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
       - setupFileInput ()
-      - checkMMLWasm ()
+      - setupEventListeners ()
+    - checkMMLWasm ()
       - convertMML ()
       - loadMMLExample ()
-      - switchTab ()
-      - setupEventListeners ()
-- if (demo-library/library-demo.ts)
+  - catch (demo-library/library-demo.ts)
+    - verifyPage (verify-demos.js)
+      - main ()
+- for (verify-demos.js)
 
 
 ## プロジェクト構造（ファイル一覧）
 DEMO_README.md
+DEMO_SEPARATION.md
 MML_INTEGRATION.md
 README.ja.md
 README.md
@@ -467,10 +512,19 @@ WASM_USAGE.md
 demo-library/README.md
 demo-library/index.html
 demo-library/library-demo.ts
+demo-library/package-lock.json
 demo-library/package.json
 demo-library/style.css
 demo-library/tsconfig.json
 demo-library/vite.config.ts
+demo-mml/README.md
+demo-mml/index.html
+demo-mml/mml-demo.ts
+demo-mml/package-lock.json
+demo-mml/package.json
+demo-mml/style.css
+demo-mml/tsconfig.json
+demo-mml/vite.config.ts
 googled947dc864c270e07.html
 index.html
 issue-notes/21.md
@@ -479,17 +533,7 @@ issue-notes/23.md
 issue-notes/25.md
 issue-notes/28.md
 issue-notes/30.md
-issue-notes/32.md
-issue-notes/33.md
-issue-notes/34.md
-issue-notes/36.md
-issue-notes/38.md
-issue-notes/39.md
-issue-notes/41.md
-issue-notes/43.md
-issue-notes/45.md
-issue-notes/47.md
-package.json
+package-lock.json
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
 特に以下の点を重視してください：
@@ -501,4 +545,4 @@ package.json
 
 
 ---
-Generated at: 2026-02-06 07:10:37 JST
+Generated at: 2026-02-07 07:07:52 JST

@@ -1,4 +1,4 @@
-Last updated: 2026-02-06
+Last updated: 2026-02-07
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -204,6 +204,7 @@ Last updated: 2026-02-06
 - Cargo.lock
 - Cargo.toml
 - DEMO_README.md
+- DEMO_SEPARATION.md
 - LICENSE
 - MML_INTEGRATION.md
 - README.ja.md
@@ -214,10 +215,20 @@ Last updated: 2026-02-06
 - demo-library/README.md
 - demo-library/index.html
 - demo-library/library-demo.ts
+- demo-library/package-lock.json
 - demo-library/package.json
 - demo-library/style.css
 - demo-library/tsconfig.json
 - demo-library/vite.config.ts
+- demo-mml/.gitignore
+- demo-mml/README.md
+- demo-mml/index.html
+- demo-mml/mml-demo.ts
+- demo-mml/package-lock.json
+- demo-mml/package.json
+- demo-mml/style.css
+- demo-mml/tsconfig.json
+- demo-mml/vite.config.ts
 - generated-docs/project-overview-generated-prompt.md
 - googled947dc864c270e07.html
 - index.html
@@ -243,6 +254,12 @@ Last updated: 2026-02-06
 - issue-notes/55.md
 - issue-notes/57.md
 - issue-notes/58.md
+- issue-notes/61.md
+- issue-notes/63.md
+- issue-notes/65.md
+- issue-notes/66-resolution.md
+- issue-notes/66.md
+- package-lock.json
 - package.json
 - src/error.rs
 - src/lib.rs
@@ -274,9 +291,25 @@ Last updated: 2026-02-06
 - tones/000.json
 - tones/README.md
 - tsconfig.json
+- verify-demos.js
 - vite.config.ts
 
 ## 現在のオープンIssues
+## [Issue #65](../issue-notes/65.md): （人力）demo-libraryを動作確認する
+[issue-notes/65.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/65.md)
+
+...
+ラベル: 
+--- issue-notes/65.md の内容 ---
+
+```markdown
+# issue （人力）demo-libraryを動作確認する #65
+[issues #65](https://github.com/cat2151/smf-to-ym2151log-rust/issues/65)
+
+
+
+```
+
 ## [Issue #33](../issue-notes/33.md): 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。
 [issue-notes/33.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/33.md)
 
@@ -624,6 +657,17 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
+### issue-notes/65.md
+```md
+{% raw %}
+# issue （人力）demo-libraryを動作確認する #65
+[issues #65](https://github.com/cat2151/smf-to-ym2151log-rust/issues/65)
+
+
+
+{% endraw %}
+```
+
 ### tones/000.json
 ```json
 {% raw %}
@@ -767,43 +811,45 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-2107f4c Auto-translate README.ja.md to README.md [auto]
-6ccada3 Merge pull request #60 from cat2151/copilot/add-demo-library-for-deploy
-f81748e Restructure demo-library as standalone project for library users
-bac2b8c Update deployment workflow and documentation for demo-library
-f46fe67 Add demo-library with minimal library usage example
-e81d247 Initial plan
-bc38e3e Merge pull request #59 from cat2151/copilot/add-github-link-to-demo
-10511e8 Reorganize CSS: move GitHub link styles before dark mode media query
-b73e0ed Add GitHub link to demo bottom-left corner
-2a30827 Refine library usage descriptions in README
+a53b86c Auto-translate README.ja.md to README.md [auto]
+2fb98f2 Merge pull request #67 from cat2151/copilot/fix-demo-mml-error
+32358b0 Add comprehensive resolution summary for issue #66
+7779ebf Address code review comments - fix port documentation and directory creation
+7cf4e88 Add documentation and verification tools for demo separation
+93a7598 Fix demo-mml TypeScript configuration and build issues
+966e50d Separate MML demo from main MIDI demo
+d57e3d6 Initial plan
+bea3a8e Add issue note for #66 [auto]
+cb77f87 Add issue note for #65 [auto]
 
 ### 変更されたファイル:
+.github/copilot-instructions.md
 .github/workflows/deploy-pages.yml
 .gitignore
-DEMO_README.md
-MML_INTEGRATION.md
+DEMO_SEPARATION.md
 README.ja.md
 README.md
 demo-library/.gitignore
-demo-library/README.md
 demo-library/index.html
-demo-library/library-demo.ts
-demo-library/package.json
-demo-library/style.css
-demo-library/tsconfig.json
-demo-library/vite.config.ts
-generated-docs/development-status-generated-prompt.md
-generated-docs/development-status.md
-generated-docs/project-overview-generated-prompt.md
-generated-docs/project-overview.md
+demo-library/package-lock.json
+demo-mml/.gitignore
+demo-mml/README.md
+demo-mml/index.html
+demo-mml/mml-demo.ts
+demo-mml/package-lock.json
+demo-mml/package.json
+demo-mml/style.css
+demo-mml/tsconfig.json
+demo-mml/vite.config.ts
 index.html
-package.json
+issue-notes/63.md
+issue-notes/65.md
+issue-notes/66-resolution.md
+issue-notes/66.md
+package-lock.json
 src/main.ts
-src/style.css
-tsconfig.json
-vite.config.ts
+verify-demos.js
 
 
 ---
-Generated at: 2026-02-06 07:10:37 JST
+Generated at: 2026-02-07 07:07:53 JST
