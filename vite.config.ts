@@ -1,4 +1,6 @@
 import { defineConfig } from 'vite';
+import { copyFileSync, mkdirSync, existsSync } from 'fs';
+import { join } from 'path';
 
 export default defineConfig({
   base: './',
@@ -10,4 +12,5 @@ export default defineConfig({
   server: {
     port: 8000,
   },
+  publicDir: 'public',
 });
