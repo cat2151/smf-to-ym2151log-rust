@@ -9,11 +9,6 @@ let currentYm2151Json: any = null;
 // web-ym2151 WASM module (loaded dynamically)
 let webYm2151Module: any = null;
 
-// cat-oscilloscope library (loaded dynamically)
-let OscilloscopeClass: any = null;
-let BufferSourceClass: any = null;
-let oscilloscopeInstance: any = null;
-
 // YM2151 emulator constants
 const OPM_CLOCK = 3579545;
 const CLOCK_STEP = 64;
@@ -83,65 +78,6 @@ async function initWebYm2151(): Promise<void> {
     } catch (error) {
         console.error('Failed to initialize web-ym2151:', error);
         throw error;
-    }
-}
-
-// Initialize cat-oscilloscope library
-async function initCatOscilloscope(): Promise<void> {
-    try {
-        // Build URL relative to Vite base so this works on GitHub Pages and other non-root deployments
-        const baseUrl = import.meta.env.BASE_URL;
-        const moduleUrl = baseUrl.replace(/\/+$/, '') + '/libs/cat-oscilloscope.mjs';
-        const module = await import(/* @vite-ignore */ moduleUrl as any);
-        OscilloscopeClass = module.Oscilloscope;
-        BufferSourceClass = module.BufferSource;
-        console.log('cat-oscilloscope library loaded');
-    } catch (error) {
-        console.error('Failed to load cat-oscilloscope:', error);
-        throw error;
-    }
-}
-
-// Initialize oscilloscope with canvas element
-function setupOscilloscope(): void {
-    const canvas = document.getElementById('waveform-canvas') as HTMLCanvasElement;
-    if (!canvas || !OscilloscopeClass) return;
-    
-    try {
-        // Create hidden canvases for oscilloscope internal use
-        // Note: The oscilloscope library requires multiple canvas references for its internal operations
-        // (previous waveform, current waveform, similarity plot, and frame buffer)
-        // Using the same hidden canvas for all internal canvases to minimize DOM overhead
-        const hiddenCanvas = document.createElement('canvas');
-        hiddenCanvas.width = 250;
-        hiddenCanvas.height = 120;
-        
-        oscilloscopeInstance = new OscilloscopeClass(
-            canvas,
-            hiddenCanvas,
-            hiddenCanvas,
-            hiddenCanvas,
-            hiddenCanvas
-        );
-        
-        // Configure oscilloscope for orange waveform on black background
-        oscilloscopeInstance.setAutoGain(true);
-        oscilloscopeInstance.setNoiseGate(false);
-        oscilloscopeInstance.setFrequencyEstimationMethod('autocorrelation');
-        oscilloscopeInstance.setDebugOverlaysEnabled(false);
-        
-        // Set custom colors - orange waveform on black background
-        if (oscilloscopeInstance.setColors) {
-            oscilloscopeInstance.setColors({
-                background: '#000000',
-                waveform: '#ff8c00',
-                grid: '#333333'
-            });
-        }
-        
-        console.log('Oscilloscope initialized with orange/black theme');
-    } catch (error) {
-        console.error('Failed to initialize oscilloscope:', error);
     }
 }
 
@@ -224,28 +160,49 @@ function generateAudioFromYm2151Json(json: any): Float32Array | null {
     }
 }
 
-// Start oscilloscope visualization
-async function startWaveformVisualization(audioData: Float32Array): Promise<void> {
-    if (!oscilloscopeInstance || !BufferSourceClass) {
-        console.error('Oscilloscope not initialized');
-        return;
+// Render waveform to canvas (orange line on black background)
+function renderWaveform(audioData: Float32Array): void {
+    const canvas = document.getElementById('waveform-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, width, height);
+    
+    ctx.strokeStyle = '#ff8c00';
+    ctx.lineWidth = 2;
+    
+    const step = Math.max(1, Math.floor(audioData.length / width));
+    ctx.beginPath();
+    
+    for (let x = 0; x < width; x++) {
+        const start = x * step;
+        let sum = 0;
+        let count = 0;
+        
+        for (let i = 0; i < step && (start + i) < audioData.length; i++) {
+            sum += audioData[start + i];
+            count++;
+        }
+        
+        const sample = count > 0 ? sum / count : 0;
+        const normalized = (sample + 1) / 2; // map [-1,1] -> [0,1]
+        const y = (1 - normalized) * height;
+        
+        if (x === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
     }
     
-    try {
-        // Stop previous visualization
-        await oscilloscopeInstance.stop();
-        
-        // Create buffer source and start visualization
-        const bufferSource = new BufferSourceClass(audioData, OPM_SAMPLE_RATE, {
-            loop: true,
-            chunkSize: 4096
-        });
-        
-        await oscilloscopeInstance.startFromBuffer(bufferSource);
-        console.log('Waveform visualization started');
-    } catch (error) {
-        console.error('Failed to start waveform visualization:', error);
-    }
+    ctx.stroke();
 }
 
 // Play audio and update waveform
@@ -281,8 +238,8 @@ async function playAudioAndVisualize(): Promise<void> {
         source.connect(audioCtx.destination);
         source.start();
         
-        // Start waveform visualization
-        await startWaveformVisualization(audioData);
+        // Draw waveform visualization
+        renderWaveform(audioData);
         
         // Update button state
         if (playBtn) {
@@ -441,17 +398,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize main WASM module
     await initWasm();
     
-    // Initialize web-ym2151 and cat-oscilloscope
+    // Initialize web-ym2151
     try {
-        await Promise.all([
-            initWebYm2151(),
-            initCatOscilloscope()
-        ]);
-        
-        // Setup oscilloscope after both are loaded
-        setupOscilloscope();
-        
-        console.log('All modules initialized successfully');
+        await initWebYm2151();
+        console.log('web-ym2151 initialized successfully');
     } catch (error) {
         console.error('Failed to initialize audio/visualization modules:', error);
         console.log('Demo will work but audio playback and waveform visualization will not be available');

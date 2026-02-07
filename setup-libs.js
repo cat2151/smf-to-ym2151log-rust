@@ -1,14 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * Setup script to download web-ym2151 WASM and cat-oscilloscope library files
- * These files are needed for audio rendering and waveform visualization
+ * Setup script to download web-ym2151 WASM library files
+ * These files are needed for audio rendering
  */
 
-import { mkdir, writeFile, copyFile, rm } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
-import { execSync } from 'child_process';
-import { tmpdir } from 'os';
 import https from 'https';
 import path from 'path';
 
@@ -68,45 +66,6 @@ async function downloadFile(url, filePath) {
 }
 
 /**
- * Clone and copy cat-oscilloscope library files
- */
-async function setupCatOscilloscope() {
-  const tmpDir = path.join(tmpdir(), 'cat-oscilloscope-setup');
-  
-  try {
-    // Remove existing directory if it exists from a previous run
-    if (existsSync(tmpDir)) {
-      console.log('Removing existing temporary directory...');
-      await rm(tmpDir, { recursive: true, force: true });
-    }
-    
-    console.log('Cloning cat-oscilloscope repository...');
-    execSync(`git clone --depth 1 https://github.com/cat2151/cat-oscilloscope.git ${tmpDir}`, { stdio: 'inherit' });
-    
-    console.log('Copying cat-oscilloscope library files...');
-    
-    // Create directories
-    await mkdir('./public/libs/wasm', { recursive: true });
-    
-    // Copy files
-    await copyFile(`${tmpDir}/dist/cat-oscilloscope.mjs`, './public/libs/cat-oscilloscope.mjs');
-    console.log('✓ Copied cat-oscilloscope.mjs');
-    
-    await copyFile(`${tmpDir}/public/wasm/signal_processor_wasm.js`, './public/libs/wasm/signal_processor_wasm.js');
-    console.log('✓ Copied signal_processor_wasm.js');
-    
-    await copyFile(`${tmpDir}/public/wasm/signal_processor_wasm_bg.wasm`, './public/libs/wasm/signal_processor_wasm_bg.wasm');
-    console.log('✓ Copied signal_processor_wasm_bg.wasm');
-    
-    // Cleanup using async API
-    console.log('Cleaning up temporary files...');
-    await rm(tmpDir, { recursive: true, force: true });
-  } catch (error) {
-    throw new Error(`Failed to setup cat-oscilloscope: ${error.message}`);
-  }
-}
-
-/**
  * Main setup function
  */
 async function setup() {
@@ -122,10 +81,6 @@ async function setup() {
       console.log(`Downloading ${file.url}...`);
       await downloadFile(file.url, file.path);
     }
-
-    // Setup cat-oscilloscope
-    console.log('\nSetting up cat-oscilloscope...');
-    await setupCatOscilloscope();
 
     console.log('\n✓ All library files downloaded successfully!');
     console.log('\nYou can now run:');

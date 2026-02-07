@@ -1,29 +1,24 @@
 # Waveform Rendering Implementation
 
-This document describes the implementation of waveform rendering in the main demo using the web-ym2151 and cat-oscilloscope libraries.
+This document describes the implementation of waveform rendering in the main demo using the web-ym2151 library and an in-app canvas renderer.
 
 ## Overview
 
 The main demo now supports:
 1. Converting MIDI files to YM2151 register logs (existing functionality)
 2. Rendering the YM2151 audio in real-time using web-ym2151
-3. Visualizing the waveform with orange color on black background using cat-oscilloscope
+3. Visualizing the waveform on a canvas with orange color on black background
 
 ## Implementation Details
 
 ### Library Dependencies
 
-The implementation uses two external libraries:
+The implementation uses one external library:
 
 1. **web-ym2151** (https://github.com/cat2151/web-ym2151)
    - Purpose: YM2151 FM synthesizer emulation
    - Generates audio from YM2151 register events
    - Provides WASM-based audio synthesis at 55930Hz sample rate
-
-2. **cat-oscilloscope** (https://github.com/cat2151/cat-oscilloscope)
-   - Purpose: Waveform visualization
-   - Displays real-time audio waveform
-   - Supports custom colors and auto-gain
 
 ### Setup Process
 
@@ -35,8 +30,6 @@ npm run setup-libs
 
 This script:
 - Downloads web-ym2151 WASM files from GitHub Pages
-- Clones cat-oscilloscope repository
-- Copies necessary library files to `public/libs/`
 - Is cross-platform compatible (Windows/macOS/Linux)
 
 ### Integration Architecture
@@ -51,9 +44,6 @@ YM2151 JSON Events
 web-ym2151 WASM (Emscripten)
    ↓
 Audio Data (Float32Array)
-   ↓
-cat-oscilloscope
-   ↓
 Canvas Visualization (Orange on Black)
 ```
 
@@ -80,7 +70,6 @@ Canvas Visualization (Orange on Black)
 The waveform section features:
 - Black background (#000000)
 - Orange waveform (#ff8c00)
-- Dark grid lines for reference (#333333)
 - Orange play button matching the waveform color
 - Rounded corners and modern styling
 
@@ -98,7 +87,6 @@ The implementation handles both formats:
 
 #### Canvas Setup
 - Main canvas: 800x200px for waveform display
-- Hidden canvases: Used internally by oscilloscope library
 - Auto-scaling: Canvas width set to 100% for responsiveness
 
 #### Performance
@@ -174,5 +162,4 @@ Following the cat2151 repository policy:
 ## Credits
 
 - web-ym2151: YM2151 emulation and audio synthesis
-- cat-oscilloscope: Waveform visualization
 - Both libraries by [@cat2151](https://github.com/cat2151)
