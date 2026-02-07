@@ -59,11 +59,6 @@ async function initWebYm2151(): Promise<void> {
         
         // Wait for module to initialize with timeout and error handling
         await new Promise<void>((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                clearInterval(checkInterval);
-                reject(new Error('web-ym2151 module initialization timeout'));
-            }, 10000); // 10 second timeout
-            
             const checkInterval = setInterval(() => {
                 if ((window as any).Module && (window as any).Module._generate_sound) {
                     clearTimeout(timeout);
@@ -72,6 +67,11 @@ async function initWebYm2151(): Promise<void> {
                     resolve();
                 }
             }, 20); // 20ms polling for responsive module detection
+            
+            const timeout = setTimeout(() => {
+                clearInterval(checkInterval);
+                reject(new Error('web-ym2151 module initialization timeout'));
+            }, 10000); // 10 second timeout
             
             // Handle script load errors
             script.onerror = () => {
@@ -90,7 +90,7 @@ async function initWebYm2151(): Promise<void> {
 async function initCatOscilloscope(): Promise<void> {
     try {
         // Build URL relative to Vite base so this works on GitHub Pages and other non-root deployments
-        const baseUrl = import.meta.env.BASE_URL ?? '/';
+        const baseUrl = import.meta.env.BASE_URL;
         const moduleUrl = baseUrl.replace(/\/+$/, '') + '/libs/cat-oscilloscope.mjs';
         const module = await import(/* @vite-ignore */ moduleUrl as any);
         OscilloscopeClass = module.Oscilloscope;

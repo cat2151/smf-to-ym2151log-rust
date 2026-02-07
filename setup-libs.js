@@ -24,14 +24,19 @@ const FILES_TO_DOWNLOAD = [
  * Download a file from URL to local path
  */
 async function downloadFile(url, filePath) {
-  const dir = path.dirname(filePath);
-  
-  // Create directory if it doesn't exist
-  if (!existsSync(dir)) {
-    await mkdir(dir, { recursive: true });
-  }
+  return new Promise(async (resolve, reject) => {
+    const dir = path.dirname(filePath);
+    
+    // Create directory if it doesn't exist
+    if (!existsSync(dir)) {
+      try {
+        await mkdir(dir, { recursive: true });
+      } catch (error) {
+        reject(error);
+        return;
+      }
+    }
 
-  return new Promise((resolve, reject) => {
     https.get(url, (response) => {
       if (response.statusCode === 302 || response.statusCode === 301) {
         // Follow redirect
