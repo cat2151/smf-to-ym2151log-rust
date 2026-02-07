@@ -18,6 +18,14 @@
         <p>Select a MIDI file to see the YM2151 register log JSON output...</p>
     </div>
 
+    <div id="waveform-section" style="display: none;">
+        <h2>Waveform Visualization</h2>
+        <button id="play-audio-btn">▶ Play Audio</button>
+        <div id="waveform-container">
+            <canvas id="waveform-canvas" width="800" height="200"></canvas>
+        </div>
+    </div>
+
     <footer class="github-link">
         <a href="https://github.com/cat2151/smf-to-ym2151log-rust" target="_blank" rel="noopener noreferrer">GitHub</a>
         <span style="margin: 0 8px;">|</span>

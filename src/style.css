@@ -152,6 +152,49 @@ button:disabled {
     background: rgba(255, 255, 255, 0.92);
 }
 
+/* Waveform section styles */
+#waveform-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #000000;
+    border-radius: 8px;
+    border: 1px solid #333333;
+}
+
+#waveform-section h2 {
+    color: #ff8c00;
+    margin-top: 0;
+}
+
+#waveform-container {
+    margin-top: 15px;
+    background-color: #000000;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#waveform-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background-color: #000000;
+}
+
+#play-audio-btn {
+    background-color: #ff8c00;
+    color: #000000;
+    font-weight: bold;
+}
+
+#play-audio-btn:hover {
+    background-color: #ffa500;
+}
+
+#play-audio-btn:disabled {
+    background-color: #555;
+    color: #888;
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     body {
