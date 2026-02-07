@@ -12,6 +12,7 @@ let smfWasmReady = false;
 let parser: Parser | null = null;
 let mmlParseTreeToSmf: ((json: string, source: string) => Uint8Array) | null = null;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+const DEBOUNCE_DELAY_MS = 500;
 
 // Initialize all WASM modules
 async function initAll(): Promise<void> {
@@ -211,7 +212,7 @@ function setupEventListeners(): void {
             }
             debounceTimer = setTimeout(() => {
                 convertMML();
-            }, 500);
+            }, DEBOUNCE_DELAY_MS);
         });
     }
 
@@ -230,14 +231,6 @@ function setupEventListeners(): void {
         }
     });
 }
-
-// Cleanup debounce timer
-window.addEventListener('beforeunload', () => {
-    if (debounceTimer) {
-        clearTimeout(debounceTimer);
-        debounceTimer = null;
-    }
-});
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
