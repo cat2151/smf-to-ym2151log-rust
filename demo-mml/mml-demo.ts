@@ -1,7 +1,6 @@
 import './style.css';
 
 // Import the WASM module for SMF to YM2151 conversion
-// @ts-expect-error - Generated WASM module without type declarations
 import initSmfWasm, { smf_to_ym2151_json } from '../pkg/smf_to_ym2151log.js';
 
 // web-tree-sitter for MML parsing
