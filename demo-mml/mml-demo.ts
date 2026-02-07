@@ -124,13 +124,15 @@ async function convertMML(): Promise<void> {
     const userInput = mmlTextarea.value.trim();
 
     if (!userInput) {
-        const outputDiv = document.getElementById('output');
-        if (outputDiv) {
-            outputDiv.innerHTML = '';
-            const readyMsg = document.createElement('p');
-            readyMsg.className = 'success';
-            readyMsg.textContent = '✓ Ready! Enter MML code and it will be converted automatically.';
-            outputDiv.appendChild(readyMsg);
+        if (mmlModuleReady && smfWasmReady && parser) {
+            const outputDiv = document.getElementById('output');
+            if (outputDiv) {
+                outputDiv.innerHTML = '';
+                const readyMsg = document.createElement('p');
+                readyMsg.className = 'success';
+                readyMsg.textContent = '✓ Ready! Enter MML code and it will be converted automatically.';
+                outputDiv.appendChild(readyMsg);
+            }
         }
         return;
     }
@@ -143,9 +145,10 @@ async function convertMML(): Promise<void> {
     const outputDiv = document.getElementById('output');
     if (!outputDiv) return;
 
+    let tree: ReturnType<Parser['parse']> | null = null;
     try {
         // Step 1: Parse MML using web-tree-sitter
-        const tree = parser.parse(userInput);
+        tree = parser.parse(userInput);
         if (!tree) {
             showError('Failed to parse MML input');
             return;
@@ -182,6 +185,11 @@ async function convertMML(): Promise<void> {
     } catch (error) {
         showError(`Error processing MML: ${(error as Error).message}`);
         console.error('Error:', error);
+    } finally {
+        // Free WASM memory held by the tree-sitter Tree object
+        if (tree) {
+            tree.delete();
+        }
     }
 }
 
