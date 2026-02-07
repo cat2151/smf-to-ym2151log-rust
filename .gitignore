@@ -56,6 +56,7 @@ demo-mml/node_modules
 demo-mml/dist
 demo-mml/pkg
 demo-mml/mmlabc-pkg
+demo-mml/public
 
 _site/
 mmlabc-pkg/

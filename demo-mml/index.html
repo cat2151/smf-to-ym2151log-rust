@@ -9,24 +9,26 @@
     <h1>MML to YM2151 Demo</h1>
     <p>Convert MML (Music Macro Language) to YM2151 register logs using WebAssembly.</p>
 
-    <div class="info-box">
-        <h3>⚠️ Setup Required</h3>
-        <p>This demo requires the <code>mmlabc-to-smf-wasm</code> module from the <a href="https://github.com/cat2151/mmlabc-to-smf-rust" target="_blank">mmlabc-to-smf-rust</a> repository.</p>
-        <p><strong>Setup Instructions:</strong></p>
-        <ol>
-            <li>Clone mmlabc-to-smf-rust repository</li>
-            <li>Build WASM module: <code>cd mmlabc-to-smf-wasm && wasm-pack build --target web</code></li>
-            <li>Build tree-sitter grammar: <code>cd tree-sitter-mml && npx tree-sitter build-wasm</code></li>
-            <li>Copy the following files to this demo directory:
-                <ul>
-                    <li><code>mmlabc-to-smf-wasm/pkg/</code> → <code>./mmlabc-pkg/</code></li>
-                    <li><code>tree-sitter-mml/tree-sitter-mml.wasm</code> → <code>./</code></li>
-                    <li><code>node_modules/web-tree-sitter/*.{js,wasm}</code> → <code>./</code></li>
-                </ul>
-            </li>
-        </ol>
-        <p>See <a href="https://github.com/cat2151/mmlabc-to-smf-rust/blob/main/demo/README.md" target="_blank">demo/README.md</a> in mmlabc-to-smf-rust for detailed instructions.</p>
-        <p>See <a href="../MML_INTEGRATION.md" target="_blank">MML_INTEGRATION.md</a> for integration details.</p>
+    <div class="info-box" id="setup-info">
+        <h3>ℹ️ Local Development Setup</h3>
+        <p>This section is for local development only. The deployed demo includes all required dependencies.</p>
+        <details>
+            <summary>Setup Instructions (for local development)</summary>
+            <p>This demo requires the <code>mmlabc-to-smf-wasm</code> module from the <a href="https://github.com/cat2151/mmlabc-to-smf-rust" target="_blank">mmlabc-to-smf-rust</a> repository.</p>
+            <ol>
+                <li>Clone mmlabc-to-smf-rust repository</li>
+                <li>Build WASM module: <code>cd mmlabc-to-smf-wasm && wasm-pack build --target web</code></li>
+                <li>Build tree-sitter grammar: <code>cd tree-sitter-mml && npx tree-sitter build-wasm</code></li>
+                <li>Copy the following files to this demo directory:
+                    <ul>
+                        <li><code>mmlabc-to-smf-wasm/pkg/</code> → <code>./mmlabc-pkg/</code></li>
+                        <li><code>tree-sitter-mml/tree-sitter-mml.wasm</code> → <code>./public/</code></li>
+                        <li><code>node_modules/web-tree-sitter/web-tree-sitter.wasm</code> → <code>./public/</code></li>
+                    </ul>
+                </li>
+            </ol>
+            <p>See <a href="https://github.com/cat2151/mmlabc-to-smf-rust/blob/main/demo/README.md" target="_blank">demo/README.md</a> in mmlabc-to-smf-rust for detailed instructions.</p>
+        </details>
     </div>
     
     <label for="mml-input">Enter MML code:</label>
