@@ -63,17 +63,12 @@ jobs:
         run: npm install
       
       - name: Build MML WASM dependencies
-        env:
-          # Pin to a known commit for reproducible builds
-          MMLABC_COMMIT: 74a1a2a72c94e9b26b766ae9200a1157bccdbfe9
         run: |
-          # Clone mmlabc-to-smf-rust repository at pinned commit
-          git clone https://github.com/cat2151/mmlabc-to-smf-rust.git /tmp/mmlabc-to-smf-rust
-          cd /tmp/mmlabc-to-smf-rust
-          git checkout $MMLABC_COMMIT
+          # Clone mmlabc-to-smf-rust repository (always use latest for bug fixes)
+          git clone --depth 1 https://github.com/cat2151/mmlabc-to-smf-rust.git /tmp/mmlabc-to-smf-rust
           
           # Build mmlabc-to-smf-wasm
-          cd mmlabc-to-smf-wasm
+          cd /tmp/mmlabc-to-smf-rust/mmlabc-to-smf-wasm
           wasm-pack build --target web --release
           
           # Copy mmlabc WASM package to demo-mml

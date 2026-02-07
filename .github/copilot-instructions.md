@@ -76,6 +76,15 @@ cargo audit
 
 ## Dependencies
 
+### Version Pinning Policy for cat2151 Repositories
+
+**Do NOT pin versions** when cloning, `npm install`-ing from GitHub, or `cargo install`-ing from any `cat2151` repository. This includes:
+- `git clone` (do not checkout a specific commit/tag — always use the default branch HEAD)
+- `npm install github:cat2151/...` (do not pin to a specific commit or version)
+- `cargo install --git https://github.com/cat2151/...` (do not pin to a specific rev/tag)
+
+**Reason**: cat2151's repositories receive daily important bug fixes that must always be incorporated. Pinning to an older version would prevent critical fixes from being picked up.
+
 ### Production Dependencies
 - `midly` (0.5) - SMF parsing library
 - `serde` + `serde_json` - JSON serialization/deserialization
