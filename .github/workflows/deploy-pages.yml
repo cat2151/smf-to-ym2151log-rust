@@ -62,21 +62,24 @@ jobs:
       - name: Install Node.js dependencies (main demo)
         run: npm install
       
-      - name: Create MML stub (optional dependency)
+      - name: Build MML WASM dependencies
         run: |
-          # Create root-level MML stub
-          mkdir -p mmlabc-pkg
-          cat > mmlabc-pkg/mmlabc_to_smf_wasm.js << 'EOF'
-          // Stub module for optional MML support
-          // The actual mmlabc-to-smf-wasm module should be copied here if MML support is needed
-          export default async function() {
-              throw new Error('MML support not configured. See MML_INTEGRATION.md for setup instructions.');
-          }
-          EOF
+          # Clone mmlabc-to-smf-rust repository (always use latest for bug fixes)
+          git clone --depth 1 https://github.com/cat2151/mmlabc-to-smf-rust.git /tmp/mmlabc-to-smf-rust
           
-          # Copy stub to demo-mml (ensure directory structure exists)
+          # Build mmlabc-to-smf-wasm
+          cd /tmp/mmlabc-to-smf-rust/mmlabc-to-smf-wasm
+          wasm-pack build --target web --release
+          
+          # Copy mmlabc WASM package to demo-mml
+          cd $GITHUB_WORKSPACE
           mkdir -p demo-mml/mmlabc-pkg
-          cp mmlabc-pkg/mmlabc_to_smf_wasm.js demo-mml/mmlabc-pkg/
+          cp /tmp/mmlabc-to-smf-rust/mmlabc-to-smf-wasm/pkg/mmlabc_to_smf_wasm.js demo-mml/mmlabc-pkg/
+          cp /tmp/mmlabc-to-smf-rust/mmlabc-to-smf-wasm/pkg/mmlabc_to_smf_wasm_bg.wasm demo-mml/mmlabc-pkg/
+          
+          # Download tree-sitter-mml.wasm from mmlabc-to-smf-rust GitHub Pages
+          mkdir -p demo-mml/public
+          curl -sLf https://cat2151.github.io/mmlabc-to-smf-rust/tree-sitter-mml/tree-sitter-mml.wasm -o demo-mml/public/tree-sitter-mml.wasm
       
       - name: Build main demo
         run: npm run build
@@ -100,6 +103,11 @@ jobs:
           # Build demo-mml as standalone project
           cd demo-mml
           npm install
+          
+          # Copy web-tree-sitter WASM to public/ for runtime loading
+          mkdir -p public
+          cp node_modules/web-tree-sitter/web-tree-sitter.wasm public/
+          
           npm run build
           cd ..
       

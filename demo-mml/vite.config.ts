@@ -7,6 +7,9 @@ export default defineConfig({
     assetsDir: 'assets',
     emptyOutDir: true,
   },
+  optimizeDeps: {
+    exclude: ['web-tree-sitter'],
+  },
   server: {
     port: 8000,
   },
