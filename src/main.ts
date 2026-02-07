@@ -8,6 +8,19 @@ let currentYm2151Json: any = null;
 
 // web-ym2151 WASM module (loaded dynamically)
 let webYm2151Module: any = null;
+let audioCtx: AudioContext | null = null;
+let audioBuffer: AudioBuffer | null = null;
+let audioSource: AudioBufferSourceNode | null = null;
+let preparedAudioData: Float32Array | null = null;
+let isPlaying = false;
+let audioModuleReady = false;
+let playOverlayVisible = false;
+
+enum PrepareAudioResult {
+    SUCCESS = 'success',
+    MODULE_NOT_READY = 'module_not_ready',
+    GENERATION_FAILED = 'generation_failed',
+}
 
 // YM2151 emulator constants
 const OPM_CLOCK = 3579545;
@@ -59,6 +72,8 @@ async function initWebYm2151(): Promise<void> {
                     clearTimeout(timeout);
                     clearInterval(checkInterval);
                     webYm2151Module = (window as any).Module;
+                    audioModuleReady = true;
+                    updatePlayButtonState('▶ Play Audio', false);
                     resolve();
                 }
             }, 20); // 20ms polling for responsive module detection
@@ -205,62 +220,147 @@ function renderWaveform(audioData: Float32Array): void {
     ctx.stroke();
 }
 
-// Play audio and update waveform
+function updatePlayButtonState(text: string, disabled: boolean = false): HTMLButtonElement | null {
+    const playBtn = document.getElementById('play-audio-btn') as HTMLButtonElement | null;
+    if (playBtn) {
+        playBtn.textContent = text;
+        playBtn.disabled = disabled;
+    }
+    return playBtn;
+}
+
+function showPlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    if (!overlay || playOverlayVisible) return;
+    overlay.style.display = 'flex';
+    playOverlayVisible = true;
+}
+
+function hidePlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'none';
+    playOverlayVisible = false;
+}
+
+function stopPlayback(): void {
+    if (audioSource) {
+        try {
+            audioSource.stop();
+        } catch (e) {
+            console.warn('Stopping audio source failed:', e);
+        }
+        audioSource.disconnect();
+        audioSource = null;
+    }
+    isPlaying = false;
+    updatePlayButtonState('▶ Play Audio', !audioModuleReady);
+}
+
+function resetAudioState(): void {
+    stopPlayback();
+    preparedAudioData = null;
+    audioBuffer = null;
+    hidePlayOverlay();
+}
+
+function prepareAudioBuffer(): PrepareAudioResult {
+    if (!currentYm2151Json) {
+        return PrepareAudioResult.GENERATION_FAILED;
+    }
+    if (!audioModuleReady || !webYm2151Module || !webYm2151Module._generate_sound) {
+        console.warn('Audio module is not ready yet; postponing audio buffer preparation.');
+        updatePlayButtonState('Loading audio...', true);
+        return PrepareAudioResult.MODULE_NOT_READY;
+    }
+    const audioData = generateAudioFromYm2151Json(currentYm2151Json);
+    if (!audioData) {
+        console.error('Failed to generate audio from YM2151 JSON; audio buffer will not be prepared.');
+        resetAudioState();
+        updatePlayButtonState('▶ Play Audio', false);
+        return PrepareAudioResult.GENERATION_FAILED;
+    }
+    preparedAudioData = audioData;
+    renderWaveform(audioData);
+    
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    
+    audioBuffer = audioCtx.createBuffer(2, audioData.length, OPM_SAMPLE_RATE);
+    audioBuffer.getChannelData(0).set(audioData);
+    audioBuffer.getChannelData(1).set(audioData);
+    updatePlayButtonState('▶ Play Audio', false);
+    return PrepareAudioResult.SUCCESS;
+}
+
+async function startPlayback(): Promise<void> {
+    if (!audioBuffer) {
+        throw new Error('Audio buffer is not prepared');
+    }
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    await audioCtx.resume();
+    
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.loop = true; // Enable looping to match oscilloscope visualization
+    source.connect(audioCtx.destination);
+    source.start();
+    
+    audioSource = source;
+    isPlaying = true;
+    updatePlayButtonState('⏹ Stop Audio', false);
+    
+    console.log('Audio playback started');
+}
+
+// Play/stop audio and update waveform
 async function playAudioAndVisualize(): Promise<void> {
     if (!currentYm2151Json) {
         console.error('No YM2151 JSON data');
         return;
     }
+    hidePlayOverlay();
     
-    // Show loading state
-    const playBtn = document.getElementById('play-audio-btn') as HTMLButtonElement;
-    if (playBtn) {
-        playBtn.disabled = true;
-        playBtn.textContent = '⏳ Generating...';
+    if (isPlaying) {
+        stopPlayback();
+        return;
     }
     
+    updatePlayButtonState('⏳ Generating...', true);
+    
     try {
-        // Generate audio
-        const audioData = generateAudioFromYm2151Json(currentYm2151Json);
-        if (!audioData) {
-            throw new Error('Failed to generate audio');
+        let prepResult = PrepareAudioResult.SUCCESS;
+        if (!audioBuffer || !preparedAudioData) {
+            prepResult = prepareAudioBuffer();
+        }
+
+        if (prepResult === PrepareAudioResult.MODULE_NOT_READY) {
+            updatePlayButtonState('Loading audio...', true);
+            return;
+        }
+        if (prepResult === PrepareAudioResult.GENERATION_FAILED) {
+            updatePlayButtonState('▶ Play Audio', !audioModuleReady);
+            return;
         }
         
-        // Create stereo audio buffer for playback (duplicate mono to stereo)
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const audioBuffer = audioCtx.createBuffer(2, audioData.length, OPM_SAMPLE_RATE);
-        audioBuffer.getChannelData(0).set(audioData);
-        audioBuffer.getChannelData(1).set(audioData);
-        
-        const source = audioCtx.createBufferSource();
-        source.buffer = audioBuffer;
-        source.loop = true; // Enable looping to match oscilloscope visualization
-        source.connect(audioCtx.destination);
-        source.start();
-        
-        // Draw waveform visualization
-        renderWaveform(audioData);
-        
-        // Update button state
-        if (playBtn) {
-            playBtn.disabled = false;
-            playBtn.textContent = '▶ Play Audio';
-        }
-        
-        console.log('Audio playback started');
+        await startPlayback();
     } catch (error) {
         console.error('Error in playAudioAndVisualize:', error);
-        alert(`Error: ${(error as Error).message}`);
-        
-        if (playBtn) {
-            playBtn.disabled = false;
-            playBtn.textContent = '▶ Play Audio';
-        }
+        const message =
+            (error as Error)?.message !== undefined
+                ? (error as Error).message
+                : String(error);
+        appendError(message);
+        resetAudioState();
+        updatePlayButtonState('▶ Play Audio', !audioModuleReady);
     }
 }
 
 // Display conversion result
-function displayResult(result: string): void {
+async function displayResult(result: string): Promise<void> {
     const output = document.getElementById('output');
     if (!output) return;
 
@@ -278,9 +378,12 @@ function displayResult(result: string): void {
             // Hide waveform section on error
             const waveformSection = document.getElementById('waveform-section');
             if (waveformSection) waveformSection.style.display = 'none';
+            currentYm2151Json = null;
+            resetAudioState();
         } else {
             // Store the JSON for audio generation
             currentYm2151Json = json;
+            resetAudioState();
             
             const successParagraph = document.createElement('p');
             successParagraph.className = 'success';
@@ -303,6 +406,10 @@ function displayResult(result: string): void {
             if (waveformSection) {
                 waveformSection.style.display = 'block';
             }
+            const prepResult = prepareAudioBuffer();
+            if (prepResult === PrepareAudioResult.SUCCESS) {
+                showPlayOverlay();
+            }
         }
     } catch (e) {
         // If not JSON, display as plain text
@@ -313,7 +420,19 @@ function displayResult(result: string): void {
         // Hide waveform section
         const waveformSection = document.getElementById('waveform-section');
         if (waveformSection) waveformSection.style.display = 'none';
+        currentYm2151Json = null;
+        resetAudioState();
     }
+}
+
+function appendError(message: string): void {
+    const output = document.getElementById('output');
+    if (!output) return;
+
+    const errorParagraph = document.createElement('p');
+    errorParagraph.className = 'error';
+    errorParagraph.textContent = `Error: ${message}`;
+    output.appendChild(errorParagraph);
 }
 
 // Show error message
@@ -330,6 +449,8 @@ function showError(message: string): void {
     // Hide waveform section on error
     const waveformSection = document.getElementById('waveform-section');
     if (waveformSection) waveformSection.style.display = 'none';
+    currentYm2151Json = null;
+    resetAudioState();
 }
 
 // Handle file input
@@ -364,7 +485,7 @@ function setupFileInput(): void {
             const result = smf_to_ym2151_json(uint8Array);
 
             // Display result
-            displayResult(result);
+            await displayResult(result);
         } catch (error) {
             showError(`Error processing file: ${(error as Error).message}`);
             console.error('Error:', error);
@@ -378,7 +499,25 @@ function setupPlayButton(): void {
     if (!playBtn) return;
     
     playBtn.addEventListener('click', () => {
-        playAudioAndVisualize();
+        void playAudioAndVisualize();
+    });
+}
+
+function setupPlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    const floatingBtn = document.getElementById('floating-play-btn');
+    if (!overlay || !floatingBtn) return;
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            hidePlayOverlay();
+        }
+    });
+
+    floatingBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        hidePlayOverlay();
+        void playAudioAndVisualize();
     });
 }
 
@@ -389,11 +528,15 @@ function setupEventListeners(): void {
     
     // Play button
     setupPlayButton();
+
+    // Floating play overlay
+    setupPlayOverlay();
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
+    updatePlayButtonState('Loading audio...', true);
     
     // Initialize main WASM module
     await initWasm();
@@ -405,5 +548,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error('Failed to initialize audio/visualization modules:', error);
         console.log('Demo will work but audio playback and waveform visualization will not be available');
+        updatePlayButtonState('Audio unavailable', true);
     }
 });

@@ -9,6 +9,17 @@
     <h1>MIDI to YM2151 WASM Demo</h1>
     <p>Convert MIDI files to YM2151 register logs using WebAssembly.</p>
 
+    <div id="waveform-section" style="display: none;">
+        <h2>Waveform Visualization</h2>
+        <button id="play-audio-btn">▶ Play Audio</button>
+        <div id="waveform-container">
+            <canvas id="waveform-canvas" width="800" height="200"></canvas>
+        </div>
+        <div id="play-overlay" class="play-overlay" style="display: none;">
+            <button id="floating-play-btn" aria-label="Play audio">▶ Play</button>
+        </div>
+    </div>
+
     <div>
         <label for="file-input">Select a MIDI file (.mid):</label><br>
         <input type="file" id="file-input" accept=".mid,.midi">
@@ -16,14 +27,6 @@
 
     <div id="output">
         <p>Select a MIDI file to see the YM2151 register log JSON output...</p>
-    </div>
-
-    <div id="waveform-section" style="display: none;">
-        <h2>Waveform Visualization</h2>
-        <button id="play-audio-btn">▶ Play Audio</button>
-        <div id="waveform-container">
-            <canvas id="waveform-canvas" width="800" height="200"></canvas>
-        </div>
     </div>
 
     <footer class="github-link">
