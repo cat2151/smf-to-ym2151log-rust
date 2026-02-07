@@ -1,6 +1,4 @@
 import { defineConfig } from 'vite';
-import { copyFileSync, mkdirSync, existsSync } from 'fs';
-import { join } from 'path';
 
 export default defineConfig({
   base: './',
@@ -8,6 +6,11 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     emptyOutDir: true,
+    rollupOptions: {
+      external: [
+        /^\/libs\//
+      ]
+    }
   },
   server: {
     port: 8000,

@@ -76,7 +76,7 @@ async function initWebYm2151(): Promise<void> {
 // Initialize cat-oscilloscope library
 async function initCatOscilloscope(): Promise<void> {
     try {
-        const module = await import('/libs/cat-oscilloscope.mjs');
+        const module = await import('/libs/cat-oscilloscope.mjs' as any);
         OscilloscopeClass = module.Oscilloscope;
         BufferSourceClass = module.BufferSource;
         console.log('cat-oscilloscope library loaded');

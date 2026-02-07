@@ -63,6 +63,11 @@ jobs:
       - name: Install Node.js dependencies (main demo)
         run: npm install
       
+      - name: Setup web-ym2151 and cat-oscilloscope libraries
+        run: |
+          # Run the setup script to download libraries
+          node setup-libs.js
+      
       - name: Build MML WASM dependencies
         run: |
           # Clone mmlabc-to-smf-rust repository (always use latest for bug fixes)
