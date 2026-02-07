@@ -156,10 +156,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue create \
-            --repo "${{ github.repository }}" \
-            --title "Deploy to GitHub Pages failed (run #${{ github.run_number }})" \
-            --body "## Deploy to GitHub Pages failed
+          LABEL="deploy-pages-failure"
+          # Ensure the label exists
+          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on deploy-pages workflow failure" --color "d73a4a" 2>/dev/null || true
+          # Check for an existing open issue with this label
+          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" \
+              --repo "${{ github.repository }}" \
+              --body "## deploy-pages workflow failed again
 
           **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           **Branch:** ${{ github.ref_name }}
@@ -167,3 +172,17 @@ jobs:
           **Triggered by:** ${{ github.event_name }}
 
           Please investigate the workflow logs for details."
+          else
+            gh issue create \
+              --repo "${{ github.repository }}" \
+              --label "$LABEL" \
+              --title "deploy-pages workflow failed" \
+              --body "## deploy-pages workflow failed
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          fi
