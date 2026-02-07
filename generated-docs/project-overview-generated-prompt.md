@@ -1,4 +1,4 @@
-Last updated: 2026-02-07
+Last updated: 2026-02-08
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -336,6 +336,7 @@ cargo audit
 📖 README.ja.md
 📖 README.md
 📖 WASM_USAGE.md
+📖 WAVEFORM_RENDERING.md
 📄 _config.yml
 📁 demo-library/
   📄 .gitignore
@@ -388,8 +389,16 @@ cargo audit
   📖 65.md
   📖 66-resolution.md
   📖 66.md
+  📖 68.md
+  📖 70.md
+  📖 72.md
+  📖 74.md
+  📖 75.md
+  📖 77.md
+  📖 79.md
 📊 package-lock.json
 📊 package.json
+📜 setup-libs.js
 📁 src/
   📄 error.rs
   📄 lib.rs
@@ -401,6 +410,8 @@ cargo audit
     📄 parser.rs
     📄 utils.rs
   🎨 style.css
+  📘 ui-utils.ts
+  📘 vite-env.d.ts
   📄 wasm.rs
   📁 ym2151/
     📄 channel_allocation.rs
@@ -413,6 +424,7 @@ cargo audit
     📄 note_table.rs
     📄 tempo_map.rs
     📄 tone.rs
+  📘 ym2151-audio-utils.ts
 📁 tests/
   📄 create_test_midi.py
   📄 integration_tests.rs
@@ -446,19 +458,19 @@ cargo audit
   - 関数: なし
   - インポート: vite
 
-**demo-mml/index.html** (60行, 2847バイト)
+**demo-mml/index.html** (81行, 4002バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-mml/mml-demo.ts** (134行, 4374バイト)
-  - 関数: initWasm, checkMMLWasm, showError, convertMML, loadMMLExample, setupEventListeners, catch, if
-  - インポート: ../pkg/smf_to_ym2151log.js
+**demo-mml/mml-demo.ts** (512行, 16826バイト)
+  - 関数: updatePlayButtonState, showPlayOverlay, hidePlayOverlay, stopPlayback, resetAudioState, prepareAudioBuffer, startPlayback, playAudioAndVisualize, hideWaveformSection, showWaveformSection, initWebYm2151, initAll, treeToJSON, showError, convertMML, loadMMLExample, setupPlayButton, setupPlayOverlay, setupEventListeners, if, catch, for
+  - インポート: ../pkg/smf_to_ym2151log.js, web-tree-sitter, ../src/ui-utils
 
-**demo-mml/style.css** (205行, 3563バイト)
+**demo-mml/style.css** (289行, 5123バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-mml/vite.config.ts** (14行, 203バイト)
+**demo-mml/vite.config.ts** (17行, 260バイト)
   - 関数: なし
   - インポート: vite
 
@@ -466,23 +478,39 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**index.html** (32行, 1009バイト)
+**index.html** (51行, 1883バイト)
   - 関数: なし
   - インポート: なし
 
-**src/main.ts** (130行, 4317バイト)
-  - 関数: initWasm, displayResult, showError, setupFileInput, setupEventListeners, catch, if
-  - インポート: ../pkg/smf_to_ym2151log.js
+**setup-libs.js** (96行, 2662バイト)
+  - 関数: downloadFile, setup, catch, if, for
+  - インポート: fs/promises, fs, https
 
-**src/style.css** (205行, 3563バイト)
+**src/main.ts** (400行, 13101バイト)
+  - 関数: initWasm, initWebYm2151, updatePlayButtonState, showPlayOverlay, hidePlayOverlay, stopPlayback, resetAudioState, prepareAudioBuffer, startPlayback, playAudioAndVisualize, displayResult, appendError, showError, setupFileInput, setupPlayButton, setupPlayOverlay, setupEventListeners, catch, if
+  - インポート: ../pkg/smf_to_ym2151log.js, ./ui-utils
+
+**src/style.css** (289行, 5123バイト)
   - 関数: なし
+  - インポート: なし
+
+**src/ui-utils.ts** (69行, 2017バイト)
+  - 関数: setRenderingOverlay, if
+  - インポート: なし
+
+**src/vite-env.d.ts** (10行, 151バイト)
+  - 関数: なし
+  - インポート: なし
+
+**src/ym2151-audio-utils.ts** (191行, 6127バイト)
+  - 関数: loadWebYm2151Script, parseEventField, generateAudioFromYm2151Json, renderWaveform, if, for, catch
   - インポート: なし
 
 **verify-demos.js** (77行, 2250バイト)
   - 関数: verifyPage, main, if, catch, for
   - インポート: なし
 
-**vite.config.ts** (14行, 203バイト)
+**vite.config.ts** (20行, 352バイト)
   - 関数: なし
   - インポート: vite
 
@@ -492,14 +520,36 @@ cargo audit
     - displayResult ()
       - showError ()
       - setupFileInput ()
+      - updatePlayButtonState (demo-mml/mml-demo.ts)
+      - showPlayOverlay ()
+      - hidePlayOverlay ()
+      - stopPlayback ()
+      - resetAudioState ()
+      - prepareAudioBuffer ()
+      - startPlayback ()
+      - playAudioAndVisualize ()
+      - initWebYm2151 ()
+      - setupPlayButton ()
+      - setupPlayOverlay ()
       - setupEventListeners ()
-    - checkMMLWasm ()
+      - appendError ()
+      - setRenderingOverlay ()
+      - loadWebYm2151Script ()
+      - generateAudioFromYm2151Json ()
+      - renderWaveform ()
+  - hideWaveformSection ()
+    - showWaveformSection ()
+      - initAll ()
+      - treeToJSON ()
       - convertMML ()
       - loadMMLExample ()
   - catch (demo-library/library-demo.ts)
+    - downloadFile (setup-libs.js)
+      - setup ()
+    - parseEventField ()
     - verifyPage (verify-demos.js)
       - main ()
-- for (verify-demos.js)
+- for (demo-mml/mml-demo.ts)
 
 
 ## プロジェクト構造（ファイル一覧）
@@ -509,6 +559,7 @@ MML_INTEGRATION.md
 README.ja.md
 README.md
 WASM_USAGE.md
+WAVEFORM_RENDERING.md
 demo-library/README.md
 demo-library/index.html
 demo-library/library-demo.ts
@@ -532,7 +583,6 @@ issue-notes/22.md
 issue-notes/23.md
 issue-notes/25.md
 issue-notes/28.md
-issue-notes/30.md
 package-lock.json
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
@@ -545,4 +595,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-02-07 07:07:52 JST
+Generated at: 2026-02-08 07:08:56 JST

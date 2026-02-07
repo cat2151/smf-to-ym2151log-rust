@@ -1,4 +1,4 @@
-Last updated: 2026-02-07
+Last updated: 2026-02-08
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -210,6 +210,7 @@ Last updated: 2026-02-07
 - README.ja.md
 - README.md
 - WASM_USAGE.md
+- WAVEFORM_RENDERING.md
 - _config.yml
 - demo-library/.gitignore
 - demo-library/README.md
@@ -259,8 +260,16 @@ Last updated: 2026-02-07
 - issue-notes/65.md
 - issue-notes/66-resolution.md
 - issue-notes/66.md
+- issue-notes/68.md
+- issue-notes/70.md
+- issue-notes/72.md
+- issue-notes/74.md
+- issue-notes/75.md
+- issue-notes/77.md
+- issue-notes/79.md
 - package-lock.json
 - package.json
+- setup-libs.js
 - src/error.rs
 - src/lib.rs
 - src/main.rs
@@ -270,6 +279,8 @@ Last updated: 2026-02-07
 - src/midi/parser.rs
 - src/midi/utils.rs
 - src/style.css
+- src/ui-utils.ts
+- src/vite-env.d.ts
 - src/wasm.rs
 - src/ym2151/channel_allocation.rs
 - src/ym2151/converter.rs
@@ -281,6 +292,7 @@ Last updated: 2026-02-07
 - src/ym2151/note_table.rs
 - src/ym2151/tempo_map.rs
 - src/ym2151/tone.rs
+- src/ym2151-audio-utils.ts
 - tests/create_test_midi.py
 - tests/integration_tests.rs
 - tests/test_data/multi_channel.mid
@@ -295,6 +307,21 @@ Last updated: 2026-02-07
 - vite.config.ts
 
 ## 現在のオープンIssues
+## [Issue #74](../issue-notes/74.md): （人力）demoに、波形レンダリングと波形描画が追加されたはずなので、testする
+[issue-notes/74.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/74.md)
+
+...
+ラベル: 
+--- issue-notes/74.md の内容 ---
+
+```markdown
+# issue （人力）demoに、波形レンダリングと波形描画が追加されたはずなので、testする #74
+[issues #74](https://github.com/cat2151/smf-to-ym2151log-rust/issues/74)
+
+
+
+```
+
 ## [Issue #65](../issue-notes/65.md): （人力）demo-libraryを動作確認する
 [issue-notes/65.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/65.md)
 
@@ -646,6 +673,152 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
+### .github/actions-tmp/issue-notes/4.md
+```md
+{% raw %}
+# issue GitHub Actions「project概要生成」を共通ワークフロー化する #4
+[issues #4](https://github.com/cat2151/github-actions/issues/4)
+
+# prompt
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+このymlファイルを、以下の2つのファイルに分割してください。
+1. 共通ワークフロー       cat2151/github-actions/.github/workflows/daily-project-summary.yml
+2. 呼び出し元ワークフロー cat2151/github-actions/.github/workflows/call-daily-project-summary.yml
+まずplanしてください
+```
+
+# 結果、あちこちハルシネーションのあるymlが生成された
+- agentの挙動があからさまにハルシネーション
+    - インデントが修正できない、「失敗した」という
+    - 構文誤りを認識できない
+- 人力で修正した
+
+# このagentによるセルフレビューが信頼できないため、別のLLMによるセカンドオピニオンを試す
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+以下の2つのファイルをレビューしてください。最優先で、エラーが発生するかどうかだけレビューてください。エラー以外の改善事項のチェックをするかわりに、エラー発生有無チェックに最大限注力してください。
+
+--- 呼び出し元
+
+name: Call Daily Project Summary
+
+on:
+  schedule:
+    # 日本時間 07:00 (UTC 22:00 前日)
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+jobs:
+  call-daily-project-summary:
+    uses: cat2151/github-actions/.github/workflows/daily-project-summary.yml
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+--- 共通ワークフロー
+name: Daily Project Summary
+on:
+  workflow_call:
+
+jobs:
+  generate-summary:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # 履歴を取得するため
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          # 一時的なディレクトリで依存関係をインストール
+          mkdir -p /tmp/summary-deps
+          cd /tmp/summary-deps
+          npm init -y
+          npm install @google/generative-ai @octokit/rest
+          # generated-docsディレクトリを作成
+          mkdir -p $GITHUB_WORKSPACE/generated-docs
+
+      - name: Generate project summary
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          NODE_PATH: /tmp/summary-deps/node_modules
+        run: |
+          node .github/scripts/generate-project-summary.cjs
+
+      - name: Check for generated summaries
+        id: check_summaries
+        run: |
+          if [ -f "generated-docs/project-overview.md" ] && [ -f "generated-docs/development-status.md" ]; then
+            echo "summaries_generated=true" >> $GITHUB_OUTPUT
+          else
+            echo "summaries_generated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push summaries
+        if: steps.check_summaries.outputs.summaries_generated == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          # package.jsonの変更のみリセット（generated-docsは保持）
+          git restore package.json 2>/dev/null || true
+          # サマリーファイルのみを追加
+          git add generated-docs/project-overview.md
+          git add generated-docs/development-status.md
+          git commit -m "Update project summaries (overview & development status)"
+          git push
+
+      - name: Summary generation result
+        run: |
+          if [ "${{ steps.check_summaries.outputs.summaries_generated }}" == "true" ]; then
+            echo "✅ Project summaries updated successfully"
+            echo "📊 Generated: project-overview.md & development-status.md"
+          else
+            echo "ℹ️ No summaries generated (likely no user commits in the last 24 hours)"
+          fi
+```
+
+# 上記promptで、2つのLLMにレビューさせ、合格した
+
+# 細部を、先行する2つのymlを参照に手直しした
+
+# ローカルtestをしてからcommitできるとよい。方法を検討する
+- ローカルtestのメリット
+    - 素早く修正のサイクルをまわせる
+    - ムダにgit historyを汚さない
+        - これまでの事例：「実装したつもり」「エラー。修正したつもり」「エラー。修正したつもり」...（以降エラー多数）
+- 方法
+    - ※検討、WSL + act を環境構築済みである。test可能であると判断する
+    - 呼び出し元のURLをコメントアウトし、相対パス記述にする
+    - ※備考、テスト成功すると結果がcommit pushされる。それでよしとする
+- 結果
+    - OK
+    - secretsを簡略化できるか試した、できなかった、現状のsecrets記述が今わかっている範囲でベストと判断する
+    - OK
+
+# test green
+
+# commit用に、yml 呼び出し元 uses をlocal用から本番用に書き換える
+
+# closeとする
+
+{% endraw %}
+```
+
 ### issue-notes/33.md
 ```md
 {% raw %}
@@ -662,6 +835,17 @@ env: で値を渡し、process.env で参照するのが正しい
 {% raw %}
 # issue （人力）demo-libraryを動作確認する #65
 [issues #65](https://github.com/cat2151/smf-to-ym2151log-rust/issues/65)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/74.md
+```md
+{% raw %}
+# issue （人力）demoに、波形レンダリングと波形描画が追加されたはずなので、testする #74
+[issues #74](https://github.com/cat2151/smf-to-ym2151log-rust/issues/74)
 
 
 
@@ -811,45 +995,31 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-a53b86c Auto-translate README.ja.md to README.md [auto]
-2fb98f2 Merge pull request #67 from cat2151/copilot/fix-demo-mml-error
-32358b0 Add comprehensive resolution summary for issue #66
-7779ebf Address code review comments - fix port documentation and directory creation
-7cf4e88 Add documentation and verification tools for demo separation
-93a7598 Fix demo-mml TypeScript configuration and build issues
-966e50d Separate MML demo from main MIDI demo
-d57e3d6 Initial plan
-bea3a8e Add issue note for #66 [auto]
-cb77f87 Add issue note for #65 [auto]
+b207a49 Merge pull request #80 from cat2151/codex/fix-rendering-status-message
+d2ae22e fix: share rendering overlay helper and block input during conversions
+1cbc30a Show rendering-in-progress overlay in MIDI and MML demos
+be176a7 Initial plan
+3ca66a1 Add issue note for #79 [auto]
+d53793a Merge pull request #78 from cat2151/codex/implement-json-waveform-rendering
+d4cc344 Refactor YM2151 audio helpers
+32895ba progress: mml waveform playback
+4de87e0 Initial plan
+45f7822 Add issue note for #77 [auto]
 
 ### 変更されたファイル:
-.github/copilot-instructions.md
-.github/workflows/deploy-pages.yml
-.gitignore
-DEMO_SEPARATION.md
-README.ja.md
-README.md
-demo-library/.gitignore
-demo-library/index.html
-demo-library/package-lock.json
-demo-mml/.gitignore
-demo-mml/README.md
 demo-mml/index.html
 demo-mml/mml-demo.ts
-demo-mml/package-lock.json
-demo-mml/package.json
 demo-mml/style.css
-demo-mml/tsconfig.json
-demo-mml/vite.config.ts
 index.html
-issue-notes/63.md
-issue-notes/65.md
-issue-notes/66-resolution.md
-issue-notes/66.md
-package-lock.json
+issue-notes/74.md
+issue-notes/75.md
+issue-notes/77.md
+issue-notes/79.md
 src/main.ts
-verify-demos.js
+src/style.css
+src/ui-utils.ts
+src/ym2151-audio-utils.ts
 
 
 ---
-Generated at: 2026-02-07 07:07:53 JST
+Generated at: 2026-02-08 07:08:56 JST
