@@ -57,7 +57,7 @@ async function initWebYm2151(): Promise<void> {
         
         document.head.appendChild(script);
         
-        // Wait for module to initialize
+        // Wait for module to initialize (with reduced polling interval for faster detection)
         await new Promise<void>((resolve) => {
             const checkInterval = setInterval(() => {
                 if ((window as any).Module && (window as any).Module._generate_sound) {
@@ -65,7 +65,7 @@ async function initWebYm2151(): Promise<void> {
                     clearInterval(checkInterval);
                     resolve();
                 }
-            }, 100);
+            }, 20); // 20ms polling for responsive module detection
         });
     } catch (error) {
         console.error('Failed to initialize web-ym2151:', error);
@@ -93,6 +93,9 @@ function setupOscilloscope(): void {
     
     try {
         // Create hidden canvases for oscilloscope internal use
+        // Note: The oscilloscope library requires multiple canvas references for its internal operations
+        // (previous waveform, current waveform, similarity plot, and frame buffer)
+        // Using the same hidden canvas for all internal canvases to minimize DOM overhead
         const hiddenCanvas = document.createElement('canvas');
         hiddenCanvas.width = 250;
         hiddenCanvas.height = 120;
@@ -124,6 +127,18 @@ function setupOscilloscope(): void {
     } catch (error) {
         console.error('Failed to initialize oscilloscope:', error);
     }
+}
+
+// Helper function to parse event field values
+function parseEventField(value: any, isHex: boolean = false): number {
+    if (typeof value === 'number') {
+        return value;
+    }
+    if (typeof value === 'string') {
+        const parsed = isHex ? parseInt(value, 16) : parseFloat(value);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+    return 0;
 }
 
 // Generate audio from YM2151 JSON
@@ -160,21 +175,10 @@ function generateAudioFromYm2151Json(json: any): Float32Array | null {
                 const event = events[i];
                 const baseAddr = dataPtr + (i * eventSize);
                 
-                // Parse time (may be number or string)
-                let time = typeof event.time === 'string' ? parseFloat(event.time) : event.time;
-                if (isNaN(time)) time = 0;
-                
-                // Parse address (may be hex string like "0x08" or number)
-                let addr = typeof event.addr === 'string' 
-                    ? parseInt(event.addr, 16) 
-                    : event.addr;
-                if (isNaN(addr)) addr = 0;
-                
-                // Parse data (may be hex string like "0x00" or number)
-                let data = typeof event.data === 'string' 
-                    ? parseInt(event.data, 16) 
-                    : event.data;
-                if (isNaN(data)) data = 0;
+                // Parse event fields using helper function
+                const time = parseEventField(event.time, false);
+                const addr = parseEventField(event.addr, true);
+                const data = parseEventField(event.data, true);
                 
                 view.setFloat32(baseAddr, time, true);
                 webYm2151Module.HEAPU8[baseAddr + 4] = addr & 0xFF;

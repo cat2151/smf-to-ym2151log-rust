@@ -5,9 +5,10 @@
  * These files are needed for audio rendering and waveform visualization
  */
 
-import { mkdir, writeFile, copyFile } from 'fs/promises';
+import { mkdir, writeFile, copyFile, rmSync } from 'fs/promises';
 import { existsSync } from 'fs';
 import { execSync } from 'child_process';
+import { tmpdir } from 'os';
 import https from 'https';
 import path from 'path';
 
@@ -65,7 +66,7 @@ async function downloadFile(url, filePath) {
  * Clone and copy cat-oscilloscope library files
  */
 async function setupCatOscilloscope() {
-  const tmpDir = '/tmp/cat-oscilloscope-setup';
+  const tmpDir = path.join(tmpdir(), 'cat-oscilloscope-setup');
   
   try {
     console.log('Cloning cat-oscilloscope repository...');
@@ -86,9 +87,9 @@ async function setupCatOscilloscope() {
     await copyFile(`${tmpDir}/public/wasm/signal_processor_wasm_bg.wasm`, './public/libs/wasm/signal_processor_wasm_bg.wasm');
     console.log('✓ Copied signal_processor_wasm_bg.wasm');
     
-    // Cleanup
+    // Cleanup using cross-platform Node.js API
     console.log('Cleaning up temporary files...');
-    execSync(`rm -rf ${tmpDir}`, { stdio: 'inherit' });
+    await rmSync(tmpDir, { recursive: true, force: true });
   } catch (error) {
     throw new Error(`Failed to setup cat-oscilloscope: ${error.message}`);
   }
