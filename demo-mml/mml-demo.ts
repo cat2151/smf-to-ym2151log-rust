@@ -5,16 +5,213 @@ import initSmfWasm, { smf_to_ym2151_json } from '../pkg/smf_to_ym2151log.js';
 
 // web-tree-sitter for MML parsing
 import { Parser, Language, Node } from 'web-tree-sitter';
+import {
+    generateAudioFromYm2151Json,
+    loadWebYm2151Script,
+    OPM_SAMPLE_RATE,
+    PrepareAudioResult,
+    renderWaveform,
+    type WebYm2151Module,
+} from '../src/ym2151-audio-utils';
 
+let currentYm2151Json: any = null;
 let mmlModuleReady = false;
 let smfWasmReady = false;
+let webYm2151Module: WebYm2151Module | null = null;
 let parser: Parser | null = null;
 let mmlParseTreeToSmf: ((json: string, source: string) => Uint8Array) | null = null;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 const DEBOUNCE_DELAY_MS = 500;
 
+let audioCtx: AudioContext | null = null;
+let audioBuffer: AudioBuffer | null = null;
+let audioSource: AudioBufferSourceNode | null = null;
+let preparedAudioData: Float32Array | null = null;
+let isPlaying = false;
+let audioModuleReady = false;
+let playOverlayVisible = false;
+
+function updatePlayButtonState(text: string, disabled: boolean = false): HTMLButtonElement | null {
+    const playBtn = document.getElementById('play-audio-btn') as HTMLButtonElement | null;
+    if (playBtn) {
+        playBtn.textContent = text;
+        playBtn.disabled = disabled;
+    }
+    return playBtn;
+}
+
+function showPlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    if (!overlay || playOverlayVisible) return;
+    overlay.style.display = 'flex';
+    playOverlayVisible = true;
+}
+
+function hidePlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'none';
+    playOverlayVisible = false;
+}
+
+function stopPlayback(): void {
+    if (audioSource) {
+        try {
+            audioSource.stop();
+        } catch (e) {
+            console.warn('Stopping audio source failed:', e);
+        }
+        audioSource.disconnect();
+        audioSource = null;
+    }
+    isPlaying = false;
+    updatePlayButtonState('▶ Play Audio', !audioModuleReady);
+}
+
+function resetAudioState(): void {
+    stopPlayback();
+    preparedAudioData = null;
+    audioBuffer = null;
+    hidePlayOverlay();
+}
+
+function prepareAudioBuffer(): PrepareAudioResult {
+    if (!currentYm2151Json) {
+        return PrepareAudioResult.GENERATION_FAILED;
+    }
+    if (!audioModuleReady || !webYm2151Module || !webYm2151Module._generate_sound) {
+        console.warn('Audio module is not ready yet; postponing audio buffer preparation.');
+        updatePlayButtonState('Loading audio...', true);
+        return PrepareAudioResult.MODULE_NOT_READY;
+    }
+    const audioData = generateAudioFromYm2151Json(currentYm2151Json, webYm2151Module);
+    if (!audioData) {
+        console.error('Failed to generate audio from YM2151 JSON; audio buffer will not be prepared.');
+        resetAudioState();
+        updatePlayButtonState('▶ Play Audio', false);
+        return PrepareAudioResult.GENERATION_FAILED;
+    }
+    preparedAudioData = audioData;
+    renderWaveform(audioData);
+
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+
+    audioBuffer = audioCtx.createBuffer(2, audioData.length, OPM_SAMPLE_RATE);
+    audioBuffer.getChannelData(0).set(audioData);
+    audioBuffer.getChannelData(1).set(audioData);
+    updatePlayButtonState('▶ Play Audio', false);
+    return PrepareAudioResult.SUCCESS;
+}
+
+async function startPlayback(): Promise<void> {
+    if (!audioBuffer) {
+        throw new Error('Audio buffer is not prepared');
+    }
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    await audioCtx.resume();
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.loop = true;
+    source.connect(audioCtx.destination);
+    source.start();
+
+    audioSource = source;
+    isPlaying = true;
+    updatePlayButtonState('⏹ Stop Audio', false);
+
+    console.log('Audio playback started');
+}
+
+async function playAudioAndVisualize(): Promise<void> {
+    if (!currentYm2151Json) {
+        console.error('No YM2151 JSON data');
+        return;
+    }
+    hidePlayOverlay();
+
+    if (isPlaying) {
+        stopPlayback();
+        return;
+    }
+
+    updatePlayButtonState('⏳ Generating...', true);
+
+    try {
+        let prepResult = PrepareAudioResult.SUCCESS;
+        if (!audioBuffer || !preparedAudioData) {
+            prepResult = prepareAudioBuffer();
+        }
+
+        if (prepResult === PrepareAudioResult.MODULE_NOT_READY) {
+            updatePlayButtonState('Loading audio...', true);
+            return;
+        }
+        if (prepResult === PrepareAudioResult.GENERATION_FAILED) {
+            updatePlayButtonState('▶ Play Audio', !audioModuleReady);
+            return;
+        }
+
+        await startPlayback();
+    } catch (error) {
+        console.error('Error in playAudioAndVisualize:', error);
+        const message =
+            (error as Error)?.message !== undefined
+                ? (error as Error).message
+                : String(error);
+        showError(message);
+        resetAudioState();
+        updatePlayButtonState('▶ Play Audio', !audioModuleReady);
+    }
+}
+
+function hideWaveformSection(): void {
+    const waveformSection = document.getElementById('waveform-section');
+    if (waveformSection) waveformSection.style.display = 'none';
+    currentYm2151Json = null;
+    resetAudioState();
+}
+
+function showWaveformSection(): void {
+    const waveformSection = document.getElementById('waveform-section');
+    if (waveformSection) {
+        waveformSection.style.display = 'block';
+    }
+}
+
+async function initWebYm2151(): Promise<void> {
+    const candidates = ['../libs/sine_test.js', './libs/sine_test.js'];
+    let lastError: Error | null = null;
+
+    for (const src of candidates) {
+        try {
+            webYm2151Module = await loadWebYm2151Script(src);
+            audioModuleReady = true;
+            updatePlayButtonState('▶ Play Audio', false);
+            if (currentYm2151Json) {
+                const prepResult = prepareAudioBuffer();
+                if (prepResult === PrepareAudioResult.SUCCESS) {
+                    showPlayOverlay();
+                }
+            }
+            return;
+        } catch (error) {
+            console.warn(`web-ym2151 load failed for ${src}:`, error);
+            lastError = error as Error;
+        }
+    }
+
+    throw lastError ?? new Error('Failed to initialize web-ym2151');
+}
+
 // Initialize all WASM modules
 async function initAll(): Promise<void> {
+    updatePlayButtonState('Loading audio...', true);
+
     const outputDiv = document.getElementById('output');
     if (outputDiv) {
         outputDiv.innerHTML = '';
@@ -64,6 +261,15 @@ async function initAll(): Promise<void> {
         return;
     }
 
+    try {
+        await initWebYm2151();
+        console.log('web-ym2151 initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize audio/visualization modules:', error);
+        console.log('Demo will work but audio playback and waveform visualization will not be available');
+        updatePlayButtonState('Audio unavailable', true);
+    }
+
     // All modules ready - hide setup instructions and show ready state
     const infoBox = document.getElementById('setup-info');
     if (infoBox) {
@@ -105,6 +311,8 @@ function treeToJSON(node: Node, source: string): Record<string, unknown> {
 
 // Show error message
 function showError(message: string): void {
+    hideWaveformSection();
+
     const outputDiv = document.getElementById('output');
     if (!outputDiv) return;
 
@@ -121,6 +329,7 @@ async function convertMML(): Promise<void> {
     if (!mmlTextarea) return;
 
     const userInput = mmlTextarea.value.trim();
+    hideWaveformSection();
 
     if (!userInput) {
         if (mmlModuleReady && smfWasmReady && parser) {
@@ -132,6 +341,7 @@ async function convertMML(): Promise<void> {
                 readyMsg.textContent = '✓ Ready! Enter MML code and it will be converted automatically.';
                 outputDiv.appendChild(readyMsg);
             }
+            updatePlayButtonState('▶ Play Audio', !audioModuleReady);
         }
         return;
     }
@@ -172,6 +382,10 @@ async function convertMML(): Promise<void> {
             errorP.textContent = `Error: ${json.error}`;
             outputDiv.appendChild(errorP);
         } else {
+            currentYm2151Json = json;
+            resetAudioState();
+            showWaveformSection();
+
             const successP = document.createElement('p');
             successP.className = 'success';
             successP.textContent = `✓ Converted! Event count: ${json.event_count}`;
@@ -180,6 +394,13 @@ async function convertMML(): Promise<void> {
             const pre = document.createElement('pre');
             pre.textContent = JSON.stringify(json, null, 2);
             outputDiv.appendChild(pre);
+
+            const prepResult = prepareAudioBuffer();
+            if (prepResult === PrepareAudioResult.SUCCESS) {
+                showPlayOverlay();
+            } else if (prepResult === PrepareAudioResult.MODULE_NOT_READY) {
+                updatePlayButtonState('Loading audio...', true);
+            }
         }
     } catch (error) {
         showError(`Error processing MML: ${(error as Error).message}`);
@@ -200,6 +421,34 @@ function loadMMLExample(exampleText: string): void {
         // Trigger conversion
         mmlTextarea.dispatchEvent(new Event('input'));
     }
+}
+
+// Setup play button
+function setupPlayButton(): void {
+    const playBtn = document.getElementById('play-audio-btn');
+    if (!playBtn) return;
+
+    playBtn.addEventListener('click', () => {
+        void playAudioAndVisualize();
+    });
+}
+
+function setupPlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    const floatingBtn = document.getElementById('floating-play-btn');
+    if (!overlay || !floatingBtn) return;
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            hidePlayOverlay();
+        }
+    });
+
+    floatingBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        hidePlayOverlay();
+        void playAudioAndVisualize();
+    });
 }
 
 // Setup event listeners
@@ -237,10 +486,13 @@ function setupEventListeners(): void {
             btn.addEventListener('click', () => loadMMLExample(text));
         }
     });
+
+    setupPlayButton();
+    setupPlayOverlay();
 }
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
-    initAll();
+    void initAll();
 });

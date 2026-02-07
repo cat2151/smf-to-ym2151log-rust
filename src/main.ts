@@ -2,12 +2,20 @@ import './style.css';
 
 // Import the WASM module for SMF to YM2151 conversion
 import init, { smf_to_ym2151_json } from '../pkg/smf_to_ym2151log.js';
+import {
+    generateAudioFromYm2151Json,
+    loadWebYm2151Script,
+    OPM_SAMPLE_RATE,
+    PrepareAudioResult,
+    renderWaveform,
+    type WebYm2151Module,
+} from './ym2151-audio-utils';
 
 let wasmInitialized = false;
 let currentYm2151Json: any = null;
 
 // web-ym2151 WASM module (loaded dynamically)
-let webYm2151Module: any = null;
+let webYm2151Module: WebYm2151Module | null = null;
 let audioCtx: AudioContext | null = null;
 let audioBuffer: AudioBuffer | null = null;
 let audioSource: AudioBufferSourceNode | null = null;
@@ -15,17 +23,6 @@ let preparedAudioData: Float32Array | null = null;
 let isPlaying = false;
 let audioModuleReady = false;
 let playOverlayVisible = false;
-
-enum PrepareAudioResult {
-    SUCCESS = 'success',
-    MODULE_NOT_READY = 'module_not_ready',
-    GENERATION_FAILED = 'generation_failed',
-}
-
-// YM2151 emulator constants
-const OPM_CLOCK = 3579545;
-const CLOCK_STEP = 64;
-const OPM_SAMPLE_RATE = OPM_CLOCK / CLOCK_STEP; // ≈ 55930.4Hz
 
 // Initialize WASM
 async function initWasm(): Promise<void> {
@@ -49,175 +46,13 @@ async function initWasm(): Promise<void> {
 // Initialize web-ym2151 WASM module
 async function initWebYm2151(): Promise<void> {
     try {
-        // Load the Emscripten-generated WASM module
-        const script = document.createElement('script');
-        script.src = import.meta.env.BASE_URL + 'libs/sine_test.js';
-        
-        // Set up Module object before loading the script
-        (window as any).Module = {
-            onRuntimeInitialized: () => {
-                webYm2151Module = (window as any).Module;
-                console.log('web-ym2151 WASM module initialized');
-            },
-            print: (text: string) => console.log('[web-ym2151]:', text),
-            printErr: (text: string) => console.error('[web-ym2151]:', text),
-        };
-        
-        document.head.appendChild(script);
-        
-        // Wait for module to initialize with timeout and error handling
-        await new Promise<void>((resolve, reject) => {
-            const checkInterval = setInterval(() => {
-                if ((window as any).Module && (window as any).Module._generate_sound) {
-                    clearTimeout(timeout);
-                    clearInterval(checkInterval);
-                    webYm2151Module = (window as any).Module;
-                    audioModuleReady = true;
-                    updatePlayButtonState('▶ Play Audio', false);
-                    resolve();
-                }
-            }, 20); // 20ms polling for responsive module detection
-            
-            const timeout = setTimeout(() => {
-                clearInterval(checkInterval);
-                reject(new Error('web-ym2151 module initialization timeout'));
-            }, 10000); // 10 second timeout
-            
-            // Handle script load errors
-            script.onerror = () => {
-                clearTimeout(timeout);
-                clearInterval(checkInterval);
-                reject(new Error('Failed to load web-ym2151 script'));
-            };
-        });
+        webYm2151Module = await loadWebYm2151Script(import.meta.env.BASE_URL + 'libs/sine_test.js');
+        audioModuleReady = true;
+        updatePlayButtonState('▶ Play Audio', false);
     } catch (error) {
         console.error('Failed to initialize web-ym2151:', error);
         throw error;
     }
-}
-
-// Helper function to parse event field values
-function parseEventField(value: any, isHex: boolean = false): number {
-    if (typeof value === 'number') {
-        return value;
-    }
-    if (typeof value === 'string') {
-        const parsed = isHex ? parseInt(value, 16) : parseFloat(value);
-        return isNaN(parsed) ? 0 : parsed;
-    }
-    return 0;
-}
-
-// Generate audio from YM2151 JSON
-function generateAudioFromYm2151Json(json: any): Float32Array | null {
-    if (!webYm2151Module || !webYm2151Module._generate_sound) {
-        console.error('web-ym2151 module not loaded');
-        return null;
-    }
-    
-    try {
-        const events = json.events;
-        if (!events || events.length === 0) {
-            console.error('No events in JSON');
-            return null;
-        }
-        
-        // Calculate duration
-        const maxTime = Math.max(...events.map((e: any) => {
-            const time = parseFloat(e.time);
-            return isNaN(time) ? 0 : time;
-        }));
-        const durationSeconds = maxTime + 0.5;
-        const numFrames = Math.floor(durationSeconds * OPM_SAMPLE_RATE);
-        
-        // Allocate memory for events
-        const eventSize = 8; // float(4) + uint8(1) + uint8(1) + padding(2)
-        const totalSize = events.length * eventSize;
-        const dataPtr = webYm2151Module._malloc(totalSize);
-        const view = new DataView(webYm2151Module.HEAPU8.buffer);
-        
-        try {
-            // Write events to WASM memory
-            for (let i = 0; i < events.length; i++) {
-                const event = events[i];
-                const baseAddr = dataPtr + (i * eventSize);
-                
-                // Parse event fields using helper function
-                const time = parseEventField(event.time, false);
-                const addr = parseEventField(event.addr, true);
-                const data = parseEventField(event.data, true);
-                
-                view.setFloat32(baseAddr, time, true);
-                webYm2151Module.HEAPU8[baseAddr + 4] = addr & 0xFF;
-                webYm2151Module.HEAPU8[baseAddr + 5] = data & 0xFF;
-            }
-            
-            // Generate audio
-            console.log(`Generating ${numFrames} frames (${durationSeconds.toFixed(2)}s)`);
-            const actualFrames = webYm2151Module._generate_sound(dataPtr, events.length, numFrames);
-            
-            // Read audio samples (mono - left channel only for oscilloscope)
-            const audioData = new Float32Array(actualFrames);
-            for (let i = 0; i < actualFrames; i++) {
-                audioData[i] = webYm2151Module._get_sample(i * 2); // Left channel
-            }
-            
-            // Free the audio buffer
-            webYm2151Module._free_buffer();
-            
-            return audioData;
-        } finally {
-            webYm2151Module._free(dataPtr);
-        }
-    } catch (error) {
-        console.error('Error generating audio:', error);
-        return null;
-    }
-}
-
-// Render waveform to canvas (orange line on black background)
-function renderWaveform(audioData: Float32Array): void {
-    const canvas = document.getElementById('waveform-canvas') as HTMLCanvasElement;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    const width = canvas.width;
-    const height = canvas.height;
-    
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, width, height);
-    
-    ctx.strokeStyle = '#ff8c00';
-    ctx.lineWidth = 2;
-    
-    const step = Math.max(1, Math.floor(audioData.length / width));
-    ctx.beginPath();
-    
-    for (let x = 0; x < width; x++) {
-        const start = x * step;
-        let sum = 0;
-        let count = 0;
-        
-        for (let i = 0; i < step && (start + i) < audioData.length; i++) {
-            sum += audioData[start + i];
-            count++;
-        }
-        
-        const sample = count > 0 ? sum / count : 0;
-        const normalized = (sample + 1) / 2; // map [-1,1] -> [0,1]
-        const y = (1 - normalized) * height;
-        
-        if (x === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    }
-    
-    ctx.stroke();
 }
 
 function updatePlayButtonState(text: string, disabled: boolean = false): HTMLButtonElement | null {
@@ -273,7 +108,7 @@ function prepareAudioBuffer(): PrepareAudioResult {
         updatePlayButtonState('Loading audio...', true);
         return PrepareAudioResult.MODULE_NOT_READY;
     }
-    const audioData = generateAudioFromYm2151Json(currentYm2151Json);
+    const audioData = generateAudioFromYm2151Json(currentYm2151Json, webYm2151Module);
     if (!audioData) {
         console.error('Failed to generate audio from YM2151 JSON; audio buffer will not be prepared.');
         resetAudioState();
