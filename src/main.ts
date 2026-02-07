@@ -13,6 +13,13 @@ let audioBuffer: AudioBuffer | null = null;
 let audioSource: AudioBufferSourceNode | null = null;
 let preparedAudioData: Float32Array | null = null;
 let isPlaying = false;
+let audioModuleReady = false;
+
+enum PrepareAudioResult {
+    SUCCESS = 'success',
+    MODULE_NOT_READY = 'module_not_ready',
+    GENERATION_FAILED = 'generation_failed',
+}
 
 // YM2151 emulator constants
 const OPM_CLOCK = 3579545;
@@ -64,6 +71,8 @@ async function initWebYm2151(): Promise<void> {
                     clearTimeout(timeout);
                     clearInterval(checkInterval);
                     webYm2151Module = (window as any).Module;
+                    audioModuleReady = true;
+                    updatePlayButtonState('▶ Play Audio', false);
                     resolve();
                 }
             }, 20); // 20ms polling for responsive module detection
@@ -230,16 +239,30 @@ function stopPlayback(): void {
         audioSource = null;
     }
     isPlaying = false;
-    updatePlayButtonState('▶ Play Audio', false);
+    updatePlayButtonState('▶ Play Audio', !audioModuleReady);
 }
 
-function prepareAudioBuffer(): void {
-    if (!webYm2151Module || !webYm2151Module._generate_sound) {
-        throw new Error('Audio module is not ready yet');
+function resetAudioState(): void {
+    stopPlayback();
+    preparedAudioData = null;
+    audioBuffer = null;
+}
+
+function prepareAudioBuffer(): PrepareAudioResult {
+    if (!currentYm2151Json) {
+        return PrepareAudioResult.GENERATION_FAILED;
+    }
+    if (!audioModuleReady || !webYm2151Module || !webYm2151Module._generate_sound) {
+        console.warn('Audio module is not ready yet; postponing audio buffer preparation.');
+        updatePlayButtonState('Loading audio...', true);
+        return PrepareAudioResult.MODULE_NOT_READY;
     }
     const audioData = generateAudioFromYm2151Json(currentYm2151Json);
     if (!audioData) {
-        throw new Error('Failed to generate audio');
+        console.error('Failed to generate audio from YM2151 JSON; audio buffer will not be prepared.');
+        resetAudioState();
+        updatePlayButtonState('▶ Play Audio', false);
+        return PrepareAudioResult.GENERATION_FAILED;
     }
     preparedAudioData = audioData;
     renderWaveform(audioData);
@@ -251,6 +274,8 @@ function prepareAudioBuffer(): void {
     audioBuffer = audioCtx.createBuffer(2, audioData.length, OPM_SAMPLE_RATE);
     audioBuffer.getChannelData(0).set(audioData);
     audioBuffer.getChannelData(1).set(audioData);
+    updatePlayButtonState('▶ Play Audio', false);
+    return PrepareAudioResult.SUCCESS;
 }
 
 async function startPlayback(): Promise<void> {
@@ -290,17 +315,30 @@ async function playAudioAndVisualize(): Promise<void> {
     updatePlayButtonState('⏳ Generating...', true);
     
     try {
+        let prepResult = PrepareAudioResult.SUCCESS;
         if (!audioBuffer || !preparedAudioData) {
-            prepareAudioBuffer();
+            prepResult = prepareAudioBuffer();
+        }
+
+        if (prepResult === PrepareAudioResult.MODULE_NOT_READY) {
+            updatePlayButtonState('Loading audio...', true);
+            return;
+        }
+        if (prepResult === PrepareAudioResult.GENERATION_FAILED) {
+            updatePlayButtonState('▶ Play Audio', !audioModuleReady);
+            return;
         }
         
         await startPlayback();
     } catch (error) {
         console.error('Error in playAudioAndVisualize:', error);
-        alert(`Error: ${(error as Error).message}`);
-        preparedAudioData = null;
-        audioBuffer = null;
-        updatePlayButtonState('▶ Play Audio', false);
+        const message =
+            (error as Error)?.message !== undefined
+                ? (error as Error).message
+                : String(error);
+        appendError(message);
+        resetAudioState();
+        updatePlayButtonState('▶ Play Audio', !audioModuleReady);
     }
 }
 
@@ -324,15 +362,11 @@ async function displayResult(result: string): Promise<void> {
             const waveformSection = document.getElementById('waveform-section');
             if (waveformSection) waveformSection.style.display = 'none';
             currentYm2151Json = null;
-            stopPlayback();
-            preparedAudioData = null;
-            audioBuffer = null;
+            resetAudioState();
         } else {
             // Store the JSON for audio generation
             currentYm2151Json = json;
-            stopPlayback();
-            preparedAudioData = null;
-            audioBuffer = null;
+            resetAudioState();
             
             const successParagraph = document.createElement('p');
             successParagraph.className = 'success';
@@ -355,8 +389,7 @@ async function displayResult(result: string): Promise<void> {
             if (waveformSection) {
                 waveformSection.style.display = 'block';
             }
-            
-            await playAudioAndVisualize();
+            prepareAudioBuffer();
         }
     } catch (e) {
         // If not JSON, display as plain text
@@ -368,10 +401,18 @@ async function displayResult(result: string): Promise<void> {
         const waveformSection = document.getElementById('waveform-section');
         if (waveformSection) waveformSection.style.display = 'none';
         currentYm2151Json = null;
-        stopPlayback();
-        preparedAudioData = null;
-        audioBuffer = null;
+        resetAudioState();
     }
+}
+
+function appendError(message: string): void {
+    const output = document.getElementById('output');
+    if (!output) return;
+
+    const errorParagraph = document.createElement('p');
+    errorParagraph.className = 'error';
+    errorParagraph.textContent = `Error: ${message}`;
+    output.appendChild(errorParagraph);
 }
 
 // Show error message
@@ -389,9 +430,7 @@ function showError(message: string): void {
     const waveformSection = document.getElementById('waveform-section');
     if (waveformSection) waveformSection.style.display = 'none';
     currentYm2151Json = null;
-    stopPlayback();
-    preparedAudioData = null;
-    audioBuffer = null;
+    resetAudioState();
 }
 
 // Handle file input
@@ -456,6 +495,7 @@ function setupEventListeners(): void {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
     setupEventListeners();
+    updatePlayButtonState('Loading audio...', true);
     
     // Initialize main WASM module
     await initWasm();
@@ -467,5 +507,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error('Failed to initialize audio/visualization modules:', error);
         console.log('Demo will work but audio playback and waveform visualization will not be available');
+        updatePlayButtonState('Audio unavailable', true);
     }
 });
