@@ -180,6 +180,26 @@ button:disabled {
     background-color: #000000;
 }
 
+#play-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+}
+
+#floating-play-btn {
+    background-color: #ff8c00;
+    color: #000000;
+    font-size: 1.5rem;
+    padding: 18px 28px;
+    border-radius: 999px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    font-weight: bold;
+}
+
 #play-audio-btn {
     background-color: #ff8c00;
     color: #000000;

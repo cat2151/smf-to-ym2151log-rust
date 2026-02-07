@@ -14,6 +14,7 @@ let audioSource: AudioBufferSourceNode | null = null;
 let preparedAudioData: Float32Array | null = null;
 let isPlaying = false;
 let audioModuleReady = false;
+let playOverlayVisible = false;
 
 enum PrepareAudioResult {
     SUCCESS = 'success',
@@ -228,6 +229,20 @@ function updatePlayButtonState(text: string, disabled: boolean = false): HTMLBut
     return playBtn;
 }
 
+function showPlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    if (!overlay || playOverlayVisible) return;
+    overlay.style.display = 'flex';
+    playOverlayVisible = true;
+}
+
+function hidePlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'none';
+    playOverlayVisible = false;
+}
+
 function stopPlayback(): void {
     if (audioSource) {
         try {
@@ -246,6 +261,7 @@ function resetAudioState(): void {
     stopPlayback();
     preparedAudioData = null;
     audioBuffer = null;
+    hidePlayOverlay();
 }
 
 function prepareAudioBuffer(): PrepareAudioResult {
@@ -306,6 +322,7 @@ async function playAudioAndVisualize(): Promise<void> {
         console.error('No YM2151 JSON data');
         return;
     }
+    hidePlayOverlay();
     
     if (isPlaying) {
         stopPlayback();
@@ -389,7 +406,10 @@ async function displayResult(result: string): Promise<void> {
             if (waveformSection) {
                 waveformSection.style.display = 'block';
             }
-            prepareAudioBuffer();
+            const prepResult = prepareAudioBuffer();
+            if (prepResult === PrepareAudioResult.SUCCESS) {
+                showPlayOverlay();
+            }
         }
     } catch (e) {
         // If not JSON, display as plain text
@@ -483,6 +503,24 @@ function setupPlayButton(): void {
     });
 }
 
+function setupPlayOverlay(): void {
+    const overlay = document.getElementById('play-overlay');
+    const floatingBtn = document.getElementById('floating-play-btn');
+    if (!overlay || !floatingBtn) return;
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            hidePlayOverlay();
+        }
+    });
+
+    floatingBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        hidePlayOverlay();
+        void playAudioAndVisualize();
+    });
+}
+
 // Setup event listeners
 function setupEventListeners(): void {
     // File input
@@ -490,6 +528,9 @@ function setupEventListeners(): void {
     
     // Play button
     setupPlayButton();
+
+    // Floating play overlay
+    setupPlayOverlay();
 }
 
 // Initialize on page load
