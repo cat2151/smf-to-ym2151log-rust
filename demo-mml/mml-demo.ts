@@ -13,6 +13,7 @@ import {
     renderWaveform,
     type WebYm2151Module,
 } from '../src/ym2151-audio-utils';
+import { setRenderingOverlay } from '../src/ui-utils';
 
 let currentYm2151Json: any = null;
 let mmlModuleReady = false;
@@ -30,6 +31,7 @@ let preparedAudioData: Float32Array | null = null;
 let isPlaying = false;
 let audioModuleReady = false;
 let playOverlayVisible = false;
+let isConverting = false;
 
 function updatePlayButtonState(text: string, disabled: boolean = false): HTMLButtonElement | null {
     const playBtn = document.getElementById('play-audio-btn') as HTMLButtonElement | null;
@@ -325,6 +327,7 @@ function showError(message: string): void {
 
 // Convert MML to YM2151 register log
 async function convertMML(): Promise<void> {
+    if (isConverting) return;
     const mmlTextarea = document.getElementById('mml-input') as HTMLTextAreaElement;
     if (!mmlTextarea) return;
 
@@ -354,6 +357,11 @@ async function convertMML(): Promise<void> {
     const outputDiv = document.getElementById('output');
     if (!outputDiv) return;
 
+    const convertBtn = document.getElementById('convert-mml-button') as HTMLButtonElement | null;
+    isConverting = true;
+    if (convertBtn) convertBtn.disabled = true;
+    mmlTextarea.disabled = true;
+    setRenderingOverlay(true, 'Rendering MML... UI is temporarily disabled.');
     let tree: ReturnType<Parser['parse']> | null = null;
     try {
         // Step 1: Parse MML using web-tree-sitter
@@ -410,6 +418,10 @@ async function convertMML(): Promise<void> {
         if (tree) {
             tree.delete();
         }
+        isConverting = false;
+        if (convertBtn) convertBtn.disabled = false;
+        mmlTextarea.disabled = false;
+        setRenderingOverlay(false);
     }
 }
 
@@ -463,6 +475,7 @@ function setupEventListeners(): void {
     const mmlInput = document.getElementById('mml-input') as HTMLTextAreaElement;
     if (mmlInput) {
         mmlInput.addEventListener('input', () => {
+            if (isConverting) return;
             if (debounceTimer) {
                 clearTimeout(debounceTimer);
             }
