@@ -10,6 +10,7 @@ import {
     renderWaveform,
     type WebYm2151Module,
 } from './ym2151-audio-utils';
+import { setRenderingOverlay } from './ui-utils';
 
 let wasmInitialized = false;
 let currentYm2151Json: any = null;
@@ -23,16 +24,7 @@ let preparedAudioData: Float32Array | null = null;
 let isPlaying = false;
 let audioModuleReady = false;
 let playOverlayVisible = false;
-
-function setRenderingOverlay(isVisible: boolean, message = 'Rendering... UI is temporarily disabled.'): void {
-    const overlay = document.getElementById('rendering-overlay');
-    if (!overlay) return;
-    const text = document.getElementById('rendering-overlay-text');
-    if (text) {
-        text.textContent = message;
-    }
-    overlay.style.display = isVisible ? 'flex' : 'none';
-}
+let isConverting = false;
 
 // Initialize WASM
 async function initWasm(): Promise<void> {
@@ -304,6 +296,8 @@ function setupFileInput(): void {
     if (!fileInput) return;
 
     fileInput.addEventListener('change', async (event) => {
+        if (isConverting) return;
+
         const target = event.target as HTMLInputElement;
         const file = target.files?.[0];
         if (!file) return;
@@ -321,6 +315,8 @@ function setupFileInput(): void {
         processingParagraph.textContent = `Processing ${file.name}...`;
         output.appendChild(processingParagraph);
 
+        isConverting = true;
+        fileInput.disabled = true;
         setRenderingOverlay(true, `Rendering ${file.name}... UI is temporarily disabled.`);
         try {
             // Read file as array buffer
@@ -336,6 +332,8 @@ function setupFileInput(): void {
             showError(`Error processing file: ${(error as Error).message}`);
             console.error('Error:', error);
         } finally {
+            isConverting = false;
+            fileInput.disabled = false;
             setRenderingOverlay(false);
         }
     });
