@@ -43,7 +43,7 @@ async function initWebYm2151(): Promise<void> {
     try {
         // Load the Emscripten-generated WASM module
         const script = document.createElement('script');
-        script.src = '/libs/sine_test.js';
+        script.src = import.meta.env.BASE_URL + 'libs/sine_test.js';
         
         // Set up Module object before loading the script
         (window as any).Module = {
@@ -57,15 +57,28 @@ async function initWebYm2151(): Promise<void> {
         
         document.head.appendChild(script);
         
-        // Wait for module to initialize (with reduced polling interval for faster detection)
-        await new Promise<void>((resolve) => {
+        // Wait for module to initialize with timeout and error handling
+        await new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                clearInterval(checkInterval);
+                reject(new Error('web-ym2151 module initialization timeout'));
+            }, 10000); // 10 second timeout
+            
             const checkInterval = setInterval(() => {
                 if ((window as any).Module && (window as any).Module._generate_sound) {
-                    webYm2151Module = (window as any).Module;
+                    clearTimeout(timeout);
                     clearInterval(checkInterval);
+                    webYm2151Module = (window as any).Module;
                     resolve();
                 }
             }, 20); // 20ms polling for responsive module detection
+            
+            // Handle script load errors
+            script.onerror = () => {
+                clearTimeout(timeout);
+                clearInterval(checkInterval);
+                reject(new Error('Failed to load web-ym2151 script'));
+            };
         });
     } catch (error) {
         console.error('Failed to initialize web-ym2151:', error);
@@ -76,7 +89,10 @@ async function initWebYm2151(): Promise<void> {
 // Initialize cat-oscilloscope library
 async function initCatOscilloscope(): Promise<void> {
     try {
-        const module = await import('/libs/cat-oscilloscope.mjs' as any);
+        // Build URL relative to Vite base so this works on GitHub Pages and other non-root deployments
+        const baseUrl = import.meta.env.BASE_URL ?? '/';
+        const moduleUrl = baseUrl.replace(/\/+$/, '') + '/libs/cat-oscilloscope.mjs';
+        const module = await import(/* @vite-ignore */ moduleUrl as any);
         OscilloscopeClass = module.Oscilloscope;
         BufferSourceClass = module.BufferSource;
         console.log('cat-oscilloscope library loaded');
@@ -261,6 +277,7 @@ async function playAudioAndVisualize(): Promise<void> {
         
         const source = audioCtx.createBufferSource();
         source.buffer = audioBuffer;
+        source.loop = true; // Enable looping to match oscilloscope visualization
         source.connect(audioCtx.destination);
         source.start();
         

@@ -8,7 +8,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       external: [
-        /^\/libs\//
+        /^(\.\/)?libs\//  // Match both absolute and relative libs paths
       ]
     }
   },

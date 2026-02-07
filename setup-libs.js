@@ -5,7 +5,7 @@
  * These files are needed for audio rendering and waveform visualization
  */
 
-import { mkdir, writeFile, copyFile, rmSync } from 'fs/promises';
+import { mkdir, writeFile, copyFile, rm } from 'fs/promises';
 import { existsSync } from 'fs';
 import { execSync } from 'child_process';
 import { tmpdir } from 'os';
@@ -24,14 +24,14 @@ const FILES_TO_DOWNLOAD = [
  * Download a file from URL to local path
  */
 async function downloadFile(url, filePath) {
-  return new Promise((resolve, reject) => {
-    const dir = path.dirname(filePath);
-    
-    // Create directory if it doesn't exist
-    if (!existsSync(dir)) {
-      mkdir(dir, { recursive: true }).catch(reject);
-    }
+  const dir = path.dirname(filePath);
+  
+  // Create directory if it doesn't exist
+  if (!existsSync(dir)) {
+    await mkdir(dir, { recursive: true });
+  }
 
+  return new Promise((resolve, reject) => {
     https.get(url, (response) => {
       if (response.statusCode === 302 || response.statusCode === 301) {
         // Follow redirect
@@ -69,8 +69,14 @@ async function setupCatOscilloscope() {
   const tmpDir = path.join(tmpdir(), 'cat-oscilloscope-setup');
   
   try {
+    // Remove existing directory if it exists from a previous run
+    if (existsSync(tmpDir)) {
+      console.log('Removing existing temporary directory...');
+      await rm(tmpDir, { recursive: true, force: true });
+    }
+    
     console.log('Cloning cat-oscilloscope repository...');
-    execSync(`git clone https://github.com/cat2151/cat-oscilloscope.git ${tmpDir}`, { stdio: 'inherit' });
+    execSync(`git clone --depth 1 https://github.com/cat2151/cat-oscilloscope.git ${tmpDir}`, { stdio: 'inherit' });
     
     console.log('Copying cat-oscilloscope library files...');
     
@@ -87,9 +93,9 @@ async function setupCatOscilloscope() {
     await copyFile(`${tmpDir}/public/wasm/signal_processor_wasm_bg.wasm`, './public/libs/wasm/signal_processor_wasm_bg.wasm');
     console.log('✓ Copied signal_processor_wasm_bg.wasm');
     
-    // Cleanup using cross-platform Node.js API
+    // Cleanup using async API
     console.log('Cleaning up temporary files...');
-    await rmSync(tmpDir, { recursive: true, force: true });
+    await rm(tmpDir, { recursive: true, force: true });
   } catch (error) {
     throw new Error(`Failed to setup cat-oscilloscope: ${error.message}`);
   }
