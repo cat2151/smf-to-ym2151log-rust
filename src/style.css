@@ -215,6 +215,27 @@ button:disabled {
     color: #888;
 }
 
+.rendering-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    color: #ffffff;
+    z-index: 2500;
+    backdrop-filter: blur(2px);
+}
+
+.rendering-overlay__content {
+    background: rgba(20, 20, 20, 0.9);
+    padding: 18px 22px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    font-weight: bold;
+    text-align: center;
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     body {

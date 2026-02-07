@@ -31,6 +31,16 @@ let isPlaying = false;
 let audioModuleReady = false;
 let playOverlayVisible = false;
 
+function setRenderingOverlay(isVisible: boolean, message = 'Rendering... UI is temporarily disabled.'): void {
+    const overlay = document.getElementById('rendering-overlay');
+    if (!overlay) return;
+    const text = document.getElementById('rendering-overlay-text');
+    if (text) {
+        text.textContent = message;
+    }
+    overlay.style.display = isVisible ? 'flex' : 'none';
+}
+
 function updatePlayButtonState(text: string, disabled: boolean = false): HTMLButtonElement | null {
     const playBtn = document.getElementById('play-audio-btn') as HTMLButtonElement | null;
     if (playBtn) {
@@ -354,6 +364,7 @@ async function convertMML(): Promise<void> {
     const outputDiv = document.getElementById('output');
     if (!outputDiv) return;
 
+    setRenderingOverlay(true, 'Rendering MML... UI is temporarily disabled.');
     let tree: ReturnType<Parser['parse']> | null = null;
     try {
         // Step 1: Parse MML using web-tree-sitter
@@ -410,6 +421,7 @@ async function convertMML(): Promise<void> {
         if (tree) {
             tree.delete();
         }
+        setRenderingOverlay(false);
     }
 }
 

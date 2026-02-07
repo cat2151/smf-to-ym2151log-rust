@@ -24,6 +24,16 @@ let isPlaying = false;
 let audioModuleReady = false;
 let playOverlayVisible = false;
 
+function setRenderingOverlay(isVisible: boolean, message = 'Rendering... UI is temporarily disabled.'): void {
+    const overlay = document.getElementById('rendering-overlay');
+    if (!overlay) return;
+    const text = document.getElementById('rendering-overlay-text');
+    if (text) {
+        text.textContent = message;
+    }
+    overlay.style.display = isVisible ? 'flex' : 'none';
+}
+
 // Initialize WASM
 async function initWasm(): Promise<void> {
     try {
@@ -311,6 +321,7 @@ function setupFileInput(): void {
         processingParagraph.textContent = `Processing ${file.name}...`;
         output.appendChild(processingParagraph);
 
+        setRenderingOverlay(true, `Rendering ${file.name}... UI is temporarily disabled.`);
         try {
             // Read file as array buffer
             const arrayBuffer = await file.arrayBuffer();
@@ -324,6 +335,8 @@ function setupFileInput(): void {
         } catch (error) {
             showError(`Error processing file: ${(error as Error).message}`);
             console.error('Error:', error);
+        } finally {
+            setRenderingOverlay(false);
         }
     });
 }
