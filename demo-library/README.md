@@ -25,7 +25,7 @@ This demo pulls the library directly from GitHub via npm:
 npm install github:cat2151/smf-to-ym2151log-rust
 ```
 
-The dependency runs `wasm-pack` during install to build the WASM bundle automatically (same pattern used in recent cat2151 repos such as tonejs-mml-to-json). You only need a working Rust toolchain (`rustc` and `cargo`); `wasm-pack` is installed and invoked via the npm dependency.
+The dependency downloads the prebuilt WASM package from GitHub Pages (no Rust toolchain required for consumers).
 
 ## Project Structure
 

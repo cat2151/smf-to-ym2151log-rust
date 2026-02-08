@@ -19,14 +19,12 @@
   ],
   "scripts": {
     "build:wasm": "wasm-pack build --target web --features wasm",
-    "prepare": "npm run build:wasm"
+    "postinstall": "npm run fetch-pkg",
+    "fetch-pkg": "mkdir -p pkg && curl -L https://cat2151.github.io/smf-to-ym2151log-rust/pkg.tgz | tar -xz -C pkg"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cat2151/smf-to-ym2151log-rust.git"
   },
-  "license": "MIT",
-  "dependencies": {
-    "wasm-pack": "^0.12.1"
-  }
+  "license": "MIT"
 }

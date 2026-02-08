@@ -82,6 +82,10 @@ jobs:
           # Copy demo-library build output to root (it's the only demo)
           cp -r demo-library/dist/* _site/
 
+          # Publish prebuilt WASM pkg for npm consumers (CDN fetch)
+          cp -r pkg _site/pkg
+          tar -czf _site/pkg.tgz -C pkg .
+
           # Required files for Jekyll
           cp _config.yml _site/
 
