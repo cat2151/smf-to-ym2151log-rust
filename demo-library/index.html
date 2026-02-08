@@ -7,7 +7,16 @@
 </head>
 <body>
     <h1>Library Usage Demo</h1>
-    <p>This is a minimal demonstration of using smf-to-ym2151log-rust as a library.</p>
+    <p>This is a minimal demonstration of using smf-to-ym2151log-rust as a library, installed via <code>npm install github:cat2151/smf-to-ym2151log-rust</code> (same GitHub install flow used in recent cat2151 repos).</p>
+    <section class="demo-section">
+        <h2>セットアップ手順 (Rust不要)</h2>
+        <p>GitHub Pages に配置されたビルド済み WASM（<code>pkg/smf_to_ym2151log.js</code>, <code>.wasm</code>, <code>.d.ts</code>）を直接ダウンロードします。ローカルで Rust や wasm-pack を入れる必要はありません。</p>
+        <ol>
+            <li><code>npm install github:cat2151/smf-to-ym2151log-rust</code></li>
+            <li><code>npm run dev</code> で開発サーバーを起動（ポート8001）</li>
+            <li>本番ビルドは <code>npm run build</code></li>
+        </ol>
+    </section>
     
     <div class="demo-section">
         <h2>Convert MIDI File to YM2151 Log</h2>

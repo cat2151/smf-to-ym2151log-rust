@@ -8,6 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "smf-to-ym2151log-rust": "github:cat2151/smf-to-ym2151log-rust"
+  },
   "devDependencies": {
     "typescript": "^5.3.3",
     "vite": "^5.0.11"

@@ -1,0 +1,30 @@
+{
+  "name": "smf-to-ym2151log-rust",
+  "version": "0.1.0",
+  "description": "Convert Standard MIDI Files to YM2151 register write logs (WASM build)",
+  "type": "module",
+  "main": "pkg/smf_to_ym2151log.js",
+  "types": "pkg/smf_to_ym2151log.d.ts",
+  "exports": {
+    ".": {
+      "import": "./pkg/smf_to_ym2151log.js",
+      "types": "./pkg/smf_to_ym2151log.d.ts"
+    },
+    "./pkg/*": "./pkg/*"
+  },
+  "files": [
+    "pkg",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:wasm": "wasm-pack build --target web --features wasm",
+    "postinstall": "npm run fetch-pkg",
+    "fetch-pkg": "mkdir -p pkg && curl -fL -o pkg/smf_to_ym2151log.js https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js && curl -fL -o pkg/smf_to_ym2151log_bg.wasm https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log_bg.wasm && curl -fL -o pkg/smf_to_ym2151log.d.ts https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log.d.ts && curl -fL -o pkg/package.json https://cat2151.github.io/smf-to-ym2151log-rust/pkg/package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cat2151/smf-to-ym2151log-rust.git"
+  },
+  "license": "MIT"
+}
