@@ -18,34 +18,14 @@ This demo validates the library installation instructions published in the main 
 
 ## Prerequisites
 
-Before using this demo, you need to obtain the WASM package.
-
-### Option 1: Build from source (current method)
-
-From the parent directory (smf-to-ym2151log-rust root):
+This demo pulls the library directly from GitHub via npm:
 
 ```bash
-# Install wasm-pack
-cargo install wasm-pack
-
-# Build the WASM package
-wasm-pack build --target web --features wasm
-
-# Copy the package to this demo
-cp -r pkg demo-library/pkg
+# Installs smf-to-ym2151log-rust from GitHub
+npm install github:cat2151/smf-to-ym2151log-rust
 ```
 
-### Option 2: Download from release (future)
-
-When published to npm or GitHub releases, you would:
-
-```bash
-# npm example (not yet available)
-npm install smf-to-ym2151log-rust
-
-# Or download from GitHub releases
-# Extract the pkg/ directory to demo-library/pkg/
-```
+The dependency runs `wasm-pack` during install to build the WASM bundle automatically (same pattern used in recent cat2151 repos such as tonejs-mml-to-json). Rust and `wasm-pack` must be available in your environment.
 
 ## Project Structure
 
@@ -59,27 +39,19 @@ demo-library/
 ├── index.html         # Demo HTML page
 ├── library-demo.ts    # Demo TypeScript code
 ├── style.css          # Styling
-├── pkg/              # WASM package (you need to provide this)
-│   ├── smf_to_ym2151log.js
-│   ├── smf_to_ym2151log_bg.wasm
-│   └── ...
 └── README.md          # This file
 ```
 
 ## Installation & Usage
 
-### Step 1: Ensure you have the WASM package
-
-The `pkg/` directory should exist with the WASM files. If not, follow the Prerequisites section above.
-
-### Step 2: Install dependencies
+### Step 1: Install dependencies (fetches the library from GitHub)
 
 ```bash
 cd demo-library
 npm install
 ```
 
-### Step 3: Run development server
+### Step 2: Run development server
 
 ```bash
 npm run dev
@@ -87,7 +59,7 @@ npm run dev
 
 Open http://localhost:8001 in your browser.
 
-### Step 4: Build for production
+### Step 3: Build for production
 
 ```bash
 npm run build
@@ -100,8 +72,8 @@ Output will be in `demo-library/dist/`.
 The core library usage pattern:
 
 ```typescript
-// 1. Import the WASM module from the package you obtained
-import init, { smf_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
+// 1. Import the WASM module from the GitHub-installed package
+import init, { smf_to_ym2151_json } from 'smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js';
 
 // 2. Initialize WASM
 await init();
@@ -117,29 +89,18 @@ console.log(`Generated ${json.event_count} YM2151 events`);
 
 ## Using in Your Own Project
 
-To integrate `smf-to-ym2151log-rust` in your project:
+To integrate `smf-to-ym2151log-rust` in your project without cloning:
 
 ### For Web Projects
 
-1. **Obtain the WASM package**:
+1. **Install from GitHub** (same command the demo uses):
    ```bash
-   # Clone the library repository
-   git clone https://github.com/cat2151/smf-to-ym2151log-rust
-   cd smf-to-ym2151log-rust
-   
-   # Build WASM package
-   wasm-pack build --target web --features wasm
+   npm install github:cat2151/smf-to-ym2151log-rust
    ```
 
-2. **Copy to your project**:
-   ```bash
-   # Copy the pkg/ directory to your project
-   cp -r pkg /path/to/your/project/
-   ```
-
-3. **Import and use**:
+2. **Import and use**:
    ```typescript
-   import init, { smf_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
+   import init, { smf_to_ym2151_json } from 'smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js';
    
    await init();
    const result = smf_to_ym2151_json(midiBytes);
@@ -169,7 +130,7 @@ This demo is deployed as part of the CI/CD workflow to:
 
 `https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/`
 
-The CI workflow builds the WASM package and copies it to demo-library/pkg/ before building this demo.
+The CI workflow installs the library from GitHub (npm install github:cat2151/smf-to-ym2151log-rust) and builds the demo with the generated WASM package.
 
 ## Related Projects
 

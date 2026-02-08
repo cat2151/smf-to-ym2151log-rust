@@ -1,0 +1,32 @@
+{
+  "name": "smf-to-ym2151log-rust",
+  "version": "0.1.0",
+  "description": "Convert Standard MIDI Files to YM2151 register write logs (WASM build)",
+  "type": "module",
+  "main": "pkg/smf_to_ym2151log.js",
+  "types": "pkg/smf_to_ym2151log.d.ts",
+  "exports": {
+    ".": {
+      "import": "./pkg/smf_to_ym2151log.js",
+      "types": "./pkg/smf_to_ym2151log.d.ts"
+    },
+    "./pkg/*": "./pkg/*"
+  },
+  "files": [
+    "pkg",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build:wasm": "wasm-pack build --target web --features wasm",
+    "prepare": "npm run build:wasm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cat2151/smf-to-ym2151log-rust.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "wasm-pack": "^0.14.0"
+  }
+}

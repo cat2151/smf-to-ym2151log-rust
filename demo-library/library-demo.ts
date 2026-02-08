@@ -1,9 +1,8 @@
 import './style.css';
 
-// Import the WASM module for SMF to YM2151 conversion
-// This demonstrates minimal library usage as an external project
-// The pkg/ directory should contain the built WASM package from smf-to-ym2151log-rust
-import init, { smf_to_ym2151_json } from './pkg/smf_to_ym2151log.js';
+// Import the WASM module for SMF to YM2151 conversion from the GitHub-installed package
+// Installed via: npm install github:cat2151/smf-to-ym2151log-rust
+import init, { smf_to_ym2151_json } from 'smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js';
 
 let wasmInitialized = false;
 
