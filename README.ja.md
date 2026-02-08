@@ -3,8 +3,7 @@
 <p align="left">
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/🚀-MIDI%20Demo-brightgreen.svg" alt="MIDI Demo"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
+  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
 </p>
 
 **Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装**
@@ -121,7 +120,7 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 **オンラインデモ**: https://cat2151.github.io/smf-to-ym2151log-rust/ でブラウザから試せます
 
-**ライブラリデモ**: 最小限のライブラリ使用例は https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/ で確認できます
+このデモは、MIDIファイル変換を伴う最小限のライブラリ使用を示しています。
 
 Webブラウザでビルドして使用する：
 
@@ -135,7 +134,7 @@ wasm-pack build --target web --features wasm
 
 詳細な使用方法と例については、[WASM_USAGE.md](WASM_USAGE.md)を参照してください。
 
-完全なデモは`index.html`で、最小限のライブラリ使用デモは`demo-library/`で利用可能です。
+最小限のライブラリ使用デモは上記のオンラインデモリンクで利用可能です。
 
 ### 出力例
 

@@ -59,61 +59,16 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      
-      - name: Install Node.js dependencies (main demo)
-        run: npm install
-      
-      - name: Setup web-ym2151 and cat-oscilloscope libraries
-        run: |
-          # Run the setup script to download libraries
-          node setup-libs.js
-      
-      - name: Build MML WASM dependencies
-        run: |
-          # Clone mmlabc-to-smf-rust repository (always use latest for bug fixes)
-          git clone --depth 1 https://github.com/cat2151/mmlabc-to-smf-rust.git /tmp/mmlabc-to-smf-rust
-          
-          # Build mmlabc-to-smf-wasm
-          cd /tmp/mmlabc-to-smf-rust/mmlabc-to-smf-wasm
-          wasm-pack build --target web --release
-          
-          # Copy mmlabc WASM package to demo-mml
-          cd $GITHUB_WORKSPACE
-          mkdir -p demo-mml/mmlabc-pkg
-          cp /tmp/mmlabc-to-smf-rust/mmlabc-to-smf-wasm/pkg/mmlabc_to_smf_wasm.js demo-mml/mmlabc-pkg/
-          cp /tmp/mmlabc-to-smf-rust/mmlabc-to-smf-wasm/pkg/mmlabc_to_smf_wasm_bg.wasm demo-mml/mmlabc-pkg/
-          
-          # Download tree-sitter-mml.wasm from mmlabc-to-smf-rust GitHub Pages
-          mkdir -p demo-mml/public
-          curl -sLf https://cat2151.github.io/mmlabc-to-smf-rust/tree-sitter-mml/tree-sitter-mml.wasm -o demo-mml/public/tree-sitter-mml.wasm
-      
-      - name: Build main demo
-        run: npm run build
-      
-      - name: Build demo-library (standalone)
+          cache-dependency-path: 'demo-library/package-lock.json'
+
+      - name: Build demo-library
         run: |
           # Copy WASM package to demo-library (library user workflow)
           cp -r pkg demo-library/pkg
-          
+
           # Build demo-library as standalone project
           cd demo-library
           npm install
-          npm run build
-          cd ..
-      
-      - name: Build demo-mml (standalone)
-        run: |
-          # Copy WASM package to demo-mml
-          cp -r pkg demo-mml/pkg
-          
-          # Build demo-mml as standalone project
-          cd demo-mml
-          npm install
-          
-          # Copy web-tree-sitter WASM to public/ for runtime loading
-          mkdir -p public
-          cp node_modules/web-tree-sitter/web-tree-sitter.wasm public/
-          
           npm run build
           cd ..
       
@@ -123,21 +78,13 @@ jobs:
       - name: Prepare deployment directory
         run: |
           mkdir -p _site
-          
-          # Copy main demo build output
-          cp -r dist/* _site/
-          
-          # Copy demo-library build output
-          mkdir -p _site/demo-library
-          cp -r demo-library/dist/* _site/demo-library/
-          
-          # Copy demo-mml build output
-          mkdir -p _site/demo-mml
-          cp -r demo-mml/dist/* _site/demo-mml/
-          
+
+          # Copy demo-library build output to root (it's the only demo)
+          cp -r demo-library/dist/* _site/
+
           # Required files for Jekyll
           cp _config.yml _site/
-          
+
           # Optional files (fail silently if not present)
           # Google Search Console verification file
           cp googled947dc864c270e07.html _site/ 2>/dev/null || true
