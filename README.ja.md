@@ -6,20 +6,21 @@
   <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
 </p>
 
-**Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装**
-
-## WIP
-
-まだドレミを最低限のJSONに変換できる程度です
-
-今後より高度な実装をしていく予定です
-
-破壊的変更を頻繁に行う想定です
+Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換します。Rustで書かれています。
 
 ## 用途
 
 - ライブラリとして、 `cat-play-mml` から利用しています。ネイティブアプリ用のRustライブラリクレートです（利用方式1）。
 - ライブラリとして、`web-ym2151` から利用予定です。ブラウザ用のWASMライブラリです（利用方式2）。
+
+## WIP
+
+- まだドレミを最低限のJSONに変換できる程度です。
+- 今後より高度な実装をしていく予定です。
+- 破壊的変更を頻繁に行う想定です。
+
+## 関連サイト
+- [mmlabc-to-smf-rust](https://github.com/cat2151/mmlabc-to-smf-rust) : demoで利用しています
 
 ### 現在の制約
 
