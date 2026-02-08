@@ -38,28 +38,11 @@ tones/*.json
 pkg
 *.wasm
 
-# Optional MML support (stub - should be replaced if MML support is needed)
-mmlabc-pkg
-
-# Node.js and Vite
-node_modules
-dist
-*.log
-
-# Downloaded library files
-public/libs
-
-# demo-library build artifacts (standalone project)
+# demo-library build artifacts
 demo-library/node_modules
 demo-library/dist
 demo-library/pkg
 
-# demo-mml build artifacts (standalone project)
-demo-mml/node_modules
-demo-mml/dist
-demo-mml/pkg
-demo-mml/mmlabc-pkg
-demo-mml/public
-
+# GitHub Pages deployment
 _site/
-mmlabc-pkg/
+

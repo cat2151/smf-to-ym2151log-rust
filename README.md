@@ -3,8 +3,7 @@
 <p align="left">
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/🚀-MIDI%20Demo-brightgreen.svg" alt="MIDI Demo"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
+  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
 </p>
 
 **Rust implementation to convert Standard MIDI Files (SMF) to YM2151 register write logs (JSON format)**
@@ -120,7 +119,7 @@ Detailed API documentation: `cargo doc --open`
 
 **Online Demo**: Try it in your browser at https://cat2151.github.io/smf-to-ym2151log-rust/
 
-**Library Demo**: A minimal library usage example can be found at https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/
+This demo shows minimal library usage with MIDI file conversion.
 
 To build and use in a web browser:
 
@@ -134,7 +133,7 @@ wasm-pack build --target web --features wasm
 
 For detailed usage and examples, please refer to [WASM_USAGE.md](WASM_USAGE.md).
 
-A full demo is available in `index.html`, and a minimal library usage demo is available in `demo-library/`.
+A minimal library usage demo is available at the online demo link above.
 
 ### Output Example
 

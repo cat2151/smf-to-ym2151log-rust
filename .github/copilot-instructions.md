@@ -197,38 +197,16 @@ The project uses GitHub Actions (`.github/workflows/ci.yml`):
 
 ### Demo Deployment
 
-The project deploys three demos to GitHub Pages via `.github/workflows/deploy-pages.yml`:
-1. **Main MIDI Demo** (`/`) - Basic MIDI file to YM2151 conversion
-2. **Library Demo** (`/demo-library/`) - Demonstrates library usage patterns
-3. **MML Demo** (`/demo-mml/`) - Advanced MML to YM2151 conversion (requires external dependencies)
+The project deploys a single demo to GitHub Pages via `.github/workflows/deploy-pages.yml`:
+- **Library Demo** (`/`) - Demonstrates library usage with MIDI file conversion
 
-**CRITICAL: Demo Verification Requirements**
+**Demo Verification**
 
-When making changes to demos or deployment:
-1. **ALWAYS verify demos work after deployment** using a headless browser tool (e.g., Playwright, Puppeteer)
-2. **Check for JavaScript errors** in browser console - errors are NOT optional or acceptable
-3. **Test all demo functionality** - file uploads, conversions, UI interactions
-4. **Verify external dependencies** - check if library versions or installation procedures have changed
-5. **Validate deployment procedures** - ensure build steps, file copies, and deployment workflow are correct
-
-**MML Demo Considerations**
-- MML support requires external `mmlabc-to-smf-wasm` module
-- MML errors are **critical issues** that must be addressed during development
-- Agent is responsible for checking deployment procedures and library compatibility
-- Agent must verify MML dependencies are correctly configured or appropriately documented
-
-**Verification Script Example**
-```javascript
-// Example headless browser verification
-const page = await browser.newPage();
-await page.goto('https://cat2151.github.io/smf-to-ym2151log-rust/');
-const errors = [];
-page.on('console', msg => {
-  if (msg.type() === 'error') errors.push(msg.text());
-});
-// Verify no errors after page load
-if (errors.length > 0) throw new Error(`Demo has errors: ${errors}`);
-```
+When making changes to the demo or deployment:
+1. Verify the demo works after deployment
+2. Check for JavaScript errors in browser console
+3. Test demo functionality - file uploads, conversions, UI interactions
+4. Validate deployment procedures - ensure build steps, file copies, and deployment workflow are correct
 
 ## Project Status
 
