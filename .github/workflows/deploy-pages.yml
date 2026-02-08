@@ -84,7 +84,6 @@ jobs:
 
           # Publish prebuilt WASM pkg for npm consumers (CDN fetch)
           cp -r pkg _site/pkg
-          tar -czf _site/pkg.tgz -C pkg .
 
           # Required files for Jekyll
           cp _config.yml _site/
