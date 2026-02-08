@@ -4,7 +4,6 @@
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
   <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/🚀-MIDI%20Demo-brightgreen.svg" alt="MIDI Demo"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-mml/"><img src="https://img.shields.io/badge/🎵-MML%20Demo-orange.svg" alt="MML Demo"></a>
   <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
 </p>
 
@@ -246,8 +245,3 @@ cargo clippy -- -D warnings
 cargo audit
 ```
 
-## 参照
-
-- [Python版実装](https://github.com/cat2151/smf-to-ym2151log): このプロジェクトの元になったPython実装
-- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): 出力JSON形式の仕様元
-- [YM2151 データシート](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): YM2151チップの公式仕様書
