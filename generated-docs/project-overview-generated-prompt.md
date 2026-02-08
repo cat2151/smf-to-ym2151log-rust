@@ -1,4 +1,4 @@
-Last updated: 2026-02-08
+Last updated: 2026-02-09
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -60,31 +60,30 @@ Last updated: 2026-02-08
 以下のプロジェクト情報を参考にして要約を生成してください：
 
 ## プロジェクト情報
-名前: smf-to-ym2151-demo
+名前: smf-to-ym2151log-rust
 説明: # smf-to-ym2151log-rust
 
 <p align="left">
   <a href="README.ja.md"><img src="https://img.shields.io/badge/🇯🇵-Japanese-red.svg" alt="Japanese"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/🇺🇸-English-blue.svg" alt="English"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/🚀-MIDI%20Demo-brightgreen.svg" alt="MIDI Demo"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-mml/"><img src="https://img.shields.io/badge/🎵-MML%20Demo-orange.svg" alt="MML Demo"></a>
-  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
+  <a href="https://cat2151.github.io/smf-to-ym2151log-rust/"><img src="https://img.shields.io/badge/📦-Library%20Demo-blue.svg" alt="Library Demo"></a>
 </p>
 
-**Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換するRust実装**
-
-## WIP
-
-まだドレミを最低限のJSONに変換できる程度です
-
-今後より高度な実装をしていく予定です
-
-破壊的変更を頻繁に行う想定です
+Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式）に変換します。Rustで書かれています。
 
 ## 用途
 
 - ライブラリとして、 `cat-play-mml` から利用しています。ネイティブアプリ用のRustライブラリクレートです（利用方式1）。
 - ライブラリとして、`web-ym2151` から利用予定です。ブラウザ用のWASMライブラリです（利用方式2）。
+
+## WIP
+
+- まだドレミを最低限のJSONに変換できる程度です。
+- 今後より高度な実装をしていく予定です。
+- 破壊的変更を頻繁に行う想定です。
+
+## 関連サイト
+- [mmlabc-to-smf-rust](https://github.com/cat2151/mmlabc-to-smf-rust) : demoで利用しています
 
 ### 現在の制約
 
@@ -185,7 +184,7 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 **オンラインデモ**: https://cat2151.github.io/smf-to-ym2151log-rust/ でブラウザから試せます
 
-**ライブラリデモ**: 最小限のライブラリ使用例は https://cat2151.github.io/smf-to-ym2151log-rust/demo-library/ で確認できます
+このデモは、MIDIファイル変換を伴う最小限のライブラリ使用を示しています。
 
 Webブラウザでビルドして使用する：
 
@@ -199,7 +198,7 @@ wasm-pack build --target web --features wasm
 
 詳細な使用方法と例については、[WASM_USAGE.md](WASM_USAGE.md)を参照してください。
 
-完全なデモは`index.html`で、最小限のライブラリ使用デモは`demo-library/`で利用可能です。
+最小限のライブラリ使用デモは上記のオンラインデモリンクで利用可能です。
 
 ### 出力例
 
@@ -309,38 +308,25 @@ cargo clippy -- -D warnings
 cargo audit
 ```
 
-## 参照
-
-- [Python版実装](https://github.com/cat2151/smf-to-ym2151log): このプロジェクトの元になったPython実装
-- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc): 出力JSON形式の仕様元
-- [YM2151 データシート](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf): YM2151チップの公式仕様書
 
 
 依存関係:
 {
   "dependencies": {},
-  "devDependencies": {
-    "typescript": "^5.3.3",
-    "vite": "^5.0.11"
-  }
+  "devDependencies": {}
 }
 
 ## ファイル階層ツリー
 📄 .gitignore
 📄 Cargo.lock
 📄 Cargo.toml
-📖 DEMO_README.md
-📖 DEMO_SEPARATION.md
 📄 LICENSE
-📖 MML_INTEGRATION.md
 📖 README.ja.md
 📖 README.md
 📖 WASM_USAGE.md
-📖 WAVEFORM_RENDERING.md
 📄 _config.yml
 📁 demo-library/
   📄 .gitignore
-  📖 README.md
   🌐 index.html
   📘 library-demo.ts
   📊 package-lock.json
@@ -348,19 +334,8 @@ cargo audit
   🎨 style.css
   📊 tsconfig.json
   📘 vite.config.ts
-📁 demo-mml/
-  📄 .gitignore
-  📖 README.md
-  🌐 index.html
-  📘 mml-demo.ts
-  📊 package-lock.json
-  📊 package.json
-  🎨 style.css
-  📊 tsconfig.json
-  📘 vite.config.ts
 📁 generated-docs/
 🌐 googled947dc864c270e07.html
-🌐 index.html
 📁 issue-notes/
   📖 21.md
   📖 22.md
@@ -396,22 +371,20 @@ cargo audit
   📖 75.md
   📖 77.md
   📖 79.md
+  📖 81.md
+  📖 83.md
+  📖 84.md
 📊 package-lock.json
 📊 package.json
-📜 setup-libs.js
 📁 src/
   📄 error.rs
   📄 lib.rs
   📄 main.rs
-  📘 main.ts
   📁 midi/
     📄 events.rs
     📄 mod.rs
     📄 parser.rs
     📄 utils.rs
-  🎨 style.css
-  📘 ui-utils.ts
-  📘 vite-env.d.ts
   📄 wasm.rs
   📁 ym2151/
     📄 channel_allocation.rs
@@ -424,7 +397,6 @@ cargo audit
     📄 note_table.rs
     📄 tempo_map.rs
     📄 tone.rs
-  📘 ym2151-audio-utils.ts
 📁 tests/
   📄 create_test_midi.py
   📄 integration_tests.rs
@@ -437,18 +409,15 @@ cargo audit
 📁 tones/
   📊 000.json
   📖 README.md
-📊 tsconfig.json
-📜 verify-demos.js
-📘 vite.config.ts
 
 ## ファイル詳細分析
-**demo-library/index.html** (33行, 1019バイト)
+**demo-library/index.html** (40行, 1558バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/library-demo.ts** (119行, 4069バイト)
+**demo-library/library-demo.ts** (118行, 4037バイト)
   - 関数: initWasm, displayResult, showError, setupFileInput, catch, if
-  - インポート: ./pkg/smf_to_ym2151log.js
+  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js
 
 **demo-library/style.css** (96行, 1508バイト)
   - 関数: なし
@@ -458,109 +427,23 @@ cargo audit
   - 関数: なし
   - インポート: vite
 
-**demo-mml/index.html** (81行, 4002バイト)
-  - 関数: なし
-  - インポート: なし
-
-**demo-mml/mml-demo.ts** (512行, 16826バイト)
-  - 関数: updatePlayButtonState, showPlayOverlay, hidePlayOverlay, stopPlayback, resetAudioState, prepareAudioBuffer, startPlayback, playAudioAndVisualize, hideWaveformSection, showWaveformSection, initWebYm2151, initAll, treeToJSON, showError, convertMML, loadMMLExample, setupPlayButton, setupPlayOverlay, setupEventListeners, if, catch, for
-  - インポート: ../pkg/smf_to_ym2151log.js, web-tree-sitter, ../src/ui-utils
-
-**demo-mml/style.css** (289行, 5123バイト)
-  - 関数: なし
-  - インポート: なし
-
-**demo-mml/vite.config.ts** (17行, 260バイト)
-  - 関数: なし
-  - インポート: vite
-
 **googled947dc864c270e07.html** (1行, 53バイト)
   - 関数: なし
   - インポート: なし
 
-**index.html** (51行, 1883バイト)
-  - 関数: なし
-  - インポート: なし
-
-**setup-libs.js** (96行, 2662バイト)
-  - 関数: downloadFile, setup, catch, if, for
-  - インポート: fs/promises, fs, https
-
-**src/main.ts** (400行, 13101バイト)
-  - 関数: initWasm, initWebYm2151, updatePlayButtonState, showPlayOverlay, hidePlayOverlay, stopPlayback, resetAudioState, prepareAudioBuffer, startPlayback, playAudioAndVisualize, displayResult, appendError, showError, setupFileInput, setupPlayButton, setupPlayOverlay, setupEventListeners, catch, if
-  - インポート: ../pkg/smf_to_ym2151log.js, ./ui-utils
-
-**src/style.css** (289行, 5123バイト)
-  - 関数: なし
-  - インポート: なし
-
-**src/ui-utils.ts** (69行, 2017バイト)
-  - 関数: setRenderingOverlay, if
-  - インポート: なし
-
-**src/vite-env.d.ts** (10行, 151バイト)
-  - 関数: なし
-  - インポート: なし
-
-**src/ym2151-audio-utils.ts** (191行, 6127バイト)
-  - 関数: loadWebYm2151Script, parseEventField, generateAudioFromYm2151Json, renderWaveform, if, for, catch
-  - インポート: なし
-
-**verify-demos.js** (77行, 2250バイト)
-  - 関数: verifyPage, main, if, catch, for
-  - インポート: なし
-
-**vite.config.ts** (20行, 352バイト)
-  - 関数: なし
-  - インポート: vite
-
 ## 関数呼び出し階層
-- if (demo-library/library-demo.ts)
+- catch (demo-library/library-demo.ts)
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
       - setupFileInput ()
-      - updatePlayButtonState (demo-mml/mml-demo.ts)
-      - showPlayOverlay ()
-      - hidePlayOverlay ()
-      - stopPlayback ()
-      - resetAudioState ()
-      - prepareAudioBuffer ()
-      - startPlayback ()
-      - playAudioAndVisualize ()
-      - initWebYm2151 ()
-      - setupPlayButton ()
-      - setupPlayOverlay ()
-      - setupEventListeners ()
-      - appendError ()
-      - setRenderingOverlay ()
-      - loadWebYm2151Script ()
-      - generateAudioFromYm2151Json ()
-      - renderWaveform ()
-  - hideWaveformSection ()
-    - showWaveformSection ()
-      - initAll ()
-      - treeToJSON ()
-      - convertMML ()
-      - loadMMLExample ()
-  - catch (demo-library/library-demo.ts)
-    - downloadFile (setup-libs.js)
-      - setup ()
-    - parseEventField ()
-    - verifyPage (verify-demos.js)
-      - main ()
-- for (demo-mml/mml-demo.ts)
+- if (demo-library/library-demo.ts)
 
 
 ## プロジェクト構造（ファイル一覧）
-DEMO_README.md
-DEMO_SEPARATION.md
-MML_INTEGRATION.md
 README.ja.md
 README.md
 WASM_USAGE.md
-WAVEFORM_RENDERING.md
-demo-library/README.md
 demo-library/index.html
 demo-library/library-demo.ts
 demo-library/package-lock.json
@@ -568,21 +451,26 @@ demo-library/package.json
 demo-library/style.css
 demo-library/tsconfig.json
 demo-library/vite.config.ts
-demo-mml/README.md
-demo-mml/index.html
-demo-mml/mml-demo.ts
-demo-mml/package-lock.json
-demo-mml/package.json
-demo-mml/style.css
-demo-mml/tsconfig.json
-demo-mml/vite.config.ts
 googled947dc864c270e07.html
-index.html
 issue-notes/21.md
 issue-notes/22.md
 issue-notes/23.md
 issue-notes/25.md
 issue-notes/28.md
+issue-notes/30.md
+issue-notes/32.md
+issue-notes/33.md
+issue-notes/34.md
+issue-notes/36.md
+issue-notes/38.md
+issue-notes/39.md
+issue-notes/41.md
+issue-notes/43.md
+issue-notes/45.md
+issue-notes/47.md
+issue-notes/49.md
+issue-notes/51.md
+issue-notes/53.md
 package-lock.json
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
@@ -595,4 +483,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-02-08 07:08:56 JST
+Generated at: 2026-02-09 07:09:26 JST

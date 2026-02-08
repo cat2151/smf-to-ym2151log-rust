@@ -1,50 +1,50 @@
-Last updated: 2026-02-08
+Last updated: 2026-02-09
 
 # Development Status
 
 ## 現在のIssues
-- 波形レンダリングと描画機能が追加されたデモ [Issue #74](../issue-notes/74.md) の動作テストが進行中です。
-- `demo-library`の動作確認 [Issue #65](../issue-notes/65.md) が必要とされています。
-- `ym2151-tone-editor`の出力するGM000 variations format jsonを優先的に読み込む仕様追加 [Issue #33](../issue-notes/33.md) と、それに関連するトーンデータ作成 [Issue #22](../issue-notes/22.md) が残っています。
+- [Issue #86](../issue-notes/86.md) `deploy-pages` workflowが失敗しており、原因究明と修正が必要です。
+- [Issue #83](../issue-notes/83.md) 音色データの扱いやデフォルト音色（[Issue #22](../issue-notes/22.md)関連）の不足が課題となっており、整理と準備が必要です。
+- [Issue #33](../issue-notes/33.md) `ym2151-tone-editor` 出力JSONの優先読み込みに関する仮仕様があり、音色管理の柔軟性向上が求められます。
 
 ## 次の一手候補
-1. 波形レンダリングと描画が追加されたMMLデモのテストと検証 [Issue #74](../issue-notes/74.md)
-   - 最初の小さな一歩: 最新の`demo-mml`プロジェクトをビルドし、ブラウザでMMLを再生して、波形がUIに正しく描画されているか、およびコンソールにエラーがないかを確認する。
-   - Agent実行プロンプ:
+1. [Issue #86](../issue-notes/86.md) `deploy-pages` workflowの失敗原因究明と修正
+   - 最初の小さな一歩: 最新の`deploy-pages.yml`ワークフロー実行ログを確認し、エラーメッセージと発生箇所を特定する。
+   - Agent実行プロンプト:
      ```
-     対象ファイル: demo-mml/index.html, demo-mml/mml-demo.ts, src/ym2151-audio-utils.ts, src/ui-utils.ts
+     対象ファイル: .github/workflows/deploy-pages.yml
 
-     実行内容: `demo-mml`プロジェクトが正しく動作し、MML再生中に波形データが生成され、UI上に描画されていることを確認するためのテスト計画を立案してください。特に、`src/ym2151-audio-utils.ts`で生成される波形データと`demo-mml/mml-demo.ts`での描画ロジックの連携に注目し、視覚的なフィードバックとコンソール出力の両面から確認すべきポイントを洗い出してください。
+     実行内容: `.github/workflows/deploy-pages.yml` ファイルの最近の変更と、提供されたワークフロー実行ログ（https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/21799870592）を分析し、エラーが発生している可能性のある箇所を特定してください。特に、コミット `46391edc7f66efced18ac1827b2dae3f68c209ac` 前後の変更がデプロイプロセスに影響を与えたかを確認します。
 
-     確認事項: `demo-mml`ディレクトリ内で`npm install`が成功し、`npm run dev`で開発サーバーが起動するか。ブラウザの開発者コンソールにエラーや警告がないか。
+     確認事項: ワークフローの依存関係、GitHub Pagesへのデプロイ設定、および最近のコミットで変更されたファイル（`demo-library`関連ファイルや`package.json`など）との関連性を確認してください。
 
-     期待する出力: `demo-mml`のMML再生と波形描画機能の動作確認手順と、確認すべき主要なポイント（ブラウザのコンソールログ、UIでの波形表示の正確性など）をmarkdown形式で出力してください。
-     ```
-
-2. `demo-library`の動作確認 [Issue #65](../issue-notes/65.md)
-   - 最初の小さな一歩: `demo-library`ディレクトリに移動し、`npm install`と`npm run dev`を実行して開発サーバーを起動する。ブラウザでアクセスし、デモページが表示されることを確認する。
-   - Agent実行プロンプ:
-     ```
-     対象ファイル: demo-library/package.json, demo-library/index.html, demo-library/library-demo.ts, demo-library/vite.config.ts
-
-     実行内容: `demo-library`プロジェクトが正しくセットアップされ、ブラウザで動作することを確認する手順を記述してください。具体的には、プロジェクトの依存関係のインストール、ビルド、開発サーバーの起動、基本的な機能（Midiファイルの読み込み、再生、音源の切り替えなど）が意図通りに機能しているかどうかの確認方法を含めてください。
-
-     確認事項: `demo-library`ディレクトリ内で`npm install`が成功し、`npm run dev`で開発サーバーが起動するか。ブラウザでデモが正しく表示され、操作可能であるか。
-
-     期待する出力: `demo-library`のセットアップから基本的な機能テストまでの手順をmarkdown形式で出力してください。
+     期待する出力: エラーの原因と考えられる箇所と、その修正に必要な手順案をmarkdown形式で出力してください。
      ```
 
-3. YM2151トーンデータ読み込みの仕様検討とデータ作成の効率化 [Issue #33](../issue-notes/33.md), [Issue #22](../issue-notes/22.md)
-   - 最初の小さな一歩: 現在のトーンデータ読み込みロジック (`src/ym2151/tone.rs`) をレビューし、`tones/000.json`のような既存のJSONファイルの構造と、`ym2151-tone-editor`が出力すると想定されるGM000 variations format jsonの仕様について調査する。
-   - Agent実行プロンプ:
+2. [Issue #33](../issue-notes/33.md) `ym2151-tone-editor` 出力JSONの優先読み込み機能の検討と実装計画
+   - 最初の小さな一歩: 現在の音色読み込みロジック（`tones/` ディレクトリ）がどのように実装されているかを特定する。
+   - Agent実行プロンプト:
      ```
-     対象ファイル: src/ym2151/tone.rs, tones/000.json, issue-notes/33.md, issue-notes/22.md
+     対象ファイル: src/ym2151/tone.rs, src/ym2151/mod.rs, tones/000.json
 
-     実行内容: [Issue #33](../issue-notes/33.md) で提案されている「`ym2151-tone-editor`の出力するGM000 variations format jsonがある場合、従来の`tones/`より優先して読み込む」という仕様について、既存のトーンデータ読み込みロジック (`src/ym2151/tone.rs`など) を分析し、その仕様を実装するために必要な変更点を洗い出してください。加えて、[Issue #22](../issue-notes/22.md) の「`tones/000.json`～`127.json`を実際に配置する」という手作業タスクを、`ym2151-tone-editor`との連携を含め、自動化または効率化するための具体的なアプローチを提案してください。
+     実行内容: `src/ym2151/tone.rs` および `src/ym2151/mod.rs`、または関連ファイルがどのように音色データ（`tones/` ディレクトリ内のJSONファイル）を読み込んでいるかを分析してください。特に、ファイルパスの解決方法やJSONパースのロジックに焦点を当てます。また、`tones/000.json` の構造を確認し、[Issue #33](../issue-notes/33.md) で言及されている「GM000 variations format json」を優先的に読み込むために必要な変更点を初期検討してください。
 
-     確認事項: `src/ym2151/tone.rs`が現在どのようにトーンデータをロードし、どのように複数のトーンデータを管理しているか。`tones/`ディレクトリの既存の`json`ファイルのフォーマット。
+     確認事項: 既存の音色読み込みパス、JSONパースライブラリの使用状況、および新しいJSONフォーマットを優先的に読み込む際のディレクトリ構造の仮定（例：新しいディレクトリパスの指定）を確認してください。
 
-     期待する出力: 新しいトーンデータ読み込み仕様の実装方針（優先順位付けのロジック、ファイルパス解決、エラーハンドリングなど）と、`ym2151-tone-editor`からのデータ取り込みを効率化するための具体的な提案（スクリプト、ビルドステップの追加など）をmarkdown形式で出力してください。
+     期待する出力: 現在の音色読み込みロジックの概要と、`ym2151-tone-editor` 出力JSONを優先読み込みするための変更点に関する初期分析をmarkdown形式で出力してください。
+     ```
+
+3. [Issue #83](../issue-notes/83.md) & [Issue #22](../issue-notes/22.md) デフォルト音色データの現状分析と具体的な作成方針検討
+   - 最初の小さな一歩: `tones/` ディレクトリにデフォルト音色がいくつ存在し、どのような状態であるかをリストアップする。
+   - Agent実行プロンプト:
+     ```
+     対象ファイル: tones/, issue-notes/22.md, issue-notes/83.md
+
+     実行内容: `tones/` ディレクトリに現在存在する音色ファイルの一覧を作成し、[Issue #22](../issue-notes/22.md) で言及されている128種類のデフォルト音色 (`000.json`～`127.json`) のうち、不足しているファイルを特定してください。また、`issue-notes/83.md` の内容を考慮し、デフォルト音色データの不足が現在のプロジェクトに与える影響を分析してください。
+
+     確認事項: 既存の`tones/`ディレクトリ構造、ファイル命名規則、および `ym2151-tone-editor` を使用して新しい音色を作成する際の潜在的なワークフローを確認してください。
+
+     期待する出力: 不足しているデフォルト音色の一覧と、それらを作成・追加するための具体的な次のステップ（例: `ym2151-tone-editor` の具体的な利用方法、または仮のダミーデータ作成）をmarkdown形式で出力してください。
 
 ---
-Generated at: 2026-02-08 07:09:12 JST
+Generated at: 2026-02-09 07:09:42 JST

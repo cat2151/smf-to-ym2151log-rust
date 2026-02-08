@@ -1,4 +1,4 @@
-Last updated: 2026-02-08
+Last updated: 2026-02-09
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -109,6 +109,7 @@ Last updated: 2026-02-08
 - .github/actions-tmp/.github/workflows/call-rust-windows-check.yml
 - .github/actions-tmp/.github/workflows/call-translate-readme.yml
 - .github/actions-tmp/.github/workflows/callgraph.yml
+- .github/actions-tmp/.github/workflows/check-large-files.yml
 - .github/actions-tmp/.github/workflows/check-recent-human-commit.yml
 - .github/actions-tmp/.github/workflows/daily-project-summary.yml
 - .github/actions-tmp/.github/workflows/issue-note.yml
@@ -131,6 +132,9 @@ Last updated: 2026-02-08
 - .github/actions-tmp/.github_automation/callgraph/scripts/find-process-results.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/generate-html-graph.cjs
 - .github/actions-tmp/.github_automation/callgraph/scripts/generateHTML.cjs
+- .github/actions-tmp/.github_automation/check-large-files/README.md
+- .github/actions-tmp/.github_automation/check-large-files/check-large-files.toml.example
+- .github/actions-tmp/.github_automation/check-large-files/scripts/check_large_files.py
 - .github/actions-tmp/.github_automation/check_recent_human_commit/scripts/check-recent-human-commit.cjs
 - .github/actions-tmp/.github_automation/project_summary/docs/daily-summary-setup.md
 - .github/actions-tmp/.github_automation/project_summary/prompts/development-status-prompt.md
@@ -187,6 +191,7 @@ Last updated: 2026-02-08
 - .github/actions-tmp/issue-notes/29.md
 - .github/actions-tmp/issue-notes/3.md
 - .github/actions-tmp/issue-notes/30.md
+- .github/actions-tmp/issue-notes/31.md
 - .github/actions-tmp/issue-notes/4.md
 - .github/actions-tmp/issue-notes/7.md
 - .github/actions-tmp/issue-notes/8.md
@@ -203,17 +208,12 @@ Last updated: 2026-02-08
 - .gitignore
 - Cargo.lock
 - Cargo.toml
-- DEMO_README.md
-- DEMO_SEPARATION.md
 - LICENSE
-- MML_INTEGRATION.md
 - README.ja.md
 - README.md
 - WASM_USAGE.md
-- WAVEFORM_RENDERING.md
 - _config.yml
 - demo-library/.gitignore
-- demo-library/README.md
 - demo-library/index.html
 - demo-library/library-demo.ts
 - demo-library/package-lock.json
@@ -221,18 +221,8 @@ Last updated: 2026-02-08
 - demo-library/style.css
 - demo-library/tsconfig.json
 - demo-library/vite.config.ts
-- demo-mml/.gitignore
-- demo-mml/README.md
-- demo-mml/index.html
-- demo-mml/mml-demo.ts
-- demo-mml/package-lock.json
-- demo-mml/package.json
-- demo-mml/style.css
-- demo-mml/tsconfig.json
-- demo-mml/vite.config.ts
 - generated-docs/project-overview-generated-prompt.md
 - googled947dc864c270e07.html
-- index.html
 - issue-notes/21.md
 - issue-notes/22.md
 - issue-notes/23.md
@@ -267,20 +257,18 @@ Last updated: 2026-02-08
 - issue-notes/75.md
 - issue-notes/77.md
 - issue-notes/79.md
+- issue-notes/81.md
+- issue-notes/83.md
+- issue-notes/84.md
 - package-lock.json
 - package.json
-- setup-libs.js
 - src/error.rs
 - src/lib.rs
 - src/main.rs
-- src/main.ts
 - src/midi/events.rs
 - src/midi/mod.rs
 - src/midi/parser.rs
 - src/midi/utils.rs
-- src/style.css
-- src/ui-utils.ts
-- src/vite-env.d.ts
 - src/wasm.rs
 - src/ym2151/channel_allocation.rs
 - src/ym2151/converter.rs
@@ -292,7 +280,6 @@ Last updated: 2026-02-08
 - src/ym2151/note_table.rs
 - src/ym2151/tempo_map.rs
 - src/ym2151/tone.rs
-- src/ym2151-audio-utils.ts
 - tests/create_test_midi.py
 - tests/integration_tests.rs
 - tests/test_data/multi_channel.mid
@@ -302,38 +289,42 @@ Last updated: 2026-02-08
 - tests/test_data/tempo_change.mid
 - tones/000.json
 - tones/README.md
-- tsconfig.json
-- verify-demos.js
-- vite.config.ts
 
 ## 現在のオープンIssues
-## [Issue #74](../issue-notes/74.md): （人力）demoに、波形レンダリングと波形描画が追加されたはずなので、testする
-[issue-notes/74.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/74.md)
+## [Issue #86](../issue-notes/86.md): deploy-pages workflow failed
+## deploy-pages workflow failed
 
-...
-ラベル: 
---- issue-notes/74.md の内容 ---
+**Workflow run:** https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/21799870592
+**Branch:** main
+**Commit:** 46391edc7f66efced18ac1827b2dae3f68c209ac
+**Triggered by:** push
+
+Please investigate the workflow logs for details....
+ラベル: deploy-pages-failure
+--- issue-notes/86.md の内容 ---
 
 ```markdown
-# issue （人力）demoに、波形レンダリングと波形描画が追加されたはずなので、testする #74
-[issues #74](https://github.com/cat2151/smf-to-ym2151log-rust/issues/74)
-
-
 
 ```
 
-## [Issue #65](../issue-notes/65.md): （人力）demo-libraryを動作確認する
-[issue-notes/65.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/65.md)
+## [Issue #83](../issue-notes/83.md): 音色データの扱いについて整理する
+[issue-notes/83.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/83.md)
 
 ...
 ラベル: 
---- issue-notes/65.md の内容 ---
+--- issue-notes/83.md の内容 ---
 
 ```markdown
-# issue （人力）demo-libraryを動作確認する #65
-[issues #65](https://github.com/cat2151/smf-to-ym2151log-rust/issues/65)
+# issue 音色データの扱いについて整理する #83
+[issues #83](https://github.com/cat2151/smf-to-ym2151log-rust/issues/83)
 
-
+# これまでの課題
+- デフォルト音色データ 0～127 がまだ揃っていない
+- ガワだけでいいので用意したほうがいいが、まだ揃っていない
+- このため、和音SMFも、sine wave音色で鳴らすことしかできていないはず
+- これをやりたい：「ブラウザ、ランダム音色で、音符はMMLでその場で入力して鳴らす、和音も可」
+- 制約：ブラウザ音色エディタは別リポジトリ（web-ym2151）である
+- 対策案： 音色データreadを使ったdemo、上記のランダム音色かつ、音符MML演奏demo、は、web-ym2151側で実施とする
 
 ```
 
@@ -673,152 +664,6 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
-### .github/actions-tmp/issue-notes/4.md
-```md
-{% raw %}
-# issue GitHub Actions「project概要生成」を共通ワークフロー化する #4
-[issues #4](https://github.com/cat2151/github-actions/issues/4)
-
-# prompt
-```
-あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
-このymlファイルを、以下の2つのファイルに分割してください。
-1. 共通ワークフロー       cat2151/github-actions/.github/workflows/daily-project-summary.yml
-2. 呼び出し元ワークフロー cat2151/github-actions/.github/workflows/call-daily-project-summary.yml
-まずplanしてください
-```
-
-# 結果、あちこちハルシネーションのあるymlが生成された
-- agentの挙動があからさまにハルシネーション
-    - インデントが修正できない、「失敗した」という
-    - 構文誤りを認識できない
-- 人力で修正した
-
-# このagentによるセルフレビューが信頼できないため、別のLLMによるセカンドオピニオンを試す
-```
-あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
-以下の2つのファイルをレビューしてください。最優先で、エラーが発生するかどうかだけレビューてください。エラー以外の改善事項のチェックをするかわりに、エラー発生有無チェックに最大限注力してください。
-
---- 呼び出し元
-
-name: Call Daily Project Summary
-
-on:
-  schedule:
-    # 日本時間 07:00 (UTC 22:00 前日)
-    - cron: '0 22 * * *'
-  workflow_dispatch:
-
-jobs:
-  call-daily-project-summary:
-    uses: cat2151/github-actions/.github/workflows/daily-project-summary.yml
-    secrets:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
---- 共通ワークフロー
-name: Daily Project Summary
-on:
-  workflow_call:
-
-jobs:
-  generate-summary:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      issues: read
-      pull-requests: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # 履歴を取得するため
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: |
-          # 一時的なディレクトリで依存関係をインストール
-          mkdir -p /tmp/summary-deps
-          cd /tmp/summary-deps
-          npm init -y
-          npm install @google/generative-ai @octokit/rest
-          # generated-docsディレクトリを作成
-          mkdir -p $GITHUB_WORKSPACE/generated-docs
-
-      - name: Generate project summary
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          NODE_PATH: /tmp/summary-deps/node_modules
-        run: |
-          node .github/scripts/generate-project-summary.cjs
-
-      - name: Check for generated summaries
-        id: check_summaries
-        run: |
-          if [ -f "generated-docs/project-overview.md" ] && [ -f "generated-docs/development-status.md" ]; then
-            echo "summaries_generated=true" >> $GITHUB_OUTPUT
-          else
-            echo "summaries_generated=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit and push summaries
-        if: steps.check_summaries.outputs.summaries_generated == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          # package.jsonの変更のみリセット（generated-docsは保持）
-          git restore package.json 2>/dev/null || true
-          # サマリーファイルのみを追加
-          git add generated-docs/project-overview.md
-          git add generated-docs/development-status.md
-          git commit -m "Update project summaries (overview & development status)"
-          git push
-
-      - name: Summary generation result
-        run: |
-          if [ "${{ steps.check_summaries.outputs.summaries_generated }}" == "true" ]; then
-            echo "✅ Project summaries updated successfully"
-            echo "📊 Generated: project-overview.md & development-status.md"
-          else
-            echo "ℹ️ No summaries generated (likely no user commits in the last 24 hours)"
-          fi
-```
-
-# 上記promptで、2つのLLMにレビューさせ、合格した
-
-# 細部を、先行する2つのymlを参照に手直しした
-
-# ローカルtestをしてからcommitできるとよい。方法を検討する
-- ローカルtestのメリット
-    - 素早く修正のサイクルをまわせる
-    - ムダにgit historyを汚さない
-        - これまでの事例：「実装したつもり」「エラー。修正したつもり」「エラー。修正したつもり」...（以降エラー多数）
-- 方法
-    - ※検討、WSL + act を環境構築済みである。test可能であると判断する
-    - 呼び出し元のURLをコメントアウトし、相対パス記述にする
-    - ※備考、テスト成功すると結果がcommit pushされる。それでよしとする
-- 結果
-    - OK
-    - secretsを簡略化できるか試した、できなかった、現状のsecrets記述が今わかっている範囲でベストと判断する
-    - OK
-
-# test green
-
-# commit用に、yml 呼び出し元 uses をlocal用から本番用に書き換える
-
-# closeとする
-
-{% endraw %}
-```
-
 ### issue-notes/33.md
 ```md
 {% raw %}
@@ -830,24 +675,19 @@ jobs:
 {% endraw %}
 ```
 
-### issue-notes/65.md
+### issue-notes/83.md
 ```md
 {% raw %}
-# issue （人力）demo-libraryを動作確認する #65
-[issues #65](https://github.com/cat2151/smf-to-ym2151log-rust/issues/65)
+# issue 音色データの扱いについて整理する #83
+[issues #83](https://github.com/cat2151/smf-to-ym2151log-rust/issues/83)
 
-
-
-{% endraw %}
-```
-
-### issue-notes/74.md
-```md
-{% raw %}
-# issue （人力）demoに、波形レンダリングと波形描画が追加されたはずなので、testする #74
-[issues #74](https://github.com/cat2151/smf-to-ym2151log-rust/issues/74)
-
-
+# これまでの課題
+- デフォルト音色データ 0～127 がまだ揃っていない
+- ガワだけでいいので用意したほうがいいが、まだ揃っていない
+- このため、和音SMFも、sine wave音色で鳴らすことしかできていないはず
+- これをやりたい：「ブラウザ、ランダム音色で、音符はMMLでその場で入力して鳴らす、和音も可」
+- 制約：ブラウザ音色エディタは別リポジトリ（web-ym2151）である
+- 対策案： 音色データreadを使ったdemo、上記のランダム音色かつ、音符MML演奏demo、は、web-ym2151側で実施とする
 
 {% endraw %}
 ```
@@ -995,31 +835,56 @@ jobs:
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-b207a49 Merge pull request #80 from cat2151/codex/fix-rendering-status-message
-d2ae22e fix: share rendering overlay helper and block input during conversions
-1cbc30a Show rendering-in-progress overlay in MIDI and MML demos
-be176a7 Initial plan
-3ca66a1 Add issue note for #79 [auto]
-d53793a Merge pull request #78 from cat2151/codex/implement-json-waveform-rendering
-d4cc344 Refactor YM2151 audio helpers
-32895ba progress: mml waveform playback
-4de87e0 Initial plan
-45f7822 Add issue note for #77 [auto]
+46391ed Merge pull request #85 from cat2151/codex/fix-install-build-process
+e22ba7f Switch to direct CDN pkg fetch and update instructions
+f2d09eb Serve prebuilt pkg from Pages and fetch on install
+fdd479e Address review feedback on wasm-pack dependency and docs
+c92bf80 Add GitHub npm packaging for demo-library
+f562f7c Initial plan
+46ae2b6 Add issue note for #84 [auto]
+8e442bb Auto-translate README.ja.md to README.md [auto]
+4eeb2dd Revise Japanese README and add related sites section
+6a7844b Auto-translate README.ja.md to README.md [auto]
 
 ### 変更されたファイル:
+.github/copilot-instructions.md
+.github/workflows/deploy-pages.yml
+.gitignore
+DEMO_README.md
+DEMO_SEPARATION.md
+MML_INTEGRATION.md
+README.ja.md
+README.md
+WAVEFORM_RENDERING.md
+demo-library/README.md
+demo-library/index.html
+demo-library/library-demo.ts
+demo-library/package-lock.json
+demo-library/package.json
+demo-mml/.gitignore
+demo-mml/README.md
 demo-mml/index.html
 demo-mml/mml-demo.ts
+demo-mml/package-lock.json
+demo-mml/package.json
 demo-mml/style.css
+demo-mml/tsconfig.json
+demo-mml/vite.config.ts
 index.html
-issue-notes/74.md
-issue-notes/75.md
-issue-notes/77.md
-issue-notes/79.md
+issue-notes/83.md
+issue-notes/84.md
+package-lock.json
+package.json
+setup-libs.js
 src/main.ts
 src/style.css
 src/ui-utils.ts
+src/vite-env.d.ts
 src/ym2151-audio-utils.ts
+tsconfig.json
+verify-demos.js
+vite.config.ts
 
 
 ---
-Generated at: 2026-02-08 07:08:56 JST
+Generated at: 2026-02-09 07:09:26 JST
