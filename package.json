@@ -20,7 +20,7 @@
   "scripts": {
     "build:wasm": "wasm-pack build --target web --features wasm",
     "postinstall": "npm run fetch-pkg",
-    "fetch-pkg": "mkdir -p pkg && curl -fL -o pkg/smf_to_ym2151log.js https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js && curl -fL -o pkg/smf_to_ym2151log_bg.wasm https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log_bg.wasm && curl -fL -o pkg/smf_to_ym2151log.d.ts https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log.d.ts && curl -fL -o pkg/package.json https://cat2151.github.io/smf-to-ym2151log-rust/pkg/package.json"
+    "fetch-pkg": "[ -f pkg/smf_to_ym2151log.js ] && [ -f pkg/smf_to_ym2151log_bg.wasm ] && [ -f pkg/smf_to_ym2151log.d.ts ] && [ -f pkg/package.json ] && exit 0; if [ -f ../../pkg/smf_to_ym2151log.js ] && [ -f ../../pkg/smf_to_ym2151log_bg.wasm ] && [ -f ../../pkg/smf_to_ym2151log.d.ts ] && [ -f ../../pkg/package.json ]; then mkdir -p pkg && cp ../../pkg/smf_to_ym2151log.js pkg/ && cp ../../pkg/smf_to_ym2151log_bg.wasm pkg/ && cp ../../pkg/smf_to_ym2151log.d.ts pkg/ && cp ../../pkg/package.json pkg/ && exit 0; fi; mkdir -p pkg && curl -fL -o pkg/smf_to_ym2151log.js https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js && curl -fL -o pkg/smf_to_ym2151log_bg.wasm https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log_bg.wasm && curl -fL -o pkg/smf_to_ym2151log.d.ts https://cat2151.github.io/smf-to-ym2151log-rust/pkg/smf_to_ym2151log.d.ts && curl -fL -o pkg/package.json https://cat2151.github.io/smf-to-ym2151log-rust/pkg/package.json"
   },
   "repository": {
     "type": "git",
