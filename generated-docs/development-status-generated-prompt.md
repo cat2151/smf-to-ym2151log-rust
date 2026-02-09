@@ -1,4 +1,4 @@
-Last updated: 2026-02-09
+Last updated: 2026-02-10
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -204,7 +204,9 @@ Last updated: 2026-02-09
 - .github/workflows/call-issue-note.yml
 - .github/workflows/call-translate-readme.yml
 - .github/workflows/ci.yml
+- .github/workflows/deploy-demo.yml
 - .github/workflows/deploy-pages.yml
+- .github/workflows/deploy-wasm.yml
 - .gitignore
 - Cargo.lock
 - Cargo.toml
@@ -260,6 +262,7 @@ Last updated: 2026-02-09
 - issue-notes/81.md
 - issue-notes/83.md
 - issue-notes/84.md
+- issue-notes/88.md
 - package-lock.json
 - package.json
 - src/error.rs
@@ -291,23 +294,7 @@ Last updated: 2026-02-09
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #86](../issue-notes/86.md): deploy-pages workflow failed
-## deploy-pages workflow failed
-
-**Workflow run:** https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/21799870592
-**Branch:** main
-**Commit:** 46391edc7f66efced18ac1827b2dae3f68c209ac
-**Triggered by:** push
-
-Please investigate the workflow logs for details....
-ラベル: deploy-pages-failure
---- issue-notes/86.md の内容 ---
-
-```markdown
-
-```
-
-## [Issue #83](../issue-notes/83.md): 音色データの扱いについて整理する
+## [Issue #83](../issue-notes/83.md): （人力）音色データの扱いについて整理する
 [issue-notes/83.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/83.md)
 
 ...
@@ -835,56 +822,37 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+b30493b Merge pull request #89 from cat2151/copilot/create-workflow-a-for-wasm-deploy
+de6e226 Address PR review feedback on deploy-demo.yml
+0aaa842 Split deploy workflow into Workflow A (WASM) and Workflow B (demo)
+619e462 Initial plan
+d30d9f4 Add issue note for #88 [auto]
+6552194 Update project summaries (overview & development status) [auto]
 46391ed Merge pull request #85 from cat2151/codex/fix-install-build-process
 e22ba7f Switch to direct CDN pkg fetch and update instructions
 f2d09eb Serve prebuilt pkg from Pages and fetch on install
 fdd479e Address review feedback on wasm-pack dependency and docs
-c92bf80 Add GitHub npm packaging for demo-library
-f562f7c Initial plan
-46ae2b6 Add issue note for #84 [auto]
-8e442bb Auto-translate README.ja.md to README.md [auto]
-4eeb2dd Revise Japanese README and add related sites section
-6a7844b Auto-translate README.ja.md to README.md [auto]
 
 ### 変更されたファイル:
-.github/copilot-instructions.md
+.github/workflows/deploy-demo.yml
 .github/workflows/deploy-pages.yml
-.gitignore
-DEMO_README.md
-DEMO_SEPARATION.md
-MML_INTEGRATION.md
+.github/workflows/deploy-wasm.yml
 README.ja.md
 README.md
-WAVEFORM_RENDERING.md
 demo-library/README.md
 demo-library/index.html
 demo-library/library-demo.ts
 demo-library/package-lock.json
 demo-library/package.json
-demo-mml/.gitignore
-demo-mml/README.md
-demo-mml/index.html
-demo-mml/mml-demo.ts
-demo-mml/package-lock.json
-demo-mml/package.json
-demo-mml/style.css
-demo-mml/tsconfig.json
-demo-mml/vite.config.ts
-index.html
-issue-notes/83.md
+generated-docs/development-status-generated-prompt.md
+generated-docs/development-status.md
+generated-docs/project-overview-generated-prompt.md
+generated-docs/project-overview.md
 issue-notes/84.md
+issue-notes/88.md
 package-lock.json
 package.json
-setup-libs.js
-src/main.ts
-src/style.css
-src/ui-utils.ts
-src/vite-env.d.ts
-src/ym2151-audio-utils.ts
-tsconfig.json
-verify-demos.js
-vite.config.ts
 
 
 ---
-Generated at: 2026-02-09 07:09:26 JST
+Generated at: 2026-02-10 07:16:01 JST

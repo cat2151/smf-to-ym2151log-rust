@@ -1,4 +1,4 @@
-Last updated: 2026-02-09
+Last updated: 2026-02-10
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -374,6 +374,7 @@ cargo audit
   📖 81.md
   📖 83.md
   📖 84.md
+  📖 88.md
 📊 package-lock.json
 📊 package.json
 📁 src/
@@ -483,4 +484,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-02-09 07:09:26 JST
+Generated at: 2026-02-10 07:16:01 JST
