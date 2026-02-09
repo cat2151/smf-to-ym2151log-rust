@@ -13,6 +13,7 @@ const requiredFiles = [
 const pkgDir = path.resolve(process.cwd(), 'pkg');
 const parentPkgDir = path.resolve(process.cwd(), '..', '..', 'pkg');
 const cdnBase = 'https://cat2151.github.io/smf-to-ym2151log-rust/pkg';
+const repoName = 'cat2151/smf-to-ym2151log-rust';
 
 async function fileExists(filePath) {
   try {
@@ -56,15 +57,31 @@ async function downloadPkgFiles() {
 
 async function main() {
   if (await hasAllFiles(pkgDir)) {
+    console.info('[fetch-pkg] Using existing pkg/ in this package.');
     return;
   }
 
   if (await hasAllFiles(parentPkgDir)) {
+    console.info(
+      `[fetch-pkg] Copying pkg/ from repository root (${repoName}).`,
+    );
     await copyPkgFiles(parentPkgDir, pkgDir);
     return;
   }
 
-  await downloadPkgFiles();
+  console.info(
+    `[fetch-pkg] Downloading pkg/ from GitHub Pages (${repoName}).`,
+  );
+
+  try {
+    await downloadPkgFiles();
+  } catch (error) {
+    throw new Error(
+      `[fetch-pkg] Failed to download pkg/ from ${repoName} GitHub Pages. ` +
+        'Ensure pkg artifacts are published or run "npm run build:wasm" to generate them locally. ' +
+        `Cause: ${error.message}`,
+    );
+  }
 }
 
 main().catch((error) => {

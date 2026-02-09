@@ -115,6 +115,19 @@ It can be used as a library from other Rust projects:
 smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
+### WASM npm package
+
+```bash
+npm install github:cat2151/smf-to-ym2151log-rust
+```
+
+During postinstall, `scripts/fetch-pkg.mjs` looks for the prebuilt `pkg/` in this order:
+1. Existing `pkg/` inside the installed package (already present).
+2. The repository root `pkg/` (built by `wasm-pack build` in this repository).
+3. GitHub Pages for `cat2151/smf-to-ym2151log-rust` (`https://cat2151.github.io/smf-to-ym2151log-rust/pkg`).
+
+If none are available or the GitHub Pages download fails, installation stops with an error so missing artifacts are surfaced early.
+
 Detailed API documentation: `cargo doc --open`
 
 ### WebAssembly (Browser) Usage
