@@ -1,10 +1,11 @@
-name: Deploy to GitHub Pages (DISABLED - kept for reference)
+name: Deploy Demo to GitHub Pages
 
-# NOTE: This workflow is disabled. It has been replaced by:
-#   - deploy-wasm.yml  (Workflow A: Build WASM and deploy pkg to GitHub Pages)
-#   - deploy-demo.yml  (Workflow B: Build demo-library and deploy to GitHub Pages, triggered by Workflow A)
-# Keep this file for reference until the new workflows are confirmed stable.
 on:
+  workflow_run:
+    workflows: ["Deploy WASM to GitHub Pages"]
+    types:
+      - completed
+  # Manual dispatch: only use after a successful WASM deployment (deploy-wasm.yml)
   workflow_dispatch:
 
 permissions:
@@ -18,44 +19,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
-    name: Build WASM and Deploy to GitHub Pages
+  build-and-deploy-demo:
+    name: Build Demo and Deploy to GitHub Pages
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Checkout
+      - name: Checkout (workflow_run)
+        if: ${{ github.event_name == 'workflow_run' }}
         uses: actions/checkout@v4
-      
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-unknown-unknown
-      
-      - name: Install wasm-pack
-        run: |
-          cargo install wasm-pack --version 0.12.1 --locked
-      
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-wasm-${{ hashFiles('**/Cargo.lock') }}
-      
-      - name: Cache cargo index
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-git-wasm-${{ hashFiles('**/Cargo.lock') }}
-      
-      - name: Cache target directory
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-target-wasm-${{ hashFiles('**/Cargo.lock') }}
-      
-      - name: Build WASM package
-        run: |
-          wasm-pack build --target web --features wasm
-      
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Checkout (workflow_dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -65,18 +43,50 @@ jobs:
 
       - name: Build demo-library
         run: |
-          # Copy WASM package to demo-library (library user workflow)
-          cp -r pkg demo-library/pkg
-
-          # Build demo-library as standalone project
+          # Retry npm install with backoff: postinstall fetches pkg from Pages which may still be propagating
+          for i in 1 2 3 4 5; do
+            if (cd demo-library && npm install); then
+              break
+            fi
+            if [ "$i" -eq 5 ]; then
+              echo "npm install failed after 5 attempts"
+              exit 1
+            fi
+            echo "npm install attempt $i failed, retrying in $((i * 15))s..."
+            sleep $((i * 15))
+          done
           cd demo-library
-          npm install
           npm run build
           cd ..
-      
+
+      - name: Download WASM pkg from GitHub Pages
+        run: |
+          # Retry with backoff: Pages deployment may take time to propagate
+          download_with_retry() {
+            local url="$1" dest="$2"
+            for i in 1 2 3 4 5; do
+              if curl -fL -o "$dest" "$url"; then
+                return 0
+              fi
+              echo "Attempt $i failed for $url, retrying in $((i * 15))s..."
+              sleep $((i * 15))
+            done
+            echo "Failed to download $url after 5 attempts"
+            return 1
+          }
+          # Build GitHub Pages base URL from repository owner and name
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          PAGES_BASE_URL="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}"
+
+          mkdir -p pkg
+          download_with_retry "${PAGES_BASE_URL}/pkg/smf_to_ym2151log.js" pkg/smf_to_ym2151log.js
+          download_with_retry "${PAGES_BASE_URL}/pkg/smf_to_ym2151log_bg.wasm" pkg/smf_to_ym2151log_bg.wasm
+          download_with_retry "${PAGES_BASE_URL}/pkg/smf_to_ym2151log.d.ts" pkg/smf_to_ym2151log.d.ts
+          download_with_retry "${PAGES_BASE_URL}/pkg/package.json" pkg/package.json
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
+
       - name: Prepare deployment directory
         run: |
           mkdir -p _site
@@ -98,12 +108,12 @@ jobs:
           # README files for Jekyll processing
           cp README.md _site/ 2>/dev/null || true
           cp README.ja.md _site/ 2>/dev/null || true
-      
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '_site'
-      
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -113,15 +123,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          LABEL="deploy-pages-failure"
+          LABEL="deploy-demo-failure"
           # Ensure the label exists
-          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on deploy-pages workflow failure" --color "d73a4a" 2>/dev/null || true
+          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on deploy-demo workflow failure" --color "d73a4a" 2>/dev/null || true
           # Check for an existing open issue with this label
           EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
           if [ -n "$EXISTING" ]; then
             gh issue comment "$EXISTING" \
               --repo "${{ github.repository }}" \
-              --body "## deploy-pages workflow failed again
+              --body "## deploy-demo workflow failed again
 
           **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           **Branch:** ${{ github.ref_name }}
@@ -133,8 +143,8 @@ jobs:
             gh issue create \
               --repo "${{ github.repository }}" \
               --label "$LABEL" \
-              --title "deploy-pages workflow failed" \
-              --body "## deploy-pages workflow failed
+              --title "deploy-demo workflow failed" \
+              --body "## deploy-demo workflow failed
 
           **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           **Branch:** ${{ github.ref_name }}
