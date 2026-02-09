@@ -1,10 +1,8 @@
-name: Deploy to GitHub Pages (DISABLED - kept for reference)
+name: Deploy WASM to GitHub Pages
 
-# NOTE: This workflow is disabled. It has been replaced by:
-#   - deploy-wasm.yml  (Workflow A: Build WASM and deploy pkg to GitHub Pages)
-#   - deploy-demo.yml  (Workflow B: Build demo-library and deploy to GitHub Pages, triggered by Workflow A)
-# Keep this file for reference until the new workflows are confirmed stable.
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -18,71 +16,50 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build-and-deploy-wasm:
     name: Build WASM and Deploy to GitHub Pages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-      
+
       - name: Install wasm-pack
         run: |
           cargo install wasm-pack --version 0.12.1 --locked
-      
+
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-wasm-${{ hashFiles('**/Cargo.lock') }}
-      
+
       - name: Cache cargo index
         uses: actions/cache@v4
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-git-wasm-${{ hashFiles('**/Cargo.lock') }}
-      
+
       - name: Cache target directory
         uses: actions/cache@v4
         with:
           path: target
           key: ${{ runner.os }}-target-wasm-${{ hashFiles('**/Cargo.lock') }}
-      
+
       - name: Build WASM package
         run: |
           wasm-pack build --target web --features wasm
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'demo-library/package-lock.json'
 
-      - name: Build demo-library
-        run: |
-          # Copy WASM package to demo-library (library user workflow)
-          cp -r pkg demo-library/pkg
-
-          # Build demo-library as standalone project
-          cd demo-library
-          npm install
-          npm run build
-          cd ..
-      
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
+
       - name: Prepare deployment directory
         run: |
           mkdir -p _site
-
-          # Copy demo-library build output to root (it's the only demo)
-          cp -r demo-library/dist/* _site/
 
           # Publish prebuilt WASM pkg for npm consumers (CDN fetch)
           cp -r pkg _site/pkg
@@ -98,12 +75,12 @@ jobs:
           # README files for Jekyll processing
           cp README.md _site/ 2>/dev/null || true
           cp README.ja.md _site/ 2>/dev/null || true
-      
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '_site'
-      
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -113,15 +90,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          LABEL="deploy-pages-failure"
+          LABEL="deploy-wasm-failure"
           # Ensure the label exists
-          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on deploy-pages workflow failure" --color "d73a4a" 2>/dev/null || true
+          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on deploy-wasm workflow failure" --color "d73a4a" 2>/dev/null || true
           # Check for an existing open issue with this label
           EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
           if [ -n "$EXISTING" ]; then
             gh issue comment "$EXISTING" \
               --repo "${{ github.repository }}" \
-              --body "## deploy-pages workflow failed again
+              --body "## deploy-wasm workflow failed again
 
           **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           **Branch:** ${{ github.ref_name }}
@@ -133,8 +110,8 @@ jobs:
             gh issue create \
               --repo "${{ github.repository }}" \
               --label "$LABEL" \
-              --title "deploy-pages workflow failed" \
-              --body "## deploy-pages workflow failed
+              --title "deploy-wasm workflow failed" \
+              --body "## deploy-wasm workflow failed
 
           **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           **Branch:** ${{ github.ref_name }}
