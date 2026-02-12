@@ -115,6 +115,21 @@ It can be used as a library from other Rust projects:
 smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
+### Optional Attachment JSON (Delay Vibrato)
+
+You can provide an optional attachment JSON to enable delayed vibrato generation in the YM2151 log. Use the new helper APIs:
+
+- Rust: `convert_smf_to_ym2151_log_with_options(smf_bytes, Some(attachment_json_bytes))`
+- WASM: `smf_to_ym2151_json_with_attachment(smf_bytes, attachment_json_bytes)`
+
+Attachment example:
+
+```json
+{
+  "DelayVibrato": true
+}
+```
+
 Detailed API documentation: `cargo doc --open`
 
 ### WebAssembly (Browser) Usage

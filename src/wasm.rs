@@ -42,6 +42,31 @@ pub fn smf_to_ym2151_json(smf_data: &[u8]) -> String {
     }
 }
 
+/// Convert SMF binary data to YM2151 register log JSON with optional attachment JSON
+///
+/// The second argument accepts an attachment JSON payload that can enable features such as
+/// delayed vibrato. Pass an empty array when no attachment is available.
+#[cfg(feature = "wasm")]
+#[cfg_attr(all(feature = "wasm", target_arch = "wasm32"), wasm_bindgen)]
+pub fn smf_to_ym2151_json_with_attachment(smf_data: &[u8], attachment_json: &[u8]) -> String {
+    let attachment = if attachment_json.is_empty() {
+        None
+    } else {
+        Some(attachment_json)
+    };
+
+    match crate::convert_smf_to_ym2151_log_with_options(smf_data, attachment) {
+        Ok(json) => json,
+        Err(e) => {
+            let error_obj = serde_json::json!({
+                "error": e.to_string()
+            });
+            serde_json::to_string(&error_obj)
+                .unwrap_or_else(|_| r#"{"error": "Unknown error"}"#.to_string())
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
