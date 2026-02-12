@@ -135,6 +135,11 @@ pub fn convert_to_ym2151_log_with_options(
             } else {
                 None
             },
+            attachment_tones: if options.tones.is_empty() {
+                None
+            } else {
+                Some(&options.tones)
+            },
         };
 
         for event in &midi_data.events {

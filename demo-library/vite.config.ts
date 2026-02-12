@@ -11,6 +11,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         delayVibrato: resolve(__dirname, 'delay-vibrato.html'),
+        toneJson: resolve(__dirname, 'tone-json.html'),
       },
     },
   },

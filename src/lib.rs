@@ -43,8 +43,10 @@ pub mod ym2151;
 pub mod wasm;
 
 // Re-export commonly used types
+use crate::ym2151::ToneDefinition;
 pub use error::{Error, Result};
 use serde::Deserialize;
+use std::collections::HashMap;
 
 /// Optional conversion options supplied via attachment JSON
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -52,6 +54,9 @@ pub struct ConversionOptions {
     /// Enable delayed vibrato generation in the YM2151 log output
     #[serde(rename = "DelayVibrato", default)]
     pub delay_vibrato: bool,
+    /// Optional YM2151 tone definitions keyed by MIDI program number
+    #[serde(rename = "Tones", default)]
+    pub tones: HashMap<u8, ToneDefinition>,
 }
 
 impl ConversionOptions {
