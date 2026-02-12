@@ -12,6 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "types": ["node"],
 
     /* Linting */
     "strict": true,
@@ -19,5 +20,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["library-demo.ts"]
+  "include": ["*.ts", "*.d.ts"]
 }

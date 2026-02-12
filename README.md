@@ -135,6 +135,7 @@ Detailed API documentation: `cargo doc --open`
 ### WebAssembly (Browser) Usage
 
 **Online Demo**: Try it in your browser at https://cat2151.github.io/smf-to-ym2151log-rust/
+- Delay Vibrato demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html
 
 This demo showcases minimal library usage involving MIDI file conversion.
 
