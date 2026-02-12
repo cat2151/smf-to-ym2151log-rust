@@ -12,6 +12,7 @@
     "smf-to-ym2151log-rust": "github:cat2151/smf-to-ym2151log-rust"
   },
   "devDependencies": {
+    "@types/node": "^25.2.3",
     "typescript": "^5.3.3",
     "vite": "^5.0.11"
   }
