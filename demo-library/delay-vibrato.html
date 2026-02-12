@@ -15,6 +15,7 @@
 
   <section class="demo-section">
     <h2>1. MIDI ファイルを選択</h2>
+    <label for="midi-input" class="sr-only">MIDI ファイルを選択</label>
     <input type="file" id="midi-input" accept=".mid,.midi">
     <div class="status" id="file-status">SMF ファイルを選択してください。</div>
   </section>
@@ -22,6 +23,7 @@
   <section class="demo-section">
     <h2>2. Delay Vibrato 添付 JSON を編集</h2>
     <p class="note">JSON を編集すると 400ms デバウンス後に自動で再変換されます。</p>
+    <label for="attachment-json">Delay Vibrato 添付 JSON 入力</label>
     <textarea id="attachment-json" class="code-input" rows="6" spellcheck="false"></textarea>
     <div class="status" id="attachment-status"></div>
   </section>
@@ -37,7 +39,7 @@
     <pre id="conversion-output" class="output"></pre>
   </section>
 
-  <textarea id="jsonEditor" class="sr-only" aria-hidden="true"></textarea>
+  <textarea id="jsonEditor" aria-hidden="true" hidden></textarea>
 
   <footer class="github-link">
     <a href="https://github.com/cat2151/smf-to-ym2151log-rust" target="_blank" rel="noopener noreferrer">GitHub</a>

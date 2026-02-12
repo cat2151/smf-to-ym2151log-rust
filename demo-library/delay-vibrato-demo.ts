@@ -25,6 +25,7 @@ let currentOutput: string | null = null;
 let attachmentDebounce: number | null = null;
 let webYmApiPromise: Promise<WebYmApi> | null = null;
 let webYmScriptAdded = false;
+let webYmScriptEl: HTMLScriptElement | null = null;
 
 const attachmentField = document.getElementById('attachment-json') as HTMLTextAreaElement | null;
 const conversionOutput = document.getElementById('conversion-output') as HTMLPreElement | null;
@@ -142,9 +143,38 @@ function ensureWebYm2151(): Promise<WebYmApi> {
         const moduleRef: any = window.Module ?? {};
         window.Module = moduleRef;
 
+        const WEB_YM_SRC = 'https://cat2151.github.io/web-ym2151/sine_test.js';
+        const WEB_YM_TIMEOUT_MS = 12000;
+        let isActive = true;
+        let timeoutId: number | null = null;
+
+        const cleanup = () => {
+            if (timeoutId) {
+                window.clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            if (webYmScriptEl && webYmScriptEl.parentNode) {
+                webYmScriptEl.parentNode.removeChild(webYmScriptEl);
+            }
+            webYmScriptEl = null;
+            webYmScriptAdded = false;
+            delete (window as any).Module;
+            webYmApiPromise = null;
+        };
+
+        timeoutId = window.setTimeout(() => {
+            if (!isActive) return;
+            isActive = false;
+            cleanup();
+            reject(new Error('web-ym2151 のロードがタイムアウトしました'));
+        }, WEB_YM_TIMEOUT_MS);
+
         const runtimeReady = new Promise<void>(runtimeResolve => {
             const previous = moduleRef.onRuntimeInitialized;
             moduleRef.onRuntimeInitialized = () => {
+                if (!isActive) {
+                    return;
+                }
                 if (typeof previous === 'function') {
                     previous();
                 }
@@ -154,27 +184,42 @@ function ensureWebYm2151(): Promise<WebYmApi> {
 
         if (!webYmScriptAdded) {
             const script = document.createElement('script');
-            script.src = 'https://cat2151.github.io/web-ym2151/sine_test.js';
+            script.src = WEB_YM_SRC;
             script.defer = true;
             script.onload = () => {
                 /* runtimeReady will resolve when initialized */
             };
-            script.onerror = () => reject(new Error('web-ym2151 のロードに失敗しました'));
+            script.onerror = () => {
+                if (!isActive) return;
+                isActive = false;
+                cleanup();
+                reject(new Error('web-ym2151 のロードに失敗しました'));
+            };
             document.body.appendChild(script);
             webYmScriptAdded = true;
+            webYmScriptEl = script;
         }
 
         (async () => {
             try {
                 await runtimeReady;
+                if (!isActive) return;
                 const audioModule = await import(
                     /* @vite-ignore */ 'https://cat2151.github.io/web-ym2151/dist/audio/index.js'
                 );
+                if (!isActive) return;
+                if (timeoutId) {
+                    window.clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
                 resolve({
                     playAudioWithOverlay: audioModule.playAudioWithOverlay,
                     clearAudioCache: audioModule.clearAudioCache,
                 });
             } catch (error) {
+                if (!isActive) return;
+                isActive = false;
+                cleanup();
                 reject(error);
             }
         })();

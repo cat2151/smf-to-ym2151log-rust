@@ -119,8 +119,8 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 ### WebAssembly（ブラウザ）での使用
 
-**オンラインデモ**: https://cat2151.github.io/smf-to-ym2151log-rust/ でブラウザから試せます
-**ディレイビブラート専用デモ**: https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html （別ページ）
+- オンラインデモ: https://cat2151.github.io/smf-to-ym2151log-rust/ でブラウザから試せます
+- ディレイビブラート専用デモ: https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html （別ページ）
 
 このデモは、MIDIファイル変換を伴う最小限のライブラリ使用を示しています。
 
