@@ -4,6 +4,7 @@
 
 use super::*;
 use crate::midi::MidiEvent;
+use crate::ym2151::{ToneDefinition, Ym2151Event};
 use crate::ConversionOptions;
 
 #[test]
@@ -226,6 +227,7 @@ fn test_delay_vibrato_generates_additional_pitch_events() {
 
     let options = ConversionOptions {
         delay_vibrato: true,
+        ..ConversionOptions::default()
     };
 
     let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
@@ -502,6 +504,56 @@ fn test_convert_program_change_unused_channel() {
     // Should only have events for channel 0
     // 8 KEY OFF + 26 channel 0 init + note on (3) + note off (1) = 38
     assert_eq!(result.event_count, 38);
+}
+
+#[test]
+fn test_convert_program_change_with_attachment_tone() {
+    // Program change should use tone definitions supplied via attachment JSON
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::ProgramChange {
+                ticks: 0,
+                channel: 0,
+                program: 99,
+            },
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 60,
+            },
+        ],
+    };
+
+    let mut options = ConversionOptions::default();
+    options.tones.insert(
+        99,
+        ToneDefinition {
+            events: vec![Ym2151Event {
+                time: 0.0,
+                addr: "0x20".to_string(),
+                data: "0xAB".to_string(),
+            }],
+        },
+    );
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    // 8 KEY OFF + 26 init + 1 attachment tone + note on (3) + note off (1) = 39
+    assert_eq!(result.event_count, 39);
+
+    let has_custom_tone = result.events.iter().any(|e| e.data == "0xAB");
+    assert!(
+        has_custom_tone,
+        "Attachment tone definition should be applied for program 99"
+    );
 }
 
 #[test]

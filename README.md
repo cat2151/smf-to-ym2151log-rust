@@ -114,10 +114,41 @@ You can use it as a library in other Rust projects:
 smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
+### Optional Attachment JSON (Delay Vibrato / Custom Tones)
+
+You can provide an optional attachment JSON to enable delayed vibrato or override YM2151 tone definitions (keyed by MIDI program number). Use the helper APIs:
+
+- Rust: `convert_smf_to_ym2151_log_with_options(smf_bytes, Some(attachment_json_bytes))`
+- WASM: `smf_to_ym2151_json_with_attachment(smf_bytes, attachment_json_bytes)`
+
+Attachment examples:
+
+```json
+{
+  "DelayVibrato": true
+}
+```
+
+```json
+{
+  "Tones": {
+    "0": {
+      "events": [
+        { "time": 0, "addr": "0x20", "data": "0xC7" },
+        { "time": 0, "addr": "0x60", "data": "0x10" }
+      ]
+    }
+  }
+}
+```
+
 Detailed API documentation: `cargo doc --open`
 
 ### WebAssembly (Browser) Usage
 
+**Online Demo**: Try it in your browser at https://cat2151.github.io/smf-to-ym2151log-rust/
+- Delay Vibrato demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html
+- Tone JSON demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/tone-json.html
 - Online demo: Try it in your browser at https://cat2151.github.io/smf-to-ym2151log-rust/
 - Delay Vibrato specific demo: https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html (separate page)
 

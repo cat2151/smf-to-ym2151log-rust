@@ -6,7 +6,7 @@
 use crate::midi::{midi_to_kc_kf, ticks_to_seconds_with_tempo_map, MidiEvent, TempoChange};
 use crate::ym2151::{
     apply_tone_to_channel, default_tone_events, load_tone_for_program, ChannelAllocation,
-    Ym2151Event,
+    ToneDefinition, Ym2151Event,
 };
 use std::collections::{HashMap, HashSet};
 
@@ -44,6 +44,8 @@ pub struct EventProcessorContext<'a> {
     pub vibrato_active_notes: Option<&'a mut HashMap<(u8, u8), NoteOnInfo>>,
     /// Completed note spans for optional vibrato processing
     pub vibrato_completed_notes: Option<&'a mut Vec<NoteSegment>>,
+    /// Optional tone definitions provided via attachment JSON
+    pub attachment_tones: Option<&'a HashMap<u8, ToneDefinition>>,
 }
 
 /// Process a Note On MIDI event
@@ -215,16 +217,19 @@ pub fn process_program_change(
 
     // Apply program change to all allocated YM2151 channels for this MIDI channel
     for &ym2151_channel in ym_channels {
-        // Try to load tone from external file, fallback to default
-        let tone_events = match load_tone_for_program(program) {
-            Ok(Some(tone)) => {
-                // Apply the loaded tone to the channel
-                apply_tone_to_channel(&tone, ym2151_channel, time_seconds)
-            }
-            Ok(None) | Err(_) => {
-                // Use default tone if file doesn't exist or can't be loaded
-                default_tone_events(ym2151_channel, time_seconds)
-            }
+        let load_or_default = || match load_tone_for_program(program) {
+            Ok(Some(tone)) => apply_tone_to_channel(&tone, ym2151_channel, time_seconds),
+            Ok(None) | Err(_) => default_tone_events(ym2151_channel, time_seconds),
+        };
+
+        // Prefer tone definitions supplied via attachment JSON, fallback to file or default tone
+        let tone_events = if let Some(tone_map) = ctx.attachment_tones {
+            tone_map
+                .get(&program)
+                .map(|tone| apply_tone_to_channel(tone, ym2151_channel, time_seconds))
+                .unwrap_or_else(load_or_default)
+        } else {
+            load_or_default()
         };
 
         // Add the tone change events
@@ -296,6 +301,7 @@ mod tests {
             channel_programs,
             vibrato_active_notes: None,
             vibrato_completed_notes: None,
+            attachment_tones: None,
         }
     }
 

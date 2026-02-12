@@ -45,7 +45,7 @@ pub fn smf_to_ym2151_json(smf_data: &[u8]) -> String {
 /// Convert SMF binary data to YM2151 register log JSON with optional attachment JSON
 ///
 /// The second argument accepts an attachment JSON payload that can enable features such as
-/// delayed vibrato. Pass an empty array when no attachment is available.
+/// delayed vibrato or custom tone definitions. Pass an empty array when no attachment is available.
 #[cfg(feature = "wasm")]
 #[cfg_attr(all(feature = "wasm", target_arch = "wasm32"), wasm_bindgen)]
 pub fn smf_to_ym2151_json_with_attachment(smf_data: &[u8], attachment_json: &[u8]) -> String {
