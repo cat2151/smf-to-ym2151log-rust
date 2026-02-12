@@ -4,6 +4,7 @@
 
 use super::*;
 use crate::midi::MidiEvent;
+use crate::ConversionOptions;
 
 #[test]
 fn test_convert_empty_midi() {
@@ -201,6 +202,55 @@ fn test_key_off_register_format() {
 
     // 0x00 = all operators off, channel 0
     assert_eq!(key_off.data, "0x00");
+}
+
+#[test]
+fn test_delay_vibrato_generates_additional_pitch_events() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 69, // A4 (440 Hz)
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 1920, // 2 seconds at 120 BPM
+                channel: 0,
+                note: 69,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        delay_vibrato: true,
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    // Vibrato should emit KC/KF writes after the 200ms delay
+    let kc_events_after_delay: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time > 0.2)
+        .collect();
+    assert!(
+        !kc_events_after_delay.is_empty(),
+        "KC events should include vibrato modulation after delay"
+    );
+
+    // Some KF events should deviate from the base (0) once vibrato ramps in
+    let non_zero_kf_after_delay: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x30" && e.time > 0.2 && e.data != "0x00")
+        .collect();
+    assert!(
+        !non_zero_kf_after_delay.is_empty(),
+        "KF events should include fractional pitch changes from vibrato"
+    );
 }
 
 #[test]

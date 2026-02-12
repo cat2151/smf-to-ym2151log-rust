@@ -10,6 +10,24 @@ use crate::ym2151::{
 };
 use std::collections::{HashMap, HashSet};
 
+/// Tracks a note-on event for later vibrato processing
+#[derive(Debug, Clone)]
+pub struct NoteOnInfo {
+    pub start_tick: u32,
+    pub start_time: f64,
+}
+
+/// Captures a full note span on a specific YM2151 channel
+#[derive(Debug, Clone)]
+pub struct NoteSegment {
+    pub ym2151_channel: u8,
+    pub note: u8,
+    pub start_tick: u32,
+    pub end_tick: u32,
+    pub start_time: f64,
+    pub end_time: f64,
+}
+
 /// Context for processing MIDI events
 pub struct EventProcessorContext<'a> {
     /// Ticks per beat from MIDI file
@@ -22,6 +40,10 @@ pub struct EventProcessorContext<'a> {
     pub active_notes: &'a mut HashSet<(u8, u8)>,
     /// Current program per YM2151 channel
     pub channel_programs: &'a mut HashMap<u8, u8>,
+    /// Active note timings for optional vibrato processing
+    pub vibrato_active_notes: Option<&'a mut HashMap<(u8, u8), NoteOnInfo>>,
+    /// Completed note spans for optional vibrato processing
+    pub vibrato_completed_notes: Option<&'a mut Vec<NoteSegment>>,
 }
 
 /// Process a Note On MIDI event
@@ -90,6 +112,15 @@ pub fn process_note_on(
     });
 
     ctx.active_notes.insert((ym2151_channel, note));
+    if let Some(active_map) = ctx.vibrato_active_notes.as_deref_mut() {
+        active_map.insert(
+            (ym2151_channel, note),
+            NoteOnInfo {
+                start_tick: ticks,
+                start_time: time_seconds,
+            },
+        );
+    }
 
     events
 }
@@ -132,6 +163,21 @@ pub fn process_note_off(
             });
 
             ctx.active_notes.remove(&(ym2151_channel, note));
+            if let (Some(active_map), Some(completed)) = (
+                ctx.vibrato_active_notes.as_deref_mut(),
+                ctx.vibrato_completed_notes.as_deref_mut(),
+            ) {
+                if let Some(note_on) = active_map.remove(&(ym2151_channel, note)) {
+                    completed.push(NoteSegment {
+                        ym2151_channel,
+                        note,
+                        start_tick: note_on.start_tick,
+                        end_tick: ticks,
+                        start_time: note_on.start_time,
+                        end_time: time_seconds,
+                    });
+                }
+            }
             break; // Only turn off one voice
         }
     }
@@ -248,6 +294,8 @@ mod tests {
             allocation,
             active_notes,
             channel_programs,
+            vibrato_active_notes: None,
+            vibrato_completed_notes: None,
         }
     }
 

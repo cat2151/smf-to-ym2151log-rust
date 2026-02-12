@@ -138,6 +138,22 @@ Converts Standard MIDI File binary data to YM2151 register log JSON.
 }
 ```
 
+### `smf_to_ym2151_json_with_attachment(smf_data: Uint8Array, attachment_json: Uint8Array): string`
+
+Converts SMF data while honoring an optional attachment JSON payload (e.g., enabling delayed vibrato).
+
+**Parameters:**
+- `smf_data`: Uint8Array - The binary content of a MIDI file
+- `attachment_json`: Uint8Array - Attachment JSON bytes. Pass an empty array when no attachment is provided.
+
+**Example attachment:**
+
+```json
+{
+  "DelayVibrato": true
+}
+```
+
 ## Output Format
 
 The YM2151 register log JSON has the following structure:

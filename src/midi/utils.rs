@@ -4,6 +4,33 @@
 
 use crate::ym2151::note_table::NOTE_TABLE;
 
+/// Convert MIDI note number to frequency in Hz (A4 = 440 Hz)
+pub fn midi_note_to_frequency(midi_note: u8) -> f64 {
+    440.0 * 2_f64.powf((midi_note as f64 - 69.0) / 12.0)
+}
+
+/// Convert MIDI note with a cent offset to YM2151 KC (Key Code) and KF (Key Fraction)
+pub fn midi_note_with_offset_to_kc_kf(midi_note: u8, cents_offset: f64) -> (u8, u8) {
+    // Convert cents to fractional MIDI note offset
+    let target_note = (midi_note as f64) + cents_offset / 100.0;
+    let clamped_note = target_note.clamp(0.0, 127.0);
+
+    // Align with the existing -1 MIDI offset used for YM2151 mapping
+    let adjusted = (clamped_note - 1.0).max(0.0);
+    let base_note = adjusted.floor() as u8;
+    let fractional = adjusted - base_note as f64;
+
+    let note_in_octave = (base_note % 12) as usize;
+    let ym_octave = ((base_note / 12) as i8 - 2).clamp(0, 7) as u8;
+    let ym_note = NOTE_TABLE[note_in_octave];
+    let kc = (ym_octave << 4) | ym_note;
+
+    // KF steps are 1/64 of a semitone on YM2151
+    let kf = (fractional * 64.0).round().clamp(0.0, 63.0) as u8;
+
+    (kc, kf)
+}
+
 /// Convert MIDI note to YM2151 KC (Key Code) and KF (Key Fraction)
 ///
 /// # Arguments
@@ -345,6 +372,30 @@ mod tests {
                 midi_note
             );
         }
+    }
+
+    #[test]
+    fn test_midi_note_to_frequency_a440() {
+        let freq = midi_note_to_frequency(69);
+        assert!((freq - 440.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_midi_note_with_offset_zero_matches_base() {
+        let base = midi_to_kc_kf(60);
+        let with_offset = midi_note_with_offset_to_kc_kf(60, 0.0);
+        assert_eq!(base, with_offset);
+    }
+
+    #[test]
+    fn test_midi_note_with_offset_positive_and_negative() {
+        let up = midi_note_with_offset_to_kc_kf(60, 100.0);
+        let up_expected = midi_to_kc_kf(61);
+        assert_eq!(up.0, up_expected.0);
+
+        let down = midi_note_with_offset_to_kc_kf(60, -100.0);
+        let down_expected = midi_to_kc_kf(59);
+        assert_eq!(down.0, down_expected.0);
     }
 
     // Timing conversion tests
