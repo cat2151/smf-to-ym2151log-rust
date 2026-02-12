@@ -42,6 +42,7 @@ const conversionStatus = document.getElementById('conversion-status');
 const attachmentStatus = document.getElementById('attachment-status');
 const fileStatus = document.getElementById('file-status');
 const eventCount = document.getElementById('event-count');
+const jsonEditor = document.getElementById('jsonEditor') as HTMLTextAreaElement | null;
 const playButton = document.getElementById('play-audio') as HTMLButtonElement | null;
 const webYmStatus = document.getElementById('web-ym-status');
 
@@ -63,6 +64,9 @@ function setEventCountDisplay(count?: number): void {
 function updateOutput(text: string): void {
     if (conversionOutput) {
         conversionOutput.textContent = text;
+    }
+    if (jsonEditor) {
+        jsonEditor.value = text;
     }
     currentOutput = text;
     if (webYmApiPromise) {
@@ -212,7 +216,6 @@ function ensureWebYm2151(): Promise<WebYmApi> {
                 const audioModule = await import(
                     /* @vite-ignore */ 'https://cat2151.github.io/web-ym2151/dist/audio/index.js'
                 );
-                if (!isActive) return;
                 if (timeoutId) {
                     window.clearTimeout(timeoutId);
                     timeoutId = null;
