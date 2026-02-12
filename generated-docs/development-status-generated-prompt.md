@@ -1,4 +1,4 @@
-Last updated: 2026-02-10
+Last updated: 2026-02-13
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -191,7 +191,8 @@ Last updated: 2026-02-10
 - .github/actions-tmp/issue-notes/29.md
 - .github/actions-tmp/issue-notes/3.md
 - .github/actions-tmp/issue-notes/30.md
-- .github/actions-tmp/issue-notes/31.md
+- .github/actions-tmp/issue-notes/35.md
+- .github/actions-tmp/issue-notes/38.md
 - .github/actions-tmp/issue-notes/4.md
 - .github/actions-tmp/issue-notes/7.md
 - .github/actions-tmp/issue-notes/8.md
@@ -216,53 +217,30 @@ Last updated: 2026-02-10
 - WASM_USAGE.md
 - _config.yml
 - demo-library/.gitignore
+- demo-library/delay-vibrato-demo.ts
+- demo-library/delay-vibrato.html
+- demo-library/globals.d.ts
 - demo-library/index.html
 - demo-library/library-demo.ts
 - demo-library/package-lock.json
 - demo-library/package.json
 - demo-library/style.css
+- demo-library/tone-json-demo.ts
+- demo-library/tone-json.html
 - demo-library/tsconfig.json
 - demo-library/vite.config.ts
 - generated-docs/project-overview-generated-prompt.md
 - googled947dc864c270e07.html
-- issue-notes/21.md
 - issue-notes/22.md
-- issue-notes/23.md
-- issue-notes/25.md
-- issue-notes/28.md
-- issue-notes/30.md
-- issue-notes/32.md
 - issue-notes/33.md
-- issue-notes/34.md
-- issue-notes/36.md
-- issue-notes/38.md
-- issue-notes/39.md
-- issue-notes/41.md
-- issue-notes/43.md
 - issue-notes/45.md
 - issue-notes/47.md
-- issue-notes/49.md
-- issue-notes/51.md
-- issue-notes/53.md
-- issue-notes/55.md
-- issue-notes/57.md
-- issue-notes/58.md
-- issue-notes/61.md
-- issue-notes/63.md
-- issue-notes/65.md
 - issue-notes/66-resolution.md
-- issue-notes/66.md
-- issue-notes/68.md
 - issue-notes/70.md
-- issue-notes/72.md
-- issue-notes/74.md
-- issue-notes/75.md
-- issue-notes/77.md
-- issue-notes/79.md
-- issue-notes/81.md
 - issue-notes/83.md
-- issue-notes/84.md
-- issue-notes/88.md
+- issue-notes/90.md
+- issue-notes/91.md
+- issue-notes/93.md
 - package-lock.json
 - package.json
 - src/error.rs
@@ -822,37 +800,42 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-b30493b Merge pull request #89 from cat2151/copilot/create-workflow-a-for-wasm-deploy
-de6e226 Address PR review feedback on deploy-demo.yml
-0aaa842 Split deploy workflow into Workflow A (WASM) and Workflow B (demo)
-619e462 Initial plan
-d30d9f4 Add issue note for #88 [auto]
-6552194 Update project summaries (overview & development status) [auto]
-46391ed Merge pull request #85 from cat2151/codex/fix-install-build-process
-e22ba7f Switch to direct CDN pkg fetch and update instructions
-f2d09eb Serve prebuilt pkg from Pages and fetch on install
-fdd479e Address review feedback on wasm-pack dependency and docs
+b33378c Merge pull request #95 from cat2151/codex/add-json-parameter-for-tone
+1458ccf Merge branch 'main' into codex/add-json-parameter-for-tone
+6414c14 Fix tone demo playback wiring
+b636bb0 Add attachment tone support and tone demo
+e99a250 Auto-translate README.ja.md to README.md [auto]
+fe1a9d2 Initial plan
+2d24bc1 Merge pull request #94 from cat2151/codex/add-delay-vibrato-demo-page
+c84927f fix: add timeout/cleanup and accessibility adjustments
+38249d5 feat: add delay vibrato demo page
+824774c Revise sound data format and add JSON demo page
 
 ### 変更されたファイル:
-.github/workflows/deploy-demo.yml
-.github/workflows/deploy-pages.yml
-.github/workflows/deploy-wasm.yml
 README.ja.md
 README.md
-demo-library/README.md
+WASM_USAGE.md
+demo-library/delay-vibrato-demo.ts
+demo-library/delay-vibrato.html
+demo-library/globals.d.ts
 demo-library/index.html
 demo-library/library-demo.ts
 demo-library/package-lock.json
 demo-library/package.json
-generated-docs/development-status-generated-prompt.md
-generated-docs/development-status.md
-generated-docs/project-overview-generated-prompt.md
-generated-docs/project-overview.md
-issue-notes/84.md
-issue-notes/88.md
-package-lock.json
-package.json
+demo-library/style.css
+demo-library/tone-json-demo.ts
+demo-library/tone-json.html
+demo-library/tsconfig.json
+demo-library/vite.config.ts
+issue-notes/90.md
+issue-notes/93.md
+src/lib.rs
+src/midi/utils.rs
+src/wasm.rs
+src/ym2151/converter.rs
+src/ym2151/converter_tests.rs
+src/ym2151/event_processor.rs
 
 
 ---
-Generated at: 2026-02-10 07:16:01 JST
+Generated at: 2026-02-13 07:12:04 JST

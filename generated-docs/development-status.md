@@ -1,51 +1,63 @@
-Last updated: 2026-02-10
+Last updated: 2026-02-13
 
 # Development Status
 
 ## 現在のIssues
-- デフォルト音色データ([Issue #83](../issue-notes/83.md))が未整備で和音SMFがsine wave再生に限られるため、ym2151-tone-editorからのGM000 variations format JSONを優先的に読み込む仕様([Issue #33](../issue-notes/33.md))の追加が求められています。
-- これには、ym2151-tone-editorを使用して`tones/000.json`～`127.json`を作成・配置し、音色データの種類を増やす作業([Issue #22](../issue-notes/22.md))が先行します。
-- 最終的に、別リポジトリ(web-ym2151)での音色デモとMML演奏デモの実施が対策案として挙げられています。
+- デフォルト音色データ ([Issue #83](../issue-notes/83.md), [Issue #22](../issue-notes/22.md)) が未整備で、和音SMFがsine waveでしか鳴らせない現状がある。
+- `ym2151-tone-editor`で作成されたGM000 variations formatのJSONを、既存の`tones/`ディレクトリより優先して読み込む仮仕様 ([Issue #33](../issue-notes/33.md)) の導入が検討されている。
+- ブラウザでのランダム音色・MML演奏デモは別リポジトリ(`web-ym2151`)での実施 ([Issue #83](../issue-notes/83.md)) が計画されている。
 
 ## 次の一手候補
-1.  ym2151-tone-editorの出力形式JSON（GM000 variations format）を既存`tones/`より優先して読み込む機能の実装 ([Issue #33](../issue-notes/33.md))
-    -   最初の小さな一歩: `src/ym2151/init.rs`などの既存音色読み込み処理を分析し、外部パスからの優先ロードロジック追加の設計案を作成する。
+1.  デフォルト音色データの簡易作成と配置（[Issue #22](../issue-notes/22.md), [Issue #83](../issue-notes/83.md)）
+    -   最初の小さな一歩: `tones/000.json`を参考に、いくつかの基本的なGM音色（例: Piano, Organ, Guitarなど）のダミーJSONファイルを`tones/`ディレクトリに作成し、既存の`tones/000.json`と同様の構造で配置する。
     -   Agent実行プロンプ:
         ```
-        対象ファイル: `src/ym2151/init.rs`, `src/ym2151/tone.rs`, `src/ym2151/mod.rs`
+        対象ファイル: `tones/000.json`、および新しく作成する`tones/`ディレクトリ内のJSONファイル群、`tones/README.md`
 
-        実行内容: `src/ym2151`内の音色データ読み込みロジックを分析し、外部パスから指定されたJSONファイルを既存の`tones/`ディレクトリよりも優先してロードするための設計案をmarkdown形式で出力してください。特に、既存の`tones/`ディレクトリのパス管理と、新しい優先パスの追加方法について詳細に記述してください。
+        実行内容: `tones/000.json`の内容をベースに、以下のGM音色番号に対応するダミーJSONファイルを作成してください。内容は`000.json`と同一で構いません。
+        - 001.json (Acoustic Grand Piano)
+        - 002.json (Bright Acoustic Piano)
+        - 005.json (Electric Piano 1)
+        - 025.json (Acoustic Guitar (nylon))
+        また、`tones/README.md`に、これらのダミーファイルが手動生成されたものであり、将来的には`ym2151-tone-editor`で生成された実際の音色データに置き換えられる予定である旨を追記してください。
 
-        確認事項: 既存の音色データロード処理との競合がないか、ファイルI/Oエラーハンドリングが適切に考慮されているか、パフォーマンスへの影響がないかを確認してください。
+        確認事項: 生成するJSONファイル名がGM音色番号と一致していること。`tones/README.md`の記述が明確であること。
 
-        期待する出力: 優先読み込み機能を実現するためのAPI（例: `load_tone_from_path(path: &str)`）の提案と、それを既存のシステムに統合するための変更点の概要をmarkdown形式で提供してください。
+        期待する出力: 新しく作成されるJSONファイル群（`tones/001.json`, `tones/002.json`, `tones/005.json`, `tones/025.json`）のMarkdownコードブロックと、`tones/README.md`の更新内容を示すMarkdown変更提案。
         ```
 
-2.  ym2151-tone-editorを利用したデフォルト音色データ(GM000-127)の生成と仮配置 ([Issue #22](../issue-notes/22.md))
-    -   最初の小さな一歩: `tones/000.json`の構造を参考に、`tones/001.json`と`tones/002.json`のダミー音色JSONファイルを2つ生成し、`tones/`ディレクトリに仮配置する。
+2.  `ym2151-tone-editor`出力JSONの優先読み込みロジックの仮実装（[Issue #33](../issue-notes/33.md)）
+    -   最初の小さな一歩: 音色読み込みの中心となるファイル（例: `src/ym2151/tone.rs`や`src/lib.rs`）を特定し、現在の`tones/`からの読み込みパスに加えて、仮の優先パス（例: `editor_tones/`）からの読み込みを試みるスケルトンコードを追加する。
     -   Agent実行プロンプ:
         ```
-        対象ファイル: `tones/`ディレクトリ
+        対象ファイル: `src/lib.rs`, `src/ym2151/tone.rs`, `src/ym2151/converter.rs` (音色読み込みロジックに関連する可能性のあるファイル)
 
-        実行内容: `tones/000.json`の構造を分析し、これを参考に`tones/001.json`と`tones/002.json`の2つのダミー音色JSONファイルを作成してください。これらのファイルは、`ym2151-tone-editor`で生成される形式を模倣し、異なる音色設定を示すように適当な値を設定してください。
+        実行内容: `src/ym2151/tone.rs`または`src/lib.rs`内で、音色JSONファイルを読み込む現在のロジックを分析し、以下の仕様を満たすように仮の優先読み込みパスを追加してください。
+        1. 任意の音色番号（例: 000）について、まず`editor_tones/000.json`というパスからのファイル読み込みを試みる。
+        2. もし`editor_tones/000.json`が存在しなかった場合、または読み込みに失敗した場合に限り、既存の`tones/000.json`からの読み込みにフォールバックする。
+        3. `editor_tones/`パスは、最初はハードコードで構いません。
 
-        確認事項: 生成されるJSONファイルが`tones/000.json`と同様の構造と`events`配列を持っていることを確認してください。また、既存のファイルに上書きしないように注意してください。
+        確認事項: 既存の音色読み込み処理（`tones/`からの読み込み）が、新しいロジックによって意図せず破壊されないこと。ファイルI/Oエラーハンドリングが適切に行われること。
 
-        期待する出力: `tones/001.json`と`tones/002.json`のファイル内容をmarkdownコードブロックで出力し、それらを`tones/`ディレクトリに配置することを提案してください。
+        期待する出力: 提案されるRustコードスニペットと、関連ファイルの変更差分をMarkdown形式で記述。
         ```
 
-3.  既存音色データを用いた和音再生の検証と、sine wave以外の音色適用ロジックの改善 ([Issue #83](../issue-notes/83.md))
-    -   最初の小さな一歩: `src/ym2151/channel_allocation.rs` や `src/ym2151/event_processor.rs` を中心に、和音再生時の音色割り当てロジックを分析し、`tones/000.json`がどのように適用されているか（またはされていないか）を特定する。
+3.  音色データ読み込みの統合テストケースの追加（[Issue #83](../issue-notes/83.md)関連）
+    -   最初の小さな一歩: `tests/integration_tests.rs`に、異なる音色データファイル（例えば、デフォルトの`tones/000.json`と、`editor_tones/000.json`という別の内容のファイルがある状況をシミュレートする）を読み込み、期待される音色がロードされているかを確認する簡単なテストケースを追加する。
     -   Agent実行プロンプ:
         ```
-        対象ファイル: `src/ym2151/channel_allocation.rs`, `src/ym2151/event_processor.rs`, `src/ym2151/converter.rs`, `src/midi/parser.rs`
+        対象ファイル: `tests/integration_tests.rs`, `src/ym2151/tone.rs` (テストに必要な公開APIの確認のため)
 
-        実行内容: これらのファイル群において、MIDIメッセージからYM2151のレジスタ設定への変換、特に音色（program change）と和音（multiple notes on a single channel or across channels）の処理ロジックを分析し、`tones/000.json`のようなカスタム音色データがどのように利用されているか、またはなぜsine waveに限定されているのかを調査してください。現在の挙動と期待される挙動のギャップを特定し、改善点があれば提案してください。
+        実行内容: `tests/integration_tests.rs`に、音色読み込みロジック（特にIssue #33で提案されている優先読み込み）の動作を検証する新しい統合テストケースを追加してください。
+        このテストは、以下のシナリオをカバーするものとします。
+        1. ダミーの`editor_tones/000.json`ファイルを一時的に作成し、それが`tones/000.json`よりも優先して読み込まれることを確認する。
+        2. `editor_tones/000.json`が存在しない場合に、`tones/000.json`が正しく読み込まれることを確認する。
+        テストに必要なダミーファイルは、テストケース内で作成・削除してください。
 
-        確認事項: MIDI `Program Change`イベントがYM2151の音色設定にどのようにマッピングされているか、`tones/`ディレクトリのJSONデータが実際にロードされ、レジスタに適用されているかのコードパスを確認してください。
+        確認事項: テストが既存のテストスイートに影響を与えないこと。テストデータとして使用するJSONファイルの内容は簡潔で、テストの意図を明確に表すものであること。
 
-        期待する出力: 既存の音色データロード/適用フローの現状分析結果と、和音再生時にsine wave以外の音色を正しく適用するための具体的な改善提案（コード変更の概要または擬似コード）をmarkdown形式で出力してください。
+        期待する出力: `tests/integration_tests.rs`に追加されるRustテストコードのMarkdownブロック。
         ```
 
 ---
-Generated at: 2026-02-10 07:16:22 JST
+Generated at: 2026-02-13 07:12:22 JST

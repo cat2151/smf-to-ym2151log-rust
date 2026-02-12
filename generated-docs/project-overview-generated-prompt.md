@@ -1,4 +1,4 @@
-Last updated: 2026-02-10
+Last updated: 2026-02-13
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -182,7 +182,8 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 ### WebAssembly（ブラウザ）での使用
 
-**オンラインデモ**: https://cat2151.github.io/smf-to-ym2151log-rust/ でブラウザから試せます
+- オンラインデモ: https://cat2151.github.io/smf-to-ym2151log-rust/ でブラウザから試せます
+- ディレイビブラート専用デモ: https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html （別ページ）
 
 このデモは、MIDIファイル変換を伴う最小限のライブラリ使用を示しています。
 
@@ -309,7 +310,6 @@ cargo audit
 ```
 
 
-
 依存関係:
 {
   "dependencies": {},
@@ -327,54 +327,31 @@ cargo audit
 📄 _config.yml
 📁 demo-library/
   📄 .gitignore
+  📘 delay-vibrato-demo.ts
+  🌐 delay-vibrato.html
+  📘 globals.d.ts
   🌐 index.html
   📘 library-demo.ts
   📊 package-lock.json
   📊 package.json
   🎨 style.css
+  📘 tone-json-demo.ts
+  🌐 tone-json.html
   📊 tsconfig.json
   📘 vite.config.ts
 📁 generated-docs/
 🌐 googled947dc864c270e07.html
 📁 issue-notes/
-  📖 21.md
   📖 22.md
-  📖 23.md
-  📖 25.md
-  📖 28.md
-  📖 30.md
-  📖 32.md
   📖 33.md
-  📖 34.md
-  📖 36.md
-  📖 38.md
-  📖 39.md
-  📖 41.md
-  📖 43.md
   📖 45.md
   📖 47.md
-  📖 49.md
-  📖 51.md
-  📖 53.md
-  📖 55.md
-  📖 57.md
-  📖 58.md
-  📖 61.md
-  📖 63.md
-  📖 65.md
   📖 66-resolution.md
-  📖 66.md
-  📖 68.md
   📖 70.md
-  📖 72.md
-  📖 74.md
-  📖 75.md
-  📖 77.md
-  📖 79.md
-  📖 81.md
   📖 83.md
-  📖 84.md
-  📖 88.md
+  📖 90.md
+  📖 91.md
+  📖 93.md
 📊 package-lock.json
 📊 package.json
 📁 src/
@@ -412,67 +389,103 @@ cargo audit
   📖 README.md
 
 ## ファイル詳細分析
-**demo-library/index.html** (40行, 1558バイト)
+**demo-library/delay-vibrato-demo.ts** (316行, 9972バイト)
+  - 関数: setStatus, setEventCountDisplay, updateOutput, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, ensureWebYm2151, handlePlay, setupAttachmentEditor, setupMidiInput, bootstrapWebYm, main, cleanup, if, catch, addEventListener
+  - インポート: なし
+
+**demo-library/delay-vibrato.html** (51行, 1828バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/library-demo.ts** (118行, 4037バイト)
-  - 関数: initWasm, displayResult, showError, setupFileInput, catch, if
-  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js
+**demo-library/globals.d.ts** (5行, 169バイト)
+  - 関数: playAudioWithOverlay, clearAudioCache
+  - インポート: なし
 
-**demo-library/style.css** (96行, 1508バイト)
+**demo-library/index.html** (46行, 1967バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/vite.config.ts** (14行, 255バイト)
+**demo-library/library-demo.ts** (132行, 4561バイト)
+  - 関数: initWasm, displayResult, showError, readAttachmentBytes, setupFileInput, catch, if
+  - インポート: なし
+
+**demo-library/style.css** (183行, 2891バイト)
   - 関数: なし
-  - インポート: vite
+  - インポート: なし
+
+**demo-library/tone-json-demo.ts** (324行, 10175バイト)
+  - 関数: setStatus, setEventCountDisplay, updateOutput, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, ensureWebYm2151, handlePlay, setupAttachmentEditor, setupMidiInput, bootstrapWebYm, main, cleanup, if, catch, addEventListener
+  - インポート: なし
+
+**demo-library/tone-json.html** (52行, 1816バイト)
+  - 関数: なし
+  - インポート: なし
+
+**demo-library/vite.config.ts** (22行, 507バイト)
+  - 関数: なし
+  - インポート: vite, path
 
 **googled947dc864c270e07.html** (1行, 53バイト)
   - 関数: なし
   - インポート: なし
 
 ## 関数呼び出し階層
-- catch (demo-library/library-demo.ts)
+- if (demo-library/delay-vibrato-demo.ts)
+  - setStatus (demo-library/delay-vibrato-demo.ts)
+    - setEventCountDisplay ()
+      - updateOutput ()
+      - updatePlayButtonState ()
+      - initializeWasm ()
+      - readAttachmentBytes ()
+      - runConversion ()
+      - ensureWebYm2151 ()
+      - handlePlay ()
+      - setupAttachmentEditor ()
+      - setupMidiInput ()
+      - bootstrapWebYm ()
+      - main ()
+      - cleanup ()
+      - catch ()
+      - addEventListener ()
+      - playAudioWithOverlay ()
+      - clearAudioCache ()
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
       - setupFileInput ()
-- if (demo-library/library-demo.ts)
 
 
 ## プロジェクト構造（ファイル一覧）
 README.ja.md
 README.md
 WASM_USAGE.md
+demo-library/delay-vibrato-demo.ts
+demo-library/delay-vibrato.html
+demo-library/globals.d.ts
 demo-library/index.html
 demo-library/library-demo.ts
 demo-library/package-lock.json
 demo-library/package.json
 demo-library/style.css
+demo-library/tone-json-demo.ts
+demo-library/tone-json.html
 demo-library/tsconfig.json
 demo-library/vite.config.ts
 googled947dc864c270e07.html
-issue-notes/21.md
 issue-notes/22.md
-issue-notes/23.md
-issue-notes/25.md
-issue-notes/28.md
-issue-notes/30.md
-issue-notes/32.md
 issue-notes/33.md
-issue-notes/34.md
-issue-notes/36.md
-issue-notes/38.md
-issue-notes/39.md
-issue-notes/41.md
-issue-notes/43.md
 issue-notes/45.md
 issue-notes/47.md
-issue-notes/49.md
-issue-notes/51.md
-issue-notes/53.md
+issue-notes/66-resolution.md
+issue-notes/70.md
+issue-notes/83.md
+issue-notes/90.md
+issue-notes/91.md
+issue-notes/93.md
 package-lock.json
+package.json
+tones/000.json
+tones/README.md
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
 特に以下の点を重視してください：
@@ -484,4 +497,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-02-10 07:16:01 JST
+Generated at: 2026-02-13 07:12:04 JST
