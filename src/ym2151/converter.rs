@@ -161,13 +161,7 @@ pub fn convert_to_ym2151_log_with_options(
         append_delay_vibrato_events(&vibrato_segments, &mut ym2151_events);
     }
 
-    ym2151_events.sort_by(|a, b| {
-        a.time
-            .partial_cmp(&b.time)
-            .unwrap_or(Ordering::Equal)
-            .then_with(|| a.addr.cmp(&b.addr))
-            .then_with(|| a.data.cmp(&b.data))
-    });
+    ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
 
     Ok(Ym2151Log {
         event_count: ym2151_events.len(),
