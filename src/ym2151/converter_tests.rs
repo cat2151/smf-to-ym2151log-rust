@@ -3,7 +3,7 @@
 //! These tests verify the conversion of MIDI events to YM2151 register write events.
 
 use super::*;
-use crate::midi::MidiEvent;
+use crate::midi::{midi_to_kc_kf, MidiEvent};
 use crate::ym2151::{ToneDefinition, Ym2151Event};
 use crate::ConversionOptions;
 
@@ -252,6 +252,72 @@ fn test_delay_vibrato_generates_additional_pitch_events() {
     assert!(
         !non_zero_kf_after_delay.is_empty(),
         "KF events should include fractional pitch changes from vibrato"
+    );
+}
+
+#[test]
+fn test_portamento_generates_pitch_glide_events() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::NoteOn {
+                ticks: 480,
+                channel: 0,
+                note: 67,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 960,
+                channel: 0,
+                note: 67,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        portamento: true,
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    // Collect KC events starting at the second note-on time (0.5 seconds)
+    let kc_events_after_second_on: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time >= 0.5)
+        .collect();
+    assert!(
+        kc_events_after_second_on.len() >= 2,
+        "Portamento should emit multiple KC steps during the glide"
+    );
+
+    let (kc_first, _) = midi_to_kc_kf(60);
+    let (kc_second, _) = midi_to_kc_kf(67);
+
+    // First KC in the glide should start from previous note
+    assert_eq!(
+        kc_events_after_second_on.first().unwrap().data,
+        format!("0x{:02X}", kc_first)
+    );
+    // Glide should reach the target KC
+    assert!(
+        kc_events_after_second_on
+            .iter()
+            .any(|e| e.data == format!("0x{:02X}", kc_second)),
+        "Glide should arrive at the target KC"
     );
 }
 

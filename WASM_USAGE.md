@@ -150,7 +150,8 @@ Converts SMF data while honoring an optional attachment JSON payload (e.g., enab
 
 ```json
 {
-  "DelayVibrato": true
+  "DelayVibrato": true,
+  "Portamento": true
 }
 ```
 

@@ -3,6 +3,7 @@
 //! This module handles the processing of individual MIDI events
 //! and converts them to YM2151 register write events.
 
+use crate::midi::{midi_note_to_frequency, midi_note_with_offset_to_kc_kf};
 use crate::midi::{midi_to_kc_kf, ticks_to_seconds_with_tempo_map, MidiEvent, TempoChange};
 use crate::ym2151::{
     apply_tone_to_channel, default_tone_events, load_tone_for_program, ChannelAllocation,
@@ -46,6 +47,10 @@ pub struct EventProcessorContext<'a> {
     pub vibrato_completed_notes: Option<&'a mut Vec<NoteSegment>>,
     /// Optional tone definitions provided via attachment JSON
     pub attachment_tones: Option<&'a HashMap<u8, ToneDefinition>>,
+    /// Whether portamento glides are enabled
+    pub portamento_enabled: bool,
+    /// Tracks previous note per YM2151 channel for portamento
+    pub portamento_previous_notes: Option<&'a mut HashMap<u8, u8>>,
 }
 
 /// Process a Note On MIDI event
@@ -92,19 +97,42 @@ pub fn process_note_on(
     let time_seconds = ticks_to_seconds_with_tempo_map(ticks, ctx.ticks_per_beat, ctx.tempo_map);
     let (kc, kf) = midi_to_kc_kf(note);
 
-    // Set KC (Key Code)
-    events.push(Ym2151Event {
-        time: time_seconds,
-        addr: format!("0x{:02X}", 0x28 + ym2151_channel),
-        data: format!("0x{:02X}", kc),
-    });
+    if ctx.portamento_enabled {
+        if let Some(prev_map) = ctx.portamento_previous_notes.as_deref_mut() {
+            if let Some(&prev_note) = prev_map.get(&ym2151_channel) {
+                append_portamento_events(
+                    prev_note,
+                    note,
+                    ym2151_channel,
+                    time_seconds,
+                    &mut events,
+                );
+            }
+            prev_map.insert(ym2151_channel, note);
+        }
+    }
 
-    // Set KF (Key Fraction)
-    events.push(Ym2151Event {
-        time: time_seconds,
-        addr: format!("0x{:02X}", 0x30 + ym2151_channel),
-        data: format!("0x{:02X}", kf),
-    });
+    // Set KC (Key Code)
+    if !(ctx.portamento_enabled
+        && ctx
+            .portamento_previous_notes
+            .as_ref()
+            .and_then(|m| m.get(&ym2151_channel))
+            .is_some())
+    {
+        events.push(Ym2151Event {
+            time: time_seconds,
+            addr: format!("0x{:02X}", 0x28 + ym2151_channel),
+            data: format!("0x{:02X}", kc),
+        });
+
+        // Set KF (Key Fraction)
+        events.push(Ym2151Event {
+            time: time_seconds,
+            addr: format!("0x{:02X}", 0x30 + ym2151_channel),
+            data: format!("0x{:02X}", kf),
+        });
+    }
 
     // Key ON (0x78 = all operators on)
     events.push(Ym2151Event {
@@ -125,6 +153,61 @@ pub fn process_note_on(
     }
 
     events
+}
+
+const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
+
+fn append_portamento_events(
+    prev_note: u8,
+    next_note: u8,
+    ym2151_channel: u8,
+    start_time: f64,
+    events: &mut Vec<Ym2151Event>,
+) {
+    if prev_note == next_note {
+        return;
+    }
+
+    let delta_cents = (next_note as f64 - prev_note as f64) * 100.0;
+    let time_step = 1.0 / midi_note_to_frequency(next_note).max(f64::EPSILON);
+    let mut time = start_time;
+    let mut last_values: Option<(u8, u8)> = None;
+
+    while time <= start_time + PORTAMENTO_TIME_SECONDS + f64::EPSILON {
+        let progress = ((time - start_time) / PORTAMENTO_TIME_SECONDS).clamp(0.0, 1.0);
+        let (kc, kf) = midi_note_with_offset_to_kc_kf(prev_note, delta_cents * progress);
+        let values = (kc, kf);
+
+        if Some(values) != last_values {
+            events.push(Ym2151Event {
+                time,
+                addr: format!("0x{:02X}", 0x28 + ym2151_channel),
+                data: format!("0x{:02X}", kc),
+            });
+            events.push(Ym2151Event {
+                time,
+                addr: format!("0x{:02X}", 0x30 + ym2151_channel),
+                data: format!("0x{:02X}", kf),
+            });
+            last_values = Some(values);
+        }
+
+        time += time_step;
+    }
+
+    let (target_kc, target_kf) = midi_to_kc_kf(next_note);
+    if Some((target_kc, target_kf)) != last_values {
+        events.push(Ym2151Event {
+            time: start_time + PORTAMENTO_TIME_SECONDS,
+            addr: format!("0x{:02X}", 0x28 + ym2151_channel),
+            data: format!("0x{:02X}", target_kc),
+        });
+        events.push(Ym2151Event {
+            time: start_time + PORTAMENTO_TIME_SECONDS,
+            addr: format!("0x{:02X}", 0x30 + ym2151_channel),
+            data: format!("0x{:02X}", target_kf),
+        });
+    }
 }
 
 /// Process a Note Off MIDI event
@@ -302,6 +385,8 @@ mod tests {
             vibrato_active_notes: None,
             vibrato_completed_notes: None,
             attachment_tones: None,
+            portamento_enabled: false,
+            portamento_previous_notes: None,
         }
     }
 

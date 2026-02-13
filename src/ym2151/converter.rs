@@ -120,6 +120,7 @@ pub fn convert_to_ym2151_log_with_options(
         None
     };
     let mut vibrato_segments: Vec<NoteSegment> = Vec::new();
+    let mut portamento_previous_notes: HashMap<u8, u8> = HashMap::new();
 
     {
         // Create event processor context
@@ -139,6 +140,12 @@ pub fn convert_to_ym2151_log_with_options(
                 None
             } else {
                 Some(&options.tones)
+            },
+            portamento_enabled: options.portamento,
+            portamento_previous_notes: if options.portamento {
+                Some(&mut portamento_previous_notes)
+            } else {
+                None
             },
         };
 
