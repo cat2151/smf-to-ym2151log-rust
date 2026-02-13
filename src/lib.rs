@@ -54,6 +54,9 @@ pub struct ConversionOptions {
     /// Enable delayed vibrato generation in the YM2151 log output
     #[serde(rename = "DelayVibrato", default)]
     pub delay_vibrato: bool,
+    /// Enable portamento glides between consecutive notes
+    #[serde(rename = "Portamento", default)]
+    pub portamento: bool,
     /// Optional YM2151 tone definitions keyed by MIDI program number
     #[serde(rename = "Tones", default)]
     pub tones: HashMap<u8, ToneDefinition>,

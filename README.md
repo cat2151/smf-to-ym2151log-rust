@@ -125,7 +125,8 @@ Attachment examples:
 
 ```json
 {
-  "DelayVibrato": true
+  "DelayVibrato": true,
+  "Portamento": true
 }
 ```
 
