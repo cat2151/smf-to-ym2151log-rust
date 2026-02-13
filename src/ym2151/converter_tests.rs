@@ -293,6 +293,20 @@ fn test_portamento_generates_pitch_glide_events() {
 
     let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
 
+    // First note should emit a KC write even with portamento enabled
+    let (kc_first, _) = midi_to_kc_kf(60);
+    let first_kc = result
+        .events
+        .iter()
+        .find(|e| {
+            e.addr == "0x28"
+                && (e.time - 0.0).abs() < f64::EPSILON
+                && e.data == format!("0x{:02X}", kc_first)
+        })
+        .map(|e| e.data.clone())
+        .expect("First note should set KC at time 0");
+    assert_eq!(first_kc, format!("0x{:02X}", kc_first));
+
     // Collect KC events starting at the second note-on time (0.5 seconds)
     let kc_events_after_second_on: Vec<_> = result
         .events
@@ -304,13 +318,14 @@ fn test_portamento_generates_pitch_glide_events() {
         "Portamento should emit multiple KC steps during the glide"
     );
 
-    let (kc_first, _) = midi_to_kc_kf(60);
     let (kc_second, _) = midi_to_kc_kf(67);
 
-    // First KC in the glide should start from previous note
-    assert_eq!(
-        kc_events_after_second_on.first().unwrap().data,
-        format!("0x{:02X}", kc_first)
+    // Glide should include the previous pitch before reaching the target
+    assert!(
+        kc_events_after_second_on
+            .iter()
+            .any(|e| e.data == format!("0x{:02X}", kc_first)),
+        "Glide should include the starting KC from the previous note"
     );
     // Glide should reach the target KC
     assert!(

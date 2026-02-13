@@ -22,6 +22,7 @@ const DELAY_VIBRATO_ATTACK_SECONDS: f64 = 0.3;
 const DELAY_VIBRATO_DEPTH_CENTS: f64 = 100.0;
 const DELAY_VIBRATO_RATE_HZ: f64 = 6.0;
 const VIBRATO_RELEASE_TAIL_SECONDS: f64 = 0.5;
+const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
 
 /// Convert MIDI events to YM2151 register write log
 ///
@@ -113,14 +114,14 @@ pub fn convert_to_ym2151_log_with_options(
     // Track active notes per YM2151 channel: set of (ym2151_channel, note) tuples
     let mut active_notes: HashSet<(u8, u8)> = HashSet::new();
 
-    // Optional vibrato tracking
-    let mut vibrato_active_notes = if options.delay_vibrato {
+    // Optional note tracking for vibrato/portamento
+    let need_note_segments = options.delay_vibrato || options.portamento;
+    let mut vibrato_active_notes = if need_note_segments {
         Some(HashMap::new())
     } else {
         None
     };
     let mut vibrato_segments: Vec<NoteSegment> = Vec::new();
-    let mut portamento_previous_notes: HashMap<u8, u8> = HashMap::new();
 
     {
         // Create event processor context
@@ -131,7 +132,7 @@ pub fn convert_to_ym2151_log_with_options(
             active_notes: &mut active_notes,
             channel_programs: &mut channel_programs,
             vibrato_active_notes: vibrato_active_notes.as_mut(),
-            vibrato_completed_notes: if options.delay_vibrato {
+            vibrato_completed_notes: if need_note_segments {
                 Some(&mut vibrato_segments)
             } else {
                 None
@@ -141,12 +142,6 @@ pub fn convert_to_ym2151_log_with_options(
             } else {
                 Some(&options.tones)
             },
-            portamento_enabled: options.portamento,
-            portamento_previous_notes: if options.portamento {
-                Some(&mut portamento_previous_notes)
-            } else {
-                None
-            },
         };
 
         for event in &midi_data.events {
@@ -155,7 +150,7 @@ pub fn convert_to_ym2151_log_with_options(
         }
     }
 
-    if options.delay_vibrato {
+    if need_note_segments {
         if let Some(active_map) = vibrato_active_notes {
             let end_time = ticks_to_seconds_with_tempo_map(last_tick, ticks_per_beat, &tempo_map);
             for ((ym_ch, note), note_on) in active_map.into_iter() {
@@ -169,8 +164,14 @@ pub fn convert_to_ym2151_log_with_options(
                 });
             }
         }
+    }
 
+    if options.delay_vibrato {
         append_delay_vibrato_events(&vibrato_segments, &mut ym2151_events);
+    }
+
+    if options.portamento {
+        append_portamento_events(&vibrato_segments, &mut ym2151_events);
     }
 
     ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
@@ -231,6 +232,87 @@ fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut Vec<Ym2151
 
             append_vibrato_for_segment(segment, stop_time, events);
         }
+    }
+}
+
+fn append_portamento_events(segments: &[NoteSegment], events: &mut Vec<Ym2151Event>) {
+    if segments.is_empty() {
+        return;
+    }
+
+    let mut segments_by_channel: HashMap<u8, Vec<&NoteSegment>> = HashMap::new();
+    for segment in segments {
+        segments_by_channel
+            .entry(segment.ym2151_channel)
+            .or_default()
+            .push(segment);
+    }
+
+    for list in segments_by_channel.values_mut() {
+        list.sort_by(|a, b| {
+            a.start_time
+                .partial_cmp(&b.start_time)
+                .unwrap_or(Ordering::Equal)
+        });
+    }
+
+    for list in segments_by_channel.values() {
+        for pair in list.windows(2) {
+            let prev = pair[0];
+            let next = pair[1];
+            let stop_time = (next.start_time + PORTAMENTO_TIME_SECONDS).min(next.end_time);
+            if stop_time <= next.start_time {
+                continue;
+            }
+            append_portamento_glide(
+                prev.note,
+                next.note,
+                next.ym2151_channel,
+                next.start_time,
+                stop_time,
+                events,
+            );
+        }
+    }
+}
+
+fn append_portamento_glide(
+    prev_note: u8,
+    next_note: u8,
+    ym2151_channel: u8,
+    start_time: f64,
+    stop_time: f64,
+    events: &mut Vec<Ym2151Event>,
+) {
+    if prev_note == next_note {
+        return;
+    }
+
+    let delta_cents = (next_note as f64 - prev_note as f64) * 100.0;
+    let time_step = 1.0 / midi_note_to_frequency(next_note).max(f64::EPSILON);
+    let mut time = start_time;
+    let mut last_values: Option<(u8, u8)> = None;
+
+    while time <= stop_time + f64::EPSILON {
+        let progress = ((time - start_time) / (stop_time - start_time)).clamp(0.0, 1.0);
+        let (kc, kf) = midi_note_with_offset_to_kc_kf(prev_note, delta_cents * progress);
+        let values = (kc, kf);
+
+        if Some(values) != last_values {
+            events.push(Ym2151Event {
+                time,
+                addr: format!("0x{:02X}", 0x28 + ym2151_channel),
+                data: format!("0x{:02X}", kc),
+            });
+            events.push(Ym2151Event {
+                time,
+                addr: format!("0x{:02X}", 0x30 + ym2151_channel),
+                data: format!("0x{:02X}", kf),
+            });
+            last_values = Some(values);
+        }
+
+        time += time_step;
     }
 }
 
