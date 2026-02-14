@@ -1,63 +1,50 @@
-Last updated: 2026-02-13
+Last updated: 2026-02-15
 
 # Development Status
 
 ## 現在のIssues
-- デフォルト音色データ ([Issue #83](../issue-notes/83.md), [Issue #22](../issue-notes/22.md)) が未整備で、和音SMFがsine waveでしか鳴らせない現状がある。
-- `ym2151-tone-editor`で作成されたGM000 variations formatのJSONを、既存の`tones/`ディレクトリより優先して読み込む仮仕様 ([Issue #33](../issue-notes/33.md)) の導入が検討されている。
-- ブラウザでのランダム音色・MML演奏デモは別リポジトリ(`web-ym2151`)での実施 ([Issue #83](../issue-notes/83.md)) が計画されている。
+- `deploy-demo`ワークフローが複数回失敗しており、安定化が最優先課題です([Issue #124](../issue-notes/124.md), [Issue #120](../issue-notes/120.md))。
+- 音色JSONフォーマットの改善、線形補間音色変化の実装、デモの自動再生機能追加など、音色表現とデモ体験の向上が進行中です([Issue #123](../issue-notes/123.md), [Issue #115](../issue-notes/115.md), [Issue #114](../issue-notes/114.md))。
+- `copilot-instructions.md`の日本語化とデプロイ構造の明確化、TypeScriptデモへのBiome導入も進められています([Issue #122](../issue-notes/122.md), [Issue #117](../issue-notes/117.md))。
 
 ## 次の一手候補
-1.  デフォルト音色データの簡易作成と配置（[Issue #22](../issue-notes/22.md), [Issue #83](../issue-notes/83.md)）
-    -   最初の小さな一歩: `tones/000.json`を参考に、いくつかの基本的なGM音色（例: Piano, Organ, Guitarなど）のダミーJSONファイルを`tones/`ディレクトリに作成し、既存の`tones/000.json`と同様の構造で配置する。
-    -   Agent実行プロンプ:
-        ```
-        対象ファイル: `tones/000.json`、および新しく作成する`tones/`ディレクトリ内のJSONファイル群、`tones/README.md`
+1. deploy-demoワークフローの失敗原因調査と修正 [Issue #124](../issue-notes/124.md), [Issue #120](../issue-notes/120.md)
+   - 最初の小さな一歩: 失敗したワークフローランのログを詳細に分析し、エラーが発生している具体的なステップとエラーメッセージを特定する。
+   - Agent実行プロンプ:
+     ```
+     対象ファイル: .github/workflows/deploy-pages.yml, demo-library/vite.config.ts, demo-library/package.json
 
-        実行内容: `tones/000.json`の内容をベースに、以下のGM音色番号に対応するダミーJSONファイルを作成してください。内容は`000.json`と同一で構いません。
-        - 001.json (Acoustic Grand Piano)
-        - 002.json (Bright Acoustic Piano)
-        - 005.json (Electric Piano 1)
-        - 025.json (Acoustic Guitar (nylon))
-        また、`tones/README.md`に、これらのダミーファイルが手動生成されたものであり、将来的には`ym2151-tone-editor`で生成された実際の音色データに置き換えられる予定である旨を追記してください。
+     実行内容: GitHub Actionsのワークフローラン https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/22018832539 と https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/22017670347 のログを詳細に分析し、`deploy-demo`ワークフローが失敗している具体的な原因を特定してください。特にエラーメッセージ、失敗したステップ、および関連するコードブロックに注目してください。
 
-        確認事項: 生成するJSONファイル名がGM音色番号と一致していること。`tones/README.md`の記述が明確であること。
+     確認事項: ログ内で参照されているスクリプトファイルや設定ファイル（例: `demo-library/vite.config.ts`, `demo-library/package.json` など）が存在し、それらに異常がないか。GitHub Pagesのデプロイ設定に最近変更がなかったか。
 
-        期待する出力: 新しく作成されるJSONファイル群（`tones/001.json`, `tones/002.json`, `tones/005.json`, `tones/025.json`）のMarkdownコードブロックと、`tones/README.md`の更新内容を示すMarkdown変更提案。
-        ```
+     期待する出力: 失敗の原因（例: 依存関係のインストール失敗、ビルドエラー、デプロイ権限の問題など）と、それを解決するための具体的な修正案をmarkdown形式で出力してください。
+     ```
 
-2.  `ym2151-tone-editor`出力JSONの優先読み込みロジックの仮実装（[Issue #33](../issue-notes/33.md)）
-    -   最初の小さな一歩: 音色読み込みの中心となるファイル（例: `src/ym2151/tone.rs`や`src/lib.rs`）を特定し、現在の`tones/`からの読み込みパスに加えて、仮の優先パス（例: `editor_tones/`）からの読み込みを試みるスケルトンコードを追加する。
-    -   Agent実行プロンプ:
-        ```
-        対象ファイル: `src/lib.rs`, `src/ym2151/tone.rs`, `src/ym2151/converter.rs` (音色読み込みロジックに関連する可能性のあるファイル)
+2. 音色JSONフォーマット変更とProgramChangeの自己記述性向上 [Issue #123](../issue-notes/123.md)
+   - 最初の小さな一歩: 現在の`tones/000.json`と`src/ym2151/converter.rs`の音色JSONパースロジックを分析し、新しいフォーマット（ProgramChangeを項目名にするなど）を定義する。
+   - Agent実行プロンプ:
+     ```
+     対象ファイル: tones/000.json, src/ym2151/converter.rs, demo-library/tone-json-demo.ts, demo-library/tone-json.html
 
-        実行内容: `src/ym2151/tone.rs`または`src/lib.rs`内で、音色JSONファイルを読み込む現在のロジックを分析し、以下の仕様を満たすように仮の優先読み込みパスを追加してください。
-        1. 任意の音色番号（例: 000）について、まず`editor_tones/000.json`というパスからのファイル読み込みを試みる。
-        2. もし`editor_tones/000.json`が存在しなかった場合、または読み込みに失敗した場合に限り、既存の`tones/000.json`からの読み込みにフォールバックする。
-        3. `editor_tones/`パスは、最初はハードコードで構いません。
+     実行内容: [Issue #123](../issue-notes/123.md) に基づき、音色JSONフォーマットを自己記述性を高める形（`ProgramChange`をJSON項目名にする）に変更するための設計案をmarkdown形式で作成してください。具体的には、新しいJSONスキーマの定義、および`src/ym2151/converter.rs`における既存のパースロジックへの影響と変更点の概要を含めてください。また、既存のデモファイル(`demo-library/tone-json-demo.ts`, `demo-library/tone-json.html`)への影響も考察してください。
 
-        確認事項: 既存の音色読み込み処理（`tones/`からの読み込み）が、新しいロジックによって意図せず破壊されないこと。ファイルI/Oエラーハンドリングが適切に行われること。
+     確認事項: 既存の`tones/`ディレクトリ内のJSONファイルとの互換性、および`src/ym2151/converter.rs`の他の音色関連ロジックへの副作用がないことを確認してください。
 
-        期待する出力: 提案されるRustコードスニペットと、関連ファイルの変更差分をMarkdown形式で記述。
-        ```
+     期待する出力: 新しい音色JSONフォーマットの定義（JSONスキーマ例）、`src/ym2151/converter.rs`の変更点概要、および`demo-library`内の関連ファイルに対する修正方針をmarkdown形式で出力してください。
+     ```
 
-3.  音色データ読み込みの統合テストケースの追加（[Issue #83](../issue-notes/83.md)関連）
-    -   最初の小さな一歩: `tests/integration_tests.rs`に、異なる音色データファイル（例えば、デフォルトの`tones/000.json`と、`editor_tones/000.json`という別の内容のファイルがある状況をシミュレートする）を読み込み、期待される音色がロードされているかを確認する簡単なテストケースを追加する。
-    -   Agent実行プロンプ:
-        ```
-        対象ファイル: `tests/integration_tests.rs`, `src/ym2151/tone.rs` (テストに必要な公開APIの確認のため)
+3. `copilot-instructions.md` の日本語化と最新情報反映、デプロイ構造の明示 [Issue #122](../issue-notes/122.md)
+   - 最初の小さな一歩: `copilot-instructions.md`の現在の内容を分析し、日本語化が必要な箇所、プロジェクトの最新状況（特に最近のRustコード分割やCI/CDの改善）を特定し、デプロイ関連の404エラー防止策として追加すべき情報（例: GitHub Pagesのパス構造）を洗い出す。
+   - Agent実行プロンプ:
+     ```
+     対象ファイル: README.md, .github/copilot-instructions.md, issue-notes/122.md, .github/workflows/deploy-pages.yml
 
-        実行内容: `tests/integration_tests.rs`に、音色読み込みロジック（特にIssue #33で提案されている優先読み込み）の動作を検証する新しい統合テストケースを追加してください。
-        このテストは、以下のシナリオをカバーするものとします。
-        1. ダミーの`editor_tones/000.json`ファイルを一時的に作成し、それが`tones/000.json`よりも優先して読み込まれることを確認する。
-        2. `editor_tones/000.json`が存在しない場合に、`tones/000.json`が正しく読み込まれることを確認する。
-        テストに必要なダミーファイルは、テストケース内で作成・削除してください。
+     実行内容: `copilot-instructions.md`を日本語化し、現在のプロジェクトの最新状況（特にRustコードの`src/ym2151/converter.rs`が`src/ym2151/converter/*.rs`に分割された点や、CI/CDに関する変更、デモのデプロイ状況）を反映するための改訂案をmarkdown形式で作成してください。また、GitHub Pagesでの404エラーを防ぐためのデプロイ構造に関する情報（例: `generated-docs/` の扱いやベースパス）も追加してください。
 
-        確認事項: テストが既存のテストスイートに影響を与えないこと。テストデータとして使用するJSONファイルの内容は簡潔で、テストの意図を明確に表すものであること。
+     確認事項: 既存の`README.md`との重複がないか、GitHub Copilotが理解しやすい表現になっているか、および提供されたファイル一覧でデプロイに関連するファイル（例: `_config.yml`, `demo-library/index.html`など）がどのようにGitHub Pagesに配置されるかを確認してください。
 
-        期待する出力: `tests/integration_tests.rs`に追加されるRustテストコードのMarkdownブロック。
-        ```
+     期待する出力: 日本語化された`copilot-instructions.md`のドラフト、および変更点のハイライトをmarkdown形式で出力してください。
 
 ---
-Generated at: 2026-02-13 07:12:22 JST
+Generated at: 2026-02-15 07:08:15 JST

@@ -1,4 +1,4 @@
-Last updated: 2026-02-13
+Last updated: 2026-02-15
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -332,8 +332,15 @@ cargo audit
   📘 globals.d.ts
   🌐 index.html
   📘 library-demo.ts
+  📘 log-visualizer.ts
+  📘 mml-support.ts
   📊 package-lock.json
   📊 package.json
+  📘 pop-noise-demo.ts
+  🌐 pop-noise.html
+  📘 portamento-soft-lfo-demo.ts
+  🌐 portamento-soft-lfo.html
+  📘 shared-demo.ts
   🎨 style.css
   📘 tone-json-demo.ts
   🌐 tone-json.html
@@ -342,6 +349,14 @@ cargo audit
 📁 generated-docs/
 🌐 googled947dc864c270e07.html
 📁 issue-notes/
+  📖 105.md
+  📖 111.md
+  📖 112.md
+  📖 114.md
+  📖 115.md
+  📖 117.md
+  📖 122.md
+  📖 123.md
   📖 22.md
   📖 33.md
   📖 45.md
@@ -366,6 +381,10 @@ cargo audit
   📄 wasm.rs
   📁 ym2151/
     📄 channel_allocation.rs
+    📁 converter/
+      📄 pitch_effects.rs
+      📄 register_effects.rs
+      📄 waveform.rs
     📄 converter.rs
     📄 converter_tests.rs
     📄 event_processor.rs
@@ -389,11 +408,11 @@ cargo audit
   📖 README.md
 
 ## ファイル詳細分析
-**demo-library/delay-vibrato-demo.ts** (316行, 9972バイト)
-  - 関数: setStatus, setEventCountDisplay, updateOutput, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, ensureWebYm2151, handlePlay, setupAttachmentEditor, setupMidiInput, bootstrapWebYm, main, cleanup, if, catch, addEventListener
-  - インポート: なし
+**demo-library/delay-vibrato-demo.ts** (231行, 7405バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch, addEventListener
+  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/delay-vibrato.html** (51行, 1828バイト)
+**demo-library/delay-vibrato.html** (55行, 2158バイト)
   - 関数: なし
   - インポート: なし
 
@@ -401,27 +420,55 @@ cargo audit
   - 関数: playAudioWithOverlay, clearAudioCache
   - インポート: なし
 
-**demo-library/index.html** (46行, 1967バイト)
+**demo-library/index.html** (53行, 2302バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/library-demo.ts** (132行, 4561バイト)
+**demo-library/library-demo.ts** (139行, 4939バイト)
   - 関数: initWasm, displayResult, showError, readAttachmentBytes, setupFileInput, catch, if
+  - インポート: ./log-visualizer
+
+**demo-library/log-visualizer.ts** (190行, 6070バイト)
+  - 関数: parseHexByte, detectChannel, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, if, for
   - インポート: なし
 
-**demo-library/style.css** (183行, 2891バイト)
+**demo-library/mml-support.ts** (156行, 5236バイト)
+  - 関数: treeToJson, ensureMmlRuntime, setupMmlToSmf, if, for, catch
+  - インポート: ./shared-demo
+
+**demo-library/pop-noise-demo.ts** (231行, 7307バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, bootstrap, if, catch, addEventListener
+  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
+
+**demo-library/pop-noise.html** (55行, 2191バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/tone-json-demo.ts** (324行, 10175バイト)
-  - 関数: setStatus, setEventCountDisplay, updateOutput, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, ensureWebYm2151, handlePlay, setupAttachmentEditor, setupMidiInput, bootstrapWebYm, main, cleanup, if, catch, addEventListener
-  - インポート: なし
+**demo-library/portamento-soft-lfo-demo.ts** (241行, 7593バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch, addEventListener
+  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/tone-json.html** (52行, 1816バイト)
+**demo-library/portamento-soft-lfo.html** (57行, 2337バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/vite.config.ts** (22行, 507バイト)
+**demo-library/shared-demo.ts** (190行, 5618バイト)
+  - 関数: ensureWasmInitialized, setStatus, setEventCountDisplay, ensureWebYm2151, clearWebYmAudioCache, updateOutput, parseAttachmentField, cleanup, if, catch
+  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js
+
+**demo-library/style.css** (247行, 4047バイト)
+  - 関数: なし
+  - インポート: なし
+
+**demo-library/tone-json-demo.ts** (468行, 15859バイト)
+  - 関数: updateOutputWithState, updatePlayButtonState, treeToJson, buildEventsFromCompact, normalizeAttachmentText, initializeWasm, ensureMmlRuntime, convertMmlToSmf, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, for, catch, addEventListener
+  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./log-visualizer
+
+**demo-library/tone-json.html** (60行, 2274バイト)
+  - 関数: なし
+  - インポート: なし
+
+**demo-library/vite.config.ts** (24行, 638バイト)
   - 関数: なし
   - インポート: vite, path
 
@@ -431,28 +478,54 @@ cargo audit
 
 ## 関数呼び出し階層
 - if (demo-library/delay-vibrato-demo.ts)
-  - setStatus (demo-library/delay-vibrato-demo.ts)
-    - setEventCountDisplay ()
-      - updateOutput ()
+  - nextRequestId (demo-library/delay-vibrato-demo.ts)
+    - isLatestRequest ()
+      - updateOutputWithState ()
       - updatePlayButtonState ()
       - initializeWasm ()
       - readAttachmentBytes ()
       - runConversion ()
-      - ensureWebYm2151 ()
       - handlePlay ()
       - setupAttachmentEditor ()
+      - setupMmlInput ()
       - setupMidiInput ()
       - bootstrapWebYm ()
       - main ()
-      - cleanup ()
       - catch ()
       - addEventListener ()
       - playAudioWithOverlay ()
-      - clearAudioCache ()
+      - createLogVisualizer ()
+      - renderFromJson ()
+      - setupMmlToSmf ()
+      - ensureWasmInitialized ()
+      - setStatus ()
+      - setEventCountDisplay ()
+      - ensureWebYm2151 ()
+      - updateOutput ()
+      - parseAttachmentField ()
+      - setupPlayButton ()
+      - bootstrap ()
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
       - setupFileInput ()
+  - parseHexByte (demo-library/log-visualizer.ts)
+    - detectChannel ()
+      - normalizeEvents ()
+      - laneColor ()
+      - createLane ()
+      - computeTrackWidth ()
+      - renderEmpty ()
+      - ensureGlobalLane ()
+  - treeToJson (demo-library/mml-support.ts)
+    - ensureMmlRuntime ()
+      - buildEventsFromCompact ()
+      - normalizeAttachmentText ()
+      - convertMmlToSmf ()
+  - clearAudioCache ()
+  - clearWebYmAudioCache ()
+    - cleanup ()
+- for (demo-library/log-visualizer.ts)
 
 
 ## プロジェクト構造（ファイル一覧）
@@ -464,28 +537,29 @@ demo-library/delay-vibrato.html
 demo-library/globals.d.ts
 demo-library/index.html
 demo-library/library-demo.ts
+demo-library/log-visualizer.ts
+demo-library/mml-support.ts
 demo-library/package-lock.json
 demo-library/package.json
+demo-library/pop-noise-demo.ts
+demo-library/pop-noise.html
+demo-library/portamento-soft-lfo-demo.ts
+demo-library/portamento-soft-lfo.html
+demo-library/shared-demo.ts
 demo-library/style.css
 demo-library/tone-json-demo.ts
 demo-library/tone-json.html
 demo-library/tsconfig.json
 demo-library/vite.config.ts
 googled947dc864c270e07.html
-issue-notes/22.md
-issue-notes/33.md
-issue-notes/45.md
-issue-notes/47.md
-issue-notes/66-resolution.md
-issue-notes/70.md
-issue-notes/83.md
-issue-notes/90.md
-issue-notes/91.md
-issue-notes/93.md
+issue-notes/105.md
+issue-notes/111.md
+issue-notes/112.md
+issue-notes/114.md
+issue-notes/115.md
+issue-notes/117.md
+issue-notes/122.md
 package-lock.json
-package.json
-tones/000.json
-tones/README.md
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
 特に以下の点を重視してください：
@@ -497,4 +571,4 @@ tones/README.md
 
 
 ---
-Generated at: 2026-02-13 07:12:04 JST
+Generated at: 2026-02-15 07:07:57 JST
