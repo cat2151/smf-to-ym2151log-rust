@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portamento & Software LFO Demo | SMF to YM2151</title>
+</head>
+<body>
+  <a class="nav-link" href="./index.html">← ライブラリデモに戻る</a>
+  <a class="nav-link" href="./delay-vibrato.html">Delay Vibrato デモへ</a>
+  <a class="nav-link" href="./tone-json.html">音色 JSON デモへ</a>
+  <h1>ポルタメント & ソフトLFO デモ（別ページ）</h1>
+  <p class="lead">
+    SMF をアップロードし、添付 JSON で <code>Portamento</code> と <code>SoftwareLfo</code> を切り替えて YM2151 出力を確認するデモです。
+    テキストエリアの JSON はデバウンス更新され、web-ym2151 ライブラリで再生できます。
+  </p>
+
+  <section class="demo-section">
+    <h2>1. MIDI ファイルを選択</h2>
+    <label for="midi-input" class="sr-only">MIDI ファイルを選択</label>
+    <input type="file" id="midi-input" accept=".mid,.midi">
+    <div class="status" id="file-status">SMF ファイルを選択してください。</div>
+  </section>
+
+  <section class="demo-section">
+    <h2>2. ポルタメント/ソフトLFO 添付 JSON を編集</h2>
+    <p class="note">JSON を編集すると 400ms デバウンス後に自動で再変換されます。</p>
+    <label for="attachment-json">ポルタメント/ソフトLFO 添付 JSON 入力</label>
+    <textarea id="attachment-json" class="code-input" rows="8" spellcheck="false"></textarea>
+    <div class="status" id="attachment-status"></div>
+  </section>
+
+  <section class="demo-section">
+    <h2>3. 変換結果</h2>
+    <div class="actions">
+      <button id="play-audio" disabled>web-ym2151 で再生</button>
+      <span class="status inline" id="web-ym-status">web-ym2151 を準備中...</span>
+    </div>
+    <div class="status" id="conversion-status">MIDI と JSON を読み込み後に結果を表示します。</div>
+    <div class="status" id="event-count"></div>
+    <pre id="conversion-output" class="output"></pre>
+  </section>
+
+  <textarea id="jsonEditor" aria-hidden="true" hidden></textarea>
+
+  <footer class="github-link">
+    <a href="https://github.com/cat2151/smf-to-ym2151log-rust" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </footer>
+
+  <script type="module" src="./portamento-soft-lfo-demo.ts"></script>
+</body>
+</html>
