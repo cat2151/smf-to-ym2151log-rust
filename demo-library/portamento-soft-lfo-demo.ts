@@ -10,17 +10,18 @@ import {
     updateOutput,
 } from './shared-demo';
 
-const DEFAULT_TONE_ATTACHMENT = `{
-  "Tones": {
-    "0": {
-      "events": [
-        { "time": 0, "addr": "0x20", "data": "0xC7" },
-        { "time": 0, "addr": "0x60", "data": "0x10" },
-        { "time": 0, "addr": "0x80", "data": "0x1F" },
-        { "time": 0, "addr": "0xE0", "data": "0x0F" }
-      ]
+const DEFAULT_ATTACHMENT = `{
+  "Portamento": true,
+  "SoftwareLfo": [
+    {
+      "BaseRegister": "0x60",
+      "Depth": 6,
+      "RateHz": 4.0,
+      "DelaySeconds": 0.1,
+      "AttackSeconds": 0.05,
+      "Waveform": "triangle"
     }
-  }
+  ]
 }`;
 
 let wasmReady = false;
@@ -28,7 +29,7 @@ let midiBytes: Uint8Array | null = null;
 let currentOutput: string | null = null;
 let attachmentDebounce: number | null = null;
 
-const toneJsonField = document.getElementById('tone-json') as HTMLTextAreaElement | null;
+const attachmentField = document.getElementById('attachment-json') as HTMLTextAreaElement | null;
 const conversionOutput = document.getElementById('conversion-output') as HTMLPreElement | null;
 const conversionStatus = document.getElementById('conversion-status');
 const attachmentStatus = document.getElementById('attachment-status');
@@ -57,10 +58,10 @@ async function initializeWasm(): Promise<void> {
 
 function readAttachmentBytes(): Uint8Array | null {
     return parseAttachmentField(
-        toneJsonField,
+        attachmentField,
         attachmentStatus,
-        '音色 JSON は空です (デフォルト音色を使用)',
-        '音色 JSON を適用します',
+        '添付 JSON は空です (ポルタメント/ソフトLFO 無効)',
+        '添付 JSON を適用します',
     );
 }
 
@@ -111,14 +112,14 @@ async function handlePlay(): Promise<void> {
 }
 
 function setupAttachmentEditor(): void {
-    if (!toneJsonField) return;
-    toneJsonField.value = DEFAULT_TONE_ATTACHMENT;
-    toneJsonField.addEventListener('input', () => {
+    if (!attachmentField) return;
+    attachmentField.value = DEFAULT_ATTACHMENT;
+    attachmentField.addEventListener('input', () => {
         if (attachmentDebounce) {
             window.clearTimeout(attachmentDebounce);
         }
         attachmentDebounce = window.setTimeout(() => {
-            void runConversion('音色 JSON 更新');
+            void runConversion('添付 JSON 更新');
         }, 400);
     });
 }

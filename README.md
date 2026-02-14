@@ -164,9 +164,8 @@ Detailed API documentation: `cargo doc --open`
 
 **Online Demo**: Try it in your browser at https://cat2151.github.io/smf-to-ym2151log-rust/
 - Delay Vibrato demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html
+- Portamento + Software LFO demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/portamento-soft-lfo.html
 - Tone JSON demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/tone-json.html
-- Online demo: Try it in your browser at https://cat2151.github.io/smf-to-ym2151log-rust/
-- Delay Vibrato specific demo: https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html (separate page)
 
 This demo illustrates a minimal library usage involving MIDI file conversion.
 
