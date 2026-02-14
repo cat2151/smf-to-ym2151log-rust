@@ -8,6 +8,7 @@ import {
     setStatus,
     updateOutput,
 } from './shared-demo';
+import { createLogVisualizer } from './log-visualizer';
 
 type AttachmentPreset = {
     id: string;
@@ -91,10 +92,14 @@ const playButton = document.getElementById('play-audio') as HTMLButtonElement | 
 const attachmentPresetSelect = document.getElementById('attachment-preset') as HTMLSelectElement | null;
 const webYmStatus = document.getElementById('web-ym-status');
 const mmlInput = document.getElementById('mml-input') as HTMLTextAreaElement | null;
+const logVisualizer = createLogVisualizer(document.getElementById('log-visualizer'));
 
 function updateOutputWithState(text: string): void {
     currentOutput = text;
-    updateOutput(text, conversionOutput, jsonEditor, updatePlayButtonState);
+    updateOutput(text, conversionOutput, jsonEditor, () => {
+        logVisualizer.renderFromJson(text);
+        updatePlayButtonState();
+    });
 }
 
 function updatePlayButtonState(): void {

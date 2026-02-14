@@ -5,8 +5,10 @@ import './style.css';
 import init, {
     smf_to_ym2151_json_with_attachment,
 } from 'smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js';
+import { createLogVisualizer, type LogVisualizer } from './log-visualizer';
 
 let wasmInitialized = false;
+let logVisualizer: LogVisualizer | null = null;
 
 // Initialize WASM
 async function initWasm(): Promise<void> {
@@ -35,6 +37,7 @@ function displayResult(result: string): void {
             errorParagraph.className = 'error';
             errorParagraph.textContent = `Error: ${json.error}`;
             output.appendChild(errorParagraph);
+            logVisualizer?.clear();
         } else {
             const successParagraph = document.createElement('p');
             successParagraph.className = 'success';
@@ -51,12 +54,14 @@ function displayResult(result: string): void {
             const preElement = document.createElement('pre');
             preElement.textContent = JSON.stringify(json, null, 2);
             output.appendChild(preElement);
+            logVisualizer?.renderFromJson(JSON.stringify(json, null, 2));
         }
     } catch (e) {
         // If not JSON, display as plain text
         const preElement = document.createElement('pre');
         preElement.textContent = result;
         output.appendChild(preElement);
+        logVisualizer?.clear();
     }
 }
 
@@ -70,6 +75,7 @@ function showError(message: string): void {
     errorParagraph.className = 'error';
     errorParagraph.textContent = message;
     output.appendChild(errorParagraph);
+    logVisualizer?.clear();
 }
 
 async function readAttachmentBytes(): Promise<Uint8Array> {
@@ -126,6 +132,7 @@ function setupFileInput(): void {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    logVisualizer = createLogVisualizer(document.getElementById('log-visualizer'));
     setupFileInput();
     initWasm();
 });
