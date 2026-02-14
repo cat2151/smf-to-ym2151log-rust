@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pop Noise / Attack Continuation Demo | SMF to YM2151</title>
+</head>
+<body>
+  <a class="nav-link" href="./index.html">← ライブラリデモに戻る</a>
+  <h1>ポップノイズ / アタック継続 対策デモ（別ページ）</h1>
+  <p class="lead">
+    キーオン直前にエンベロープを一時的に変更する <code>PopNoiseEnvelope</code> と、
+    リリースを短くしてキーオフを挟む <code>AttackContinuationFix</code> を添付 JSON で試せます。
+  </p>
+
+  <section class="demo-section">
+    <h2>1. MIDI ファイルを選択</h2>
+    <label for="midi-input" class="sr-only">MIDI ファイルを選択</label>
+    <input type="file" id="midi-input" accept=".mid,.midi">
+    <div class="status" id="file-status">SMF ファイルを選択するか、MML を入力してください。</div>
+    <label for="mml-input">MML を直接入力して SMF を生成</label>
+    <textarea id="mml-input" class="code-input" rows="6" spellcheck="false" placeholder="cdefgab;"></textarea>
+    <div class="status" id="mml-status">SMF アップロードと MML 入力は後着を優先します。</div>
+  </section>
+
+  <section class="demo-section">
+    <h2>2. 添付 JSON を編集</h2>
+    <p class="note">JSON を編集すると 400ms デバウンス後に自動で再変換されます。</p>
+    <label for="attachment-json">PopNoiseEnvelope / AttackContinuationFix を含む添付 JSON 入力</label>
+    <textarea id="attachment-json" class="code-input" rows="10" spellcheck="false"></textarea>
+    <div class="status" id="attachment-status"></div>
+  </section>
+
+  <section class="demo-section">
+    <h2>3. 変換結果</h2>
+    <div class="actions">
+      <button id="play-audio" disabled>web-ym2151 で再生</button>
+      <span class="status inline" id="web-ym-status">web-ym2151 を準備中...</span>
+    </div>
+    <div class="status" id="conversion-status">MIDI と JSON を読み込み後に結果を表示します。</div>
+    <div class="status" id="event-count"></div>
+    <div id="log-visualizer" class="log-visualizer" aria-live="polite"></div>
+    <pre id="conversion-output" class="output"></pre>
+  </section>
+
+  <textarea id="jsonEditor" aria-hidden="true" hidden></textarea>
+
+  <footer class="github-link">
+    <a href="https://github.com/cat2151/smf-to-ym2151log-rust" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </footer>
+
+  <script type="module" src="./pop-noise-demo.ts"></script>
+</body>
+</html>

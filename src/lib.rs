@@ -46,6 +46,7 @@ pub mod wasm;
 use crate::ym2151::ToneDefinition;
 pub use error::{Error, Result};
 use serde::Deserialize;
+use serde_json;
 use std::collections::HashMap;
 
 /// Optional conversion options supplied via attachment JSON
@@ -57,6 +58,12 @@ pub struct ConversionOptions {
     /// Enable portamento glides between consecutive notes
     #[serde(rename = "Portamento", default)]
     pub portamento: bool,
+    /// Optional pre-note envelope overrides to reduce pop noise
+    #[serde(rename = "PopNoiseEnvelope", default)]
+    pub pop_noise_envelope: Option<PopNoiseEnvelope>,
+    /// Optional release-rate reset to avoid attack continuation
+    #[serde(rename = "AttackContinuationFix", default)]
+    pub attack_continuation_fix: Option<AttackContinuationFix>,
     /// Optional software LFO definitions that modulate tone registers
     #[serde(rename = "SoftwareLfo", default)]
     pub software_lfo: Vec<RegisterLfoDefinition>,
@@ -87,6 +94,46 @@ pub struct RegisterLfoDefinition {
     pub waveform: LfoWaveform,
 }
 
+/// Register override applied before a note-on to soften envelope transitions
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct RegisterOverride {
+    /// Base register address (channel 0 / operator base, e.g. "0xA0")
+    pub base_register: String,
+    /// Override value written before restoring the base register
+    pub value: String,
+}
+
+/// Pop-noise mitigation settings applied just before note-on
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PopNoiseEnvelope {
+    /// Whether to apply pop-noise mitigation
+    #[serde(default)]
+    pub enabled: bool,
+    /// How far before the note-on to apply the temporary envelope
+    #[serde(default = "default_pre_note_offset")]
+    pub offset_seconds: f64,
+    /// Registers to override temporarily before restoring base values
+    #[serde(default)]
+    pub registers: Vec<RegisterOverride>,
+}
+
+/// Attack continuation guard settings (forces a short release before note-on)
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct AttackContinuationFix {
+    /// Whether to apply attack continuation guard
+    #[serde(default)]
+    pub enabled: bool,
+    /// How far before note-on to send the release-rate override + key-off
+    #[serde(default = "default_pre_note_offset")]
+    pub offset_seconds: f64,
+    /// Release rate value to apply during the forced key-off
+    #[serde(deserialize_with = "deserialize_u8_hex_or_dec")]
+    pub release_rate: u8,
+}
+
 /// Supported software LFO waveforms
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -96,6 +143,33 @@ pub enum LfoWaveform {
 
 fn default_lfo_waveform() -> LfoWaveform {
     LfoWaveform::Triangle
+}
+
+fn default_pre_note_offset() -> f64 {
+    0.001
+}
+
+fn deserialize_u8_hex_or_dec<'de, D>(deserializer: D) -> std::result::Result<u8, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de::Error;
+
+    let value: serde_json::Value = serde::Deserialize::deserialize(deserializer)?;
+    match value {
+        serde_json::Value::Number(n) => n
+            .as_u64()
+            .and_then(|v| u8::try_from(v).ok())
+            .ok_or_else(|| D::Error::custom("expected u8 numeric value")),
+        serde_json::Value::String(s) => {
+            if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
+                u8::from_str_radix(hex, 16).map_err(D::Error::custom)
+            } else {
+                u8::from_str_radix(&s, 10).map_err(D::Error::custom)
+            }
+        }
+        _ => Err(D::Error::custom("expected number or string")),
+    }
 }
 
 impl ConversionOptions {

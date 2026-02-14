@@ -5,7 +5,10 @@
 use super::*;
 use crate::midi::{midi_to_kc_kf, MidiEvent};
 use crate::ym2151::{ToneDefinition, Ym2151Event};
-use crate::{ConversionOptions, LfoWaveform, RegisterLfoDefinition};
+use crate::{
+    AttackContinuationFix, ConversionOptions, LfoWaveform, PopNoiseEnvelope, RegisterLfoDefinition,
+    RegisterOverride,
+};
 
 #[test]
 fn test_convert_empty_midi() {
@@ -395,6 +398,156 @@ fn test_register_lfo_modulates_tone_register() {
     assert!(
         lfo_events.iter().any(|e| e.data != "0x00"),
         "LFO should modulate TL away from the base value"
+    );
+}
+
+#[test]
+fn test_pop_noise_envelope_adds_pre_note_overrides() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 240,
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::NoteOn {
+                ticks: 480,
+                channel: 0,
+                note: 64,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 720,
+                channel: 0,
+                note: 64,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        pop_noise_envelope: Some(PopNoiseEnvelope {
+            enabled: true,
+            offset_seconds: 0.001,
+            registers: vec![RegisterOverride {
+                base_register: "0xA0".to_string(),
+                value: "0x02".to_string(),
+            }],
+        }),
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    let pre_overrides: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0xA0" && e.data == "0x02" && e.time > 0.4 && e.time < 0.5)
+        .collect();
+    assert_eq!(
+        pre_overrides.len(),
+        1,
+        "Second note should get one override"
+    );
+
+    let restores: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0xA0" && e.time >= 0.499 && e.time <= 0.5)
+        .collect();
+    assert!(
+        restores.iter().any(|e| e.data == "0x05"),
+        "Override should be restored to the base D1R value"
+    );
+}
+
+#[test]
+fn test_attack_continuation_fix_forces_release_before_note_on() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 240,
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::NoteOn {
+                ticks: 480,
+                channel: 0,
+                note: 64,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 720,
+                channel: 0,
+                note: 64,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        attack_continuation_fix: Some(AttackContinuationFix {
+            enabled: true,
+            offset_seconds: 0.001,
+            release_rate: 0xF0,
+        }),
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    let target_release_addrs = ["0xE0", "0xE8", "0xF0", "0xF8"];
+    let release_overrides: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| {
+            target_release_addrs.contains(&e.addr.as_str())
+                && e.data == "0xF0"
+                && e.time > 0.49
+                && e.time < 0.5
+        })
+        .collect();
+    assert_eq!(
+        release_overrides.len(),
+        4,
+        "All four operators should receive a pre-note release override"
+    );
+    assert!(release_overrides.iter().all(|e| e.data == "0xF0"));
+
+    let key_off = result
+        .events
+        .iter()
+        .find(|e| e.addr == "0x08" && e.data == "0x00" && e.time > 0.49 && e.time < 0.5)
+        .expect("Pre-note key off should be generated");
+    assert!(key_off.time < 0.5);
+
+    let restore_events: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| {
+            target_release_addrs.contains(&e.addr.as_str())
+                && e.data == "0xF7"
+                && e.time >= 0.499
+                && e.time <= 0.5
+        })
+        .collect();
+    assert!(
+        restore_events.iter().all(|e| e.data == "0xF7"),
+        "Release rate should return to the base value before key on"
     );
 }
 
