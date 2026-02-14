@@ -135,7 +135,7 @@ mod tests {
         let events = initialize_channel_events(0, 0.0);
         // Find TL (Total Level) register writes (0x60 base)
         // TL addresses for operators 0-3: 0x60, 0x68, 0x70, 0x78
-        let tl_addresses = vec!["0x60", "0x68", "0x70", "0x78"];
+        let tl_addresses = ["0x60", "0x68", "0x70", "0x78"];
         let mut tl_events: Vec<&Ym2151Event> = events
             .iter()
             .filter(|e| tl_addresses.contains(&e.addr.as_str()))

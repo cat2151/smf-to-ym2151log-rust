@@ -46,7 +46,6 @@ pub mod wasm;
 use crate::ym2151::ToneDefinition;
 pub use error::{Error, Result};
 use serde::Deserialize;
-use serde_json;
 use std::collections::HashMap;
 
 /// Optional conversion options supplied via attachment JSON
