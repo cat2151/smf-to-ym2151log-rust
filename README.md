@@ -114,9 +114,9 @@ You can use it as a library in other Rust projects:
 smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
-### Optional Attachment JSON (Delay Vibrato / Custom Tones)
+### Optional Attachment JSON (Delay Vibrato / Portamento / Software LFO / Custom Tones)
 
-You can provide an optional attachment JSON to enable delayed vibrato or override YM2151 tone definitions (keyed by MIDI program number). Use the helper APIs:
+You can provide an optional attachment JSON to enable delayed vibrato, portamento, software LFOs for tone registers, or override YM2151 tone definitions (keyed by MIDI program number). Use the helper APIs:
 
 - Rust: `convert_smf_to_ym2151_log_with_options(smf_bytes, Some(attachment_json_bytes))`
 - WASM: `smf_to_ym2151_json_with_attachment(smf_bytes, attachment_json_bytes)`
@@ -127,6 +127,21 @@ Attachment examples:
 {
   "DelayVibrato": true,
   "Portamento": true
+}
+```
+
+```json
+{
+  "SoftwareLfo": [
+    {
+      "BaseRegister": "0x60",
+      "Depth": 4,
+      "RateHz": 2.0,
+      "DelaySeconds": 0.0,
+      "AttackSeconds": 0.05,
+      "Waveform": "triangle"
+    }
+  ]
 }
 ```
 

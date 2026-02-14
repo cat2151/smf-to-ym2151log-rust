@@ -11,7 +11,7 @@ use crate::ym2151::{
     allocate_channels, analyze_polyphony, build_tempo_map, initialize_channel_events,
     process_event, EventProcessorContext, NoteSegment, Ym2151Event, Ym2151Log,
 };
-use crate::ConversionOptions;
+use crate::{ConversionOptions, LfoWaveform, RegisterLfoDefinition};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -115,7 +115,8 @@ pub fn convert_to_ym2151_log_with_options(
     let mut active_notes: HashSet<(u8, u8)> = HashSet::new();
 
     // Optional note tracking for vibrato/portamento
-    let need_note_segments = options.delay_vibrato || options.portamento;
+    let need_note_segments =
+        options.delay_vibrato || options.portamento || !options.software_lfo.is_empty();
     let mut vibrato_active_notes = if need_note_segments {
         Some(HashMap::new())
     } else {
@@ -172,6 +173,10 @@ pub fn convert_to_ym2151_log_with_options(
 
     if options.portamento {
         append_portamento_events(&vibrato_segments, &mut ym2151_events);
+    }
+
+    if !options.software_lfo.is_empty() {
+        append_register_lfo_events(&options.software_lfo, &vibrato_segments, &mut ym2151_events);
     }
 
     ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
@@ -313,6 +318,137 @@ fn append_portamento_glide(
         }
 
         time += time_step;
+    }
+}
+
+fn append_register_lfo_events(
+    lfo_defs: &[RegisterLfoDefinition],
+    segments: &[NoteSegment],
+    events: &mut Vec<Ym2151Event>,
+) {
+    if lfo_defs.is_empty() || segments.is_empty() {
+        return;
+    }
+
+    let mut ordered_segments = segments.to_vec();
+    ordered_segments.sort_by(|a, b| {
+        a.start_time
+            .partial_cmp(&b.start_time)
+            .unwrap_or(Ordering::Equal)
+    });
+
+    let base_snapshot = events.clone();
+
+    for segment in &ordered_segments {
+        for def in lfo_defs {
+            let Some(base_reg) = parse_hex_byte(&def.base_register) else {
+                continue;
+            };
+            let resolved_addr = resolve_register_for_channel(base_reg, segment.ym2151_channel);
+            let Some(base_value) =
+                latest_register_value(&base_snapshot, resolved_addr, segment.start_time)
+            else {
+                continue;
+            };
+
+            append_register_lfo_for_segment(def, segment, resolved_addr, base_value, events);
+        }
+    }
+}
+
+fn append_register_lfo_for_segment(
+    def: &RegisterLfoDefinition,
+    segment: &NoteSegment,
+    resolved_addr: u8,
+    base_value: u8,
+    events: &mut Vec<Ym2151Event>,
+) {
+    if def.rate_hz <= 0.0 || def.depth.abs() < f64::EPSILON {
+        return;
+    }
+
+    let start_time = segment.start_time + def.delay_seconds;
+    let stop_time = segment.end_time;
+    if stop_time <= start_time {
+        return;
+    }
+
+    let time_step = (1.0 / def.rate_hz.max(f64::EPSILON)) / 8.0;
+    if !time_step.is_finite() || time_step <= 0.0 {
+        return;
+    }
+
+    let addr_str = format!("0x{:02X}", resolved_addr);
+    let mut time = start_time;
+    let mut last_value: Option<u8> = None;
+
+    while time <= stop_time + f64::EPSILON {
+        let elapsed = time - start_time;
+        let attack_ratio = if def.attack_seconds <= 0.0 {
+            1.0
+        } else {
+            (elapsed / def.attack_seconds).clamp(0.0, 1.0)
+        };
+
+        let phase = (elapsed * def.rate_hz) % 1.0;
+        let waveform = lfo_waveform_value(def.waveform, phase);
+        let offset = def.depth * attack_ratio * waveform;
+        let value = ((base_value as f64) + offset).round().clamp(0.0, 255.0) as u8;
+
+        if Some(value) != last_value {
+            events.push(Ym2151Event {
+                time,
+                addr: addr_str.clone(),
+                data: format!("0x{:02X}", value),
+            });
+            last_value = Some(value);
+        }
+
+        time += time_step;
+    }
+}
+
+fn resolve_register_for_channel(base_register: u8, channel: u8) -> u8 {
+    match base_register {
+        0x20..=0x27 => 0x20 + channel,
+        0x28..=0x2F => 0x28 + channel,
+        0x30..=0x37 => 0x30 + channel,
+        0x38..=0x3F => 0x38 + channel,
+        0x40..=0xFF => {
+            let base = base_register & 0xE0;
+            let slot = base_register & 0x1F;
+            let operator = slot / 8;
+            let new_slot = channel + (operator * 8);
+            base + new_slot
+        }
+        _ => base_register,
+    }
+}
+
+fn latest_register_value(events: &[Ym2151Event], addr: u8, time: f64) -> Option<u8> {
+    let target_addr = format!("0x{:02X}", addr);
+    events
+        .iter()
+        .filter(|e| e.addr == target_addr && e.time <= time + f64::EPSILON)
+        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal))
+        .and_then(|e| parse_hex_byte(&e.data))
+}
+
+fn parse_hex_byte(value: &str) -> Option<u8> {
+    let trimmed = value.trim();
+    if let Some(hex) = trimmed
+        .strip_prefix("0x")
+        .or_else(|| trimmed.strip_prefix("0X"))
+    {
+        u8::from_str_radix(hex, 16).ok()
+    } else {
+        trimmed.parse::<u8>().ok()
+    }
+}
+
+fn lfo_waveform_value(waveform: LfoWaveform, phase: f64) -> f64 {
+    match waveform {
+        LfoWaveform::Triangle => triangle_wave(phase),
     }
 }
 
