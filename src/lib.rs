@@ -164,7 +164,7 @@ where
             if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
                 u8::from_str_radix(hex, 16).map_err(D::Error::custom)
             } else {
-                    s.parse::<u8>().map_err(D::Error::custom)
+                s.parse::<u8>().map_err(D::Error::custom)
             }
         }
         _ => Err(D::Error::custom("expected number or string")),
