@@ -10,6 +10,7 @@ import {
     updateOutput,
 } from './shared-demo';
 import { setupMmlToSmf } from './mml-support';
+import { createLogVisualizer } from './log-visualizer';
 
 const DEFAULT_ATTACHMENT = `{
   "Portamento": true,
@@ -43,6 +44,7 @@ const jsonEditor = document.getElementById('jsonEditor') as HTMLTextAreaElement 
 const playButton = document.getElementById('play-audio') as HTMLButtonElement | null;
 const webYmStatus = document.getElementById('web-ym-status');
 const mmlInput = document.getElementById('mml-input') as HTMLTextAreaElement | null;
+const logVisualizer = createLogVisualizer(document.getElementById('log-visualizer'));
 
 function nextRequestId(): number {
     latestMidiRequestId += 1;
@@ -55,7 +57,10 @@ function isLatestRequest(id: number): boolean {
 
 function updateOutputWithState(text: string): void {
     currentOutput = text;
-    updateOutput(text, conversionOutput, jsonEditor, updatePlayButtonState);
+    updateOutput(text, conversionOutput, jsonEditor, () => {
+        logVisualizer.renderFromJson(text);
+        updatePlayButtonState();
+    });
 }
 
 function updatePlayButtonState(): void {
