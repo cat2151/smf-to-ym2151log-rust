@@ -175,16 +175,13 @@ function setupMidiInput(): void {
         const target = event.target as HTMLInputElement;
         const file = target.files?.[0];
         if (!file) {
-            const requestId = nextRequestId();
+            nextRequestId();
             midiBytes = null;
             lastMidiSource = null;
             updateOutputWithState('');
             setEventCountDisplay(eventCount, undefined);
             setStatus(fileStatus, 'SMF ファイルを選択するか、MML を入力してください。');
             updatePlayButtonState();
-            if (!isLatestRequest(requestId)) {
-                return;
-            }
             return;
         }
 
