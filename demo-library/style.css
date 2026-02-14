@@ -116,6 +116,16 @@ pre {
     background: #fff;
 }
 
+select {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: #fff;
+    font-size: 14px;
+}
+
 button {
     padding: 10px 16px;
     border: none;
