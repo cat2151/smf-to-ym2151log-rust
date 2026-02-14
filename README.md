@@ -114,7 +114,7 @@ You can use it as a library in other Rust projects:
 smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 ```
 
-### Optional Attachment JSON (Delay Vibrato / Portamento / Software LFO / Custom Tones)
+### Optional Attachment JSON (Delay Vibrato / Portamento / Pop Noise / Attack Continuation Fix / Software LFO / Custom Tones)
 
 You can provide an optional attachment JSON to enable delayed vibrato, portamento, software LFOs for tone registers, or override YM2151 tone definitions (keyed by MIDI program number). Use the helper APIs:
 
@@ -158,6 +158,23 @@ Attachment examples:
 }
 ```
 
+```json
+{
+  "PopNoiseEnvelope": {
+    "OffsetSeconds": 0.001,
+    "Registers": [
+      { "BaseRegister": "0x80", "Value": "0x0A" },
+      { "BaseRegister": "0xA0", "Value": "0x04" },
+      { "BaseRegister": "0xA8", "Value": "0x04" }
+    ]
+  },
+  "AttackContinuationFix": {
+    "OffsetSeconds": 0.001,
+    "ReleaseRate": "0xF0"
+  }
+}
+```
+
 Detailed API documentation: `cargo doc --open`
 
 ### WebAssembly (Browser) Usage
@@ -166,6 +183,7 @@ Detailed API documentation: `cargo doc --open`
 - Delay Vibrato demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/delay-vibrato.html
 - Portamento + Software LFO demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/portamento-soft-lfo.html
 - Tone JSON demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/tone-json.html
+- Pop noise / attack continuation demo (separate page): https://cat2151.github.io/smf-to-ym2151log-rust/pop-noise.html
 
 This demo illustrates a minimal library usage involving MIDI file conversion.
 

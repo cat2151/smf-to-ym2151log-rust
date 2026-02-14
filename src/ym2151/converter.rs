@@ -11,7 +11,9 @@ use crate::ym2151::{
     allocate_channels, analyze_polyphony, build_tempo_map, initialize_channel_events,
     process_event, EventProcessorContext, NoteSegment, Ym2151Event, Ym2151Log,
 };
-use crate::{ConversionOptions, LfoWaveform, RegisterLfoDefinition};
+use crate::{
+    AttackContinuationFix, ConversionOptions, LfoWaveform, PopNoiseEnvelope, RegisterLfoDefinition,
+};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -23,6 +25,7 @@ const DELAY_VIBRATO_DEPTH_CENTS: f64 = 100.0;
 const DELAY_VIBRATO_RATE_HZ: f64 = 6.0;
 const VIBRATO_RELEASE_TAIL_SECONDS: f64 = 0.5;
 const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
+const RESTORE_BEFORE_NOTE_EPSILON: f64 = 1e-6;
 
 /// Convert MIDI events to YM2151 register write log
 ///
@@ -115,8 +118,11 @@ pub fn convert_to_ym2151_log_with_options(
     let mut active_notes: HashSet<(u8, u8)> = HashSet::new();
 
     // Optional note tracking for vibrato/portamento
-    let need_note_segments =
-        options.delay_vibrato || options.portamento || !options.software_lfo.is_empty();
+    let need_note_segments = options.delay_vibrato
+        || options.portamento
+        || !options.software_lfo.is_empty()
+        || options.pop_noise_envelope.is_some()
+        || options.attack_continuation_fix.is_some();
     let mut vibrato_active_notes = if need_note_segments {
         Some(HashMap::new())
     } else {
@@ -177,6 +183,29 @@ pub fn convert_to_ym2151_log_with_options(
 
     if !options.software_lfo.is_empty() {
         append_register_lfo_events(&options.software_lfo, &vibrato_segments, &mut ym2151_events);
+    }
+
+    let need_pre_note_events =
+        options.pop_noise_envelope.is_some() || options.attack_continuation_fix.is_some();
+    let base_snapshot = if need_pre_note_events {
+        Some(ym2151_events.clone())
+    } else {
+        None
+    };
+
+    if let (Some(config), Some(snapshot)) = (&options.pop_noise_envelope, base_snapshot.as_ref()) {
+        append_pop_noise_envelope_events(config, &vibrato_segments, snapshot, &mut ym2151_events);
+    }
+
+    if let (Some(config), Some(snapshot)) =
+        (&options.attack_continuation_fix, base_snapshot.as_ref())
+    {
+        append_attack_continuation_fix_events(
+            config,
+            &vibrato_segments,
+            snapshot,
+            &mut ym2151_events,
+        );
     }
 
     ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
@@ -405,6 +434,134 @@ fn append_register_lfo_for_segment(
         }
 
         time += time_step;
+    }
+}
+
+fn append_pop_noise_envelope_events(
+    config: &PopNoiseEnvelope,
+    segments: &[NoteSegment],
+    base_events: &[Ym2151Event],
+    events: &mut Vec<Ym2151Event>,
+) {
+    if config.registers.is_empty() || segments.is_empty() {
+        return;
+    }
+
+    let mut ordered_segments = segments.to_vec();
+    ordered_segments.sort_by(|a, b| {
+        a.start_time
+            .partial_cmp(&b.start_time)
+            .unwrap_or(Ordering::Equal)
+    });
+
+    let offset = config.offset_seconds.max(0.0);
+
+    for segment in ordered_segments {
+        if segment.start_time <= offset {
+            continue;
+        }
+        let apply_time = segment.start_time - offset;
+        let restore_time = (segment.start_time - RESTORE_BEFORE_NOTE_EPSILON).max(0.0);
+
+        for reg in &config.registers {
+            let Some(base_reg) = parse_hex_byte(&reg.base_register) else {
+                continue;
+            };
+            let Some(override_value) = parse_hex_byte(&reg.value) else {
+                continue;
+            };
+            let resolved_addr = resolve_register_for_channel(base_reg, segment.ym2151_channel);
+            let Some(base_value) =
+                latest_register_value(base_events, resolved_addr, segment.start_time)
+            else {
+                continue;
+            };
+            if base_value == override_value {
+                continue;
+            }
+
+            let addr_str = format!("0x{:02X}", resolved_addr);
+            events.push(Ym2151Event {
+                time: apply_time,
+                addr: addr_str.clone(),
+                data: format!("0x{:02X}", override_value),
+            });
+            events.push(Ym2151Event {
+                time: restore_time,
+                addr: addr_str,
+                data: format!("0x{:02X}", base_value),
+            });
+        }
+    }
+}
+
+fn append_attack_continuation_fix_events(
+    config: &AttackContinuationFix,
+    segments: &[NoteSegment],
+    base_events: &[Ym2151Event],
+    events: &mut Vec<Ym2151Event>,
+) {
+    if segments.is_empty() {
+        return;
+    }
+
+    let Some(override_release) = parse_hex_byte(&config.release_rate) else {
+        return;
+    };
+    let offset = config.offset_seconds.max(0.0);
+
+    let mut ordered_segments = segments.to_vec();
+    ordered_segments.sort_by(|a, b| {
+        a.start_time
+            .partial_cmp(&b.start_time)
+            .unwrap_or(Ordering::Equal)
+    });
+
+    for segment in ordered_segments {
+        if segment.start_time <= offset {
+            continue;
+        }
+        let pre_time = segment.start_time - offset;
+        let restore_time = (segment.start_time - RESTORE_BEFORE_NOTE_EPSILON).max(0.0);
+
+        let mut release_registers = Vec::new();
+        for op in 0..4 {
+            let base_reg = 0xE0u8 + (op * 8);
+            let resolved = resolve_register_for_channel(base_reg, segment.ym2151_channel);
+            if let Some(base_value) =
+                latest_register_value(base_events, resolved, segment.start_time)
+            {
+                if base_value != override_release {
+                    release_registers.push((resolved, base_value));
+                }
+            }
+        }
+
+        if release_registers.is_empty() {
+            continue;
+        }
+
+        for (addr, _) in &release_registers {
+            events.push(Ym2151Event {
+                time: pre_time,
+                addr: format!("0x{:02X}", *addr),
+                data: format!("0x{:02X}", override_release),
+            });
+        }
+
+        events.push(Ym2151Event {
+            time: pre_time,
+            addr: "0x08".to_string(),
+            data: format!("0x{:02X}", segment.ym2151_channel),
+        });
+
+        for (addr, base_value) in &release_registers {
+            events.push(Ym2151Event {
+                time: restore_time,
+                addr: format!("0x{:02X}", *addr),
+                data: format!("0x{:02X}", *base_value),
+            });
+        }
     }
 }
 

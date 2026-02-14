@@ -13,6 +13,7 @@ export default defineConfig({
         delayVibrato: resolve(__dirname, 'delay-vibrato.html'),
         portamentoSoftLfo: resolve(__dirname, 'portamento-soft-lfo.html'),
         toneJson: resolve(__dirname, 'tone-json.html'),
+        popNoise: resolve(__dirname, 'pop-noise.html'),
       },
     },
   },

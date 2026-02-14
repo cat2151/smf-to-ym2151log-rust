@@ -57,6 +57,12 @@ pub struct ConversionOptions {
     /// Enable portamento glides between consecutive notes
     #[serde(rename = "Portamento", default)]
     pub portamento: bool,
+    /// Optional pre-note envelope overrides to reduce pop noise
+    #[serde(rename = "PopNoiseEnvelope", default)]
+    pub pop_noise_envelope: Option<PopNoiseEnvelope>,
+    /// Optional release-rate reset to avoid attack continuation
+    #[serde(rename = "AttackContinuationFix", default)]
+    pub attack_continuation_fix: Option<AttackContinuationFix>,
     /// Optional software LFO definitions that modulate tone registers
     #[serde(rename = "SoftwareLfo", default)]
     pub software_lfo: Vec<RegisterLfoDefinition>,
@@ -87,6 +93,39 @@ pub struct RegisterLfoDefinition {
     pub waveform: LfoWaveform,
 }
 
+/// Register override applied before a note-on to soften envelope transitions
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct RegisterOverride {
+    /// Base register address (channel 0 / operator base, e.g. "0xA0")
+    pub base_register: String,
+    /// Override value written before restoring the base register
+    pub value: String,
+}
+
+/// Pop-noise mitigation settings applied just before note-on
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PopNoiseEnvelope {
+    /// How far before the note-on to apply the temporary envelope
+    #[serde(default = "default_pre_note_offset")]
+    pub offset_seconds: f64,
+    /// Registers to override temporarily before restoring base values
+    #[serde(default)]
+    pub registers: Vec<RegisterOverride>,
+}
+
+/// Attack continuation guard settings (forces a short release before note-on)
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct AttackContinuationFix {
+    /// How far before note-on to send the release-rate override + key-off
+    #[serde(default = "default_pre_note_offset")]
+    pub offset_seconds: f64,
+    /// Release rate value to apply during the forced key-off
+    pub release_rate: String,
+}
+
 /// Supported software LFO waveforms
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -96,6 +135,10 @@ pub enum LfoWaveform {
 
 fn default_lfo_waveform() -> LfoWaveform {
     LfoWaveform::Triangle
+}
+
+fn default_pre_note_offset() -> f64 {
+    0.001
 }
 
 impl ConversionOptions {
