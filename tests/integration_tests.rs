@@ -883,10 +883,8 @@ fn test_tone_loading_nonexistent() {
     // Should return None if file doesn't exist
     if tone_opt.is_none() {
         // This is the expected behavior - no tone file exists
-        assert!(true);
     } else {
         // If the file exists, that's also fine for this test
-        assert!(true);
     }
 }
 

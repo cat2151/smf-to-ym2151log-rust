@@ -244,9 +244,7 @@ pub(super) fn build_register_state_cache(events: &[Ym2151Event]) -> RegisterStat
 
 impl RegisterStateCache {
     fn latest_value(&self, addr: u8, time: f64) -> Option<u8> {
-        let Some(entries) = self.by_addr.get(&addr) else {
-            return None;
-        };
+        let entries = self.by_addr.get(&addr)?;
         let mut lo = 0;
         let mut hi = entries.len();
         while lo < hi {
