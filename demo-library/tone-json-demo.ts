@@ -4,24 +4,51 @@ import { smf_to_ym2151_json_with_attachment } from 'smf-to-ym2151log-rust/pkg/sm
 import {
     ensureWasmInitialized,
     ensureWebYm2151,
-    parseAttachmentField,
     setEventCountDisplay,
     setStatus,
     updateOutput,
 } from './shared-demo';
 
-const DEFAULT_TONE_ATTACHMENT = `{
-  "Tones": {
-    "0": {
-      "events": [
-        { "time": 0, "addr": "0x20", "data": "0xC7" },
-        { "time": 0, "addr": "0x60", "data": "0x10" },
-        { "time": 0, "addr": "0x80", "data": "0x1F" },
-        { "time": 0, "addr": "0xE0", "data": "0x0F" }
-      ]
-    }
+type AttachmentPreset = {
+    id: string;
+    label: string;
+    value: string;
+};
+
+type Ym2151Event = {
+    time: number;
+    addr: string;
+    data: string;
+};
+
+const YM_LOG_STYLE_PRESET = `{
+  "event_count": 4,
+  "events": [
+    { "time": 0, "addr": "0x20", "data": "0xC7" },
+    { "time": 0, "addr": "0x60", "data": "0x10" },
+    { "time": 0, "addr": "0x80", "data": "0x1F" },
+    { "time": 0, "addr": "0xE0", "data": "0x0F" }
+  ]
+}`;
+
+const COMPACT_NIBBLE_PRESET = `{
+  "CompactTones": {
+    "0": "20C76010801FE00F"
   }
 }`;
+
+const ATTACHMENT_PRESETS: AttachmentPreset[] = [
+    {
+        id: 'ym-log',
+        label: 'YM2151 log 形式 (time + addr + data)',
+        value: YM_LOG_STYLE_PRESET,
+    },
+    {
+        id: 'compact-nibbles',
+        label: 'コンパクト nibble 連結形式',
+        value: COMPACT_NIBBLE_PRESET,
+    },
+];
 
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;
@@ -36,6 +63,7 @@ const fileStatus = document.getElementById('file-status');
 const eventCount = document.getElementById('event-count');
 const jsonEditor = document.getElementById('jsonEditor') as HTMLTextAreaElement | null;
 const playButton = document.getElementById('play-audio') as HTMLButtonElement | null;
+const attachmentPresetSelect = document.getElementById('attachment-preset') as HTMLSelectElement | null;
 const webYmStatus = document.getElementById('web-ym-status');
 
 function updateOutputWithState(text: string): void {
@@ -48,6 +76,74 @@ function updatePlayButtonState(): void {
     playButton.disabled = !currentOutput;
 }
 
+function buildEventsFromCompact(compact: string): Ym2151Event[] {
+    const cleaned = compact.replace(/\s+/g, '');
+    if (cleaned.length === 0) {
+        return [];
+    }
+    if (cleaned.length % 4 !== 0) {
+        throw new Error('CompactTones の長さは4の倍数である必要があります');
+    }
+    const events: Ym2151Event[] = [];
+    for (let i = 0; i < cleaned.length; i += 4) {
+        const addr = cleaned.slice(i, i + 2);
+        const data = cleaned.slice(i + 2, i + 4);
+        if (!/^[0-9a-fA-F]{4}$/.test(`${addr}${data}`)) {
+            throw new Error('CompactTones に16進以外の文字が含まれています');
+        }
+        events.push({
+            time: 0,
+            addr: `0x${addr.toUpperCase()}`,
+            data: `0x${data.toUpperCase()}`,
+        });
+    }
+    return events;
+}
+
+function normalizeAttachmentText(raw: string, statusEl: HTMLElement | null): string | null {
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) {
+        setStatus(statusEl, '音色 JSON は空です (デフォルト音色を使用)');
+        return '';
+    }
+
+    try {
+        const parsed = JSON.parse(trimmed);
+        const normalized = { ...parsed } as Record<string, any>;
+        let mutated = false;
+
+        if (Array.isArray(parsed.events)) {
+            normalized.Tones = normalized.Tones ?? {};
+            normalized.Tones['0'] = { events: parsed.events };
+            delete normalized.events;
+            delete normalized.event_count;
+            mutated = true;
+        }
+
+        if (parsed.CompactTones && typeof parsed.CompactTones === 'object') {
+            const compactTones = parsed.CompactTones as Record<string, unknown>;
+            const toneMap = normalized.Tones ?? {};
+            Object.entries(compactTones).forEach(([program, value]) => {
+                if (typeof value !== 'string') {
+                    throw new Error('CompactTones の値は16進文字列である必要があります');
+                }
+                const events = buildEventsFromCompact(value);
+                toneMap[program] = { events };
+            });
+            normalized.Tones = toneMap;
+            delete normalized.CompactTones;
+            mutated = true;
+        }
+
+        const output = JSON.stringify(normalized, null, 2);
+        setStatus(statusEl, mutated ? 'プリセットを YM2151 音色 JSON に正規化しました' : '音色 JSON を適用します');
+        return output;
+    } catch (error) {
+        setStatus(statusEl, `JSON が不正です: ${(error as Error).message}`, true);
+        return null;
+    }
+}
+
 async function initializeWasm(): Promise<void> {
     wasmReady = await ensureWasmInitialized(
         (message, isError) => setStatus(conversionStatus, message, isError),
@@ -56,12 +152,20 @@ async function initializeWasm(): Promise<void> {
 }
 
 function readAttachmentBytes(): Uint8Array | null {
-    return parseAttachmentField(
-        toneJsonField,
-        attachmentStatus,
-        '音色 JSON は空です (デフォルト音色を使用)',
-        '音色 JSON を適用します',
-    );
+    if (!toneJsonField) {
+        return new Uint8Array();
+    }
+
+    const normalized = normalizeAttachmentText(toneJsonField.value, attachmentStatus);
+    if (normalized === null) {
+        return null;
+    }
+    if (normalized.length === 0) {
+        return new Uint8Array();
+    }
+
+    toneJsonField.value = normalized;
+    return new TextEncoder().encode(normalized);
 }
 
 async function runConversion(trigger: string): Promise<void> {
@@ -112,7 +216,29 @@ async function handlePlay(): Promise<void> {
 
 function setupAttachmentEditor(): void {
     if (!toneJsonField) return;
-    toneJsonField.value = DEFAULT_TONE_ATTACHMENT;
+    toneJsonField.value = YM_LOG_STYLE_PRESET;
+
+    if (attachmentPresetSelect) {
+        attachmentPresetSelect.innerHTML = '';
+        const manualOption = document.createElement('option');
+        manualOption.value = '';
+        manualOption.textContent = '手動入力';
+        attachmentPresetSelect.appendChild(manualOption);
+        ATTACHMENT_PRESETS.forEach(preset => {
+            const option = document.createElement('option');
+            option.value = preset.id;
+            option.textContent = preset.label;
+            attachmentPresetSelect.appendChild(option);
+        });
+        attachmentPresetSelect.value = ATTACHMENT_PRESETS[0]?.id ?? '';
+        attachmentPresetSelect.addEventListener('change', () => {
+            const preset = ATTACHMENT_PRESETS.find(p => p.id === attachmentPresetSelect.value);
+            if (!preset || !toneJsonField) return;
+            toneJsonField.value = preset.value;
+            void runConversion(`プリセット選択: ${preset.label}`);
+        });
+    }
+
     toneJsonField.addEventListener('input', () => {
         if (attachmentDebounce) {
             window.clearTimeout(attachmentDebounce);
