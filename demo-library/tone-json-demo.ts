@@ -21,6 +21,19 @@ type Ym2151Event = {
     data: string;
 };
 
+type TreeSitterNode = {
+    type: string;
+    childCount: number;
+    startIndex: number;
+    endIndex: number;
+    child: (index: number) => TreeSitterNode;
+};
+
+type TreeSitterParser = {
+    parse: (source: string) => { rootNode: TreeSitterNode };
+    setLanguage: (language: unknown) => void;
+};
+
 const YM_LOG_STYLE_PRESET = `{
   "event_count": 4,
   "events": [
@@ -50,21 +63,34 @@ const ATTACHMENT_PRESETS: AttachmentPreset[] = [
     },
 ];
 
+const WEB_TREE_SITTER_URL = 'https://cat2151.github.io/mmlabc-to-smf-rust/demo/web-tree-sitter.js';
+const MML_WASM_MODULE_URL =
+    'https://cat2151.github.io/mmlabc-to-smf-rust/mmlabc-to-smf-wasm/pkg/mmlabc_to_smf_wasm.js';
+const MML_LANGUAGE_URL = 'https://cat2151.github.io/mmlabc-to-smf-rust/tree-sitter-mml/tree-sitter-mml.wasm';
+
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;
 let currentOutput: string | null = null;
 let attachmentDebounce: number | null = null;
+let mmlDebounce: number | null = null;
+let latestMidiRequestId = 0;
+let lastMidiSource: 'file' | 'mml' | null = null;
+let mmlInitPromise: Promise<boolean> | null = null;
+let mmlParser: TreeSitterParser | null = null;
+let parseTreeJsonToSmf: ((treeJson: string, source: string) => Uint8Array | number[] | ArrayBuffer) | null = null;
 
 const toneJsonField = document.getElementById('tone-json') as HTMLTextAreaElement | null;
 const conversionOutput = document.getElementById('conversion-output') as HTMLPreElement | null;
 const conversionStatus = document.getElementById('conversion-status');
 const attachmentStatus = document.getElementById('attachment-status');
 const fileStatus = document.getElementById('file-status');
+const mmlStatus = document.getElementById('mml-status');
 const eventCount = document.getElementById('event-count');
 const jsonEditor = document.getElementById('jsonEditor') as HTMLTextAreaElement | null;
 const playButton = document.getElementById('play-audio') as HTMLButtonElement | null;
 const attachmentPresetSelect = document.getElementById('attachment-preset') as HTMLSelectElement | null;
 const webYmStatus = document.getElementById('web-ym-status');
+const mmlInput = document.getElementById('mml-input') as HTMLTextAreaElement | null;
 
 function updateOutputWithState(text: string): void {
     currentOutput = text;
@@ -74,6 +100,21 @@ function updateOutputWithState(text: string): void {
 function updatePlayButtonState(): void {
     if (!playButton) return;
     playButton.disabled = !currentOutput;
+}
+
+function treeToJson(node: TreeSitterNode, source: string): Record<string, unknown> {
+    const result: Record<string, unknown> = { type: node.type };
+    if (node.childCount === 0) {
+        result.text = source.substring(node.startIndex, node.endIndex);
+        return result;
+    }
+
+    const children: Record<string, unknown>[] = [];
+    for (let i = 0; i < node.childCount; i += 1) {
+        children.push(treeToJson(node.child(i), source));
+    }
+    result.children = children;
+    return result;
 }
 
 function buildEventsFromCompact(compact: string): Ym2151Event[] {
@@ -151,6 +192,85 @@ async function initializeWasm(): Promise<void> {
     );
 }
 
+async function ensureMmlRuntime(): Promise<boolean> {
+    if (mmlInitPromise) {
+        return mmlInitPromise;
+    }
+
+    mmlInitPromise = (async () => {
+        setStatus(mmlStatus, 'MML モジュールを読み込み中...');
+        // @ts-ignore -- remote module is resolved at runtime
+        const [treeSitterModule, mmlModule] = await Promise.all([
+            // @ts-ignore -- remote module is resolved at runtime
+            import(/* @vite-ignore */ WEB_TREE_SITTER_URL),
+            // @ts-ignore -- remote module is resolved at runtime
+            import(/* @vite-ignore */ MML_WASM_MODULE_URL),
+        ]);
+
+        const ParserCtor = (treeSitterModule as { Parser: any }).Parser;
+        const LanguageApi = (treeSitterModule as { Language: any }).Language;
+        await ParserCtor.init();
+        const parser: TreeSitterParser = new ParserCtor();
+        const language = await LanguageApi.load(MML_LANGUAGE_URL);
+        parser.setLanguage(language);
+        await mmlModule.default();
+        mmlParser = parser;
+        parseTreeJsonToSmf = mmlModule.parse_tree_json_to_smf;
+        setStatus(mmlStatus, 'MML モジュールの準備ができました。');
+        return true;
+    })().catch(error => {
+        mmlInitPromise = null;
+        setStatus(mmlStatus, `MML モジュールの読み込みに失敗しました: ${(error as Error).message}`, true);
+        return false;
+    });
+
+    return mmlInitPromise;
+}
+
+async function convertMmlToSmf(trigger: string): Promise<void> {
+    if (!mmlInput) return;
+    const mmlText = mmlInput.value.trim();
+    if (mmlText.length === 0) {
+        if (lastMidiSource === 'mml') {
+            midiBytes = null;
+            lastMidiSource = null;
+        }
+        setStatus(mmlStatus, 'MML を入力すると SMF を生成します。');
+        return;
+    }
+
+    const requestId = ++latestMidiRequestId;
+    const initialized = await ensureMmlRuntime();
+    if (!initialized || !mmlParser || !parseTreeJsonToSmf) {
+        return;
+    }
+    if (requestId !== latestMidiRequestId) {
+        return;
+    }
+
+    try {
+        const tree = mmlParser.parse(mmlText);
+        const treeJson = JSON.stringify(treeToJson(tree.rootNode, mmlText));
+        const smfBytes = parseTreeJsonToSmf(treeJson, mmlText);
+        const midiArray = smfBytes instanceof Uint8Array ? smfBytes : new Uint8Array(smfBytes);
+
+        if (requestId !== latestMidiRequestId) {
+            return;
+        }
+
+        midiBytes = midiArray;
+        lastMidiSource = 'mml';
+        setStatus(fileStatus, `MML 入力を SMF に変換しました (${midiArray.byteLength} bytes)`);
+        setStatus(mmlStatus, 'MML から SMF への変換が完了しました。');
+        void runConversion(trigger);
+    } catch (error) {
+        if (requestId !== latestMidiRequestId) {
+            return;
+        }
+        setStatus(mmlStatus, `MML 変換に失敗しました: ${(error as Error).message}`, true);
+    }
+}
+
 function readAttachmentBytes(): Uint8Array | null {
     if (!toneJsonField) {
         return new Uint8Array();
@@ -174,7 +294,7 @@ async function runConversion(trigger: string): Promise<void> {
         return;
     }
     if (!midiBytes) {
-        setStatus(conversionStatus, 'MIDI ファイルを先に選択してください。', true);
+        setStatus(conversionStatus, 'SMF ファイルを選択するか、MML を入力してください。', true);
         return;
     }
 
@@ -185,7 +305,13 @@ async function runConversion(trigger: string): Promise<void> {
     }
 
     try {
-        setStatus(conversionStatus, `変換中... (${trigger})`);
+        const triggerLabel =
+            lastMidiSource === 'mml'
+                ? `${trigger} (MML 入力)`
+                : lastMidiSource === 'file'
+                  ? `${trigger} (SMF ファイル)`
+                  : trigger;
+        setStatus(conversionStatus, `変換中... (${triggerLabel})`);
         const result = smf_to_ym2151_json_with_attachment(midiBytes, attachmentBytes);
         const parsed = JSON.parse(result);
         const formatted = JSON.stringify(parsed, null, 2);
@@ -249,6 +375,18 @@ function setupAttachmentEditor(): void {
     });
 }
 
+function setupMmlInput(): void {
+    if (!mmlInput) return;
+    mmlInput.addEventListener('input', () => {
+        if (mmlDebounce) {
+            window.clearTimeout(mmlDebounce);
+        }
+        mmlDebounce = window.setTimeout(() => {
+            void convertMmlToSmf('MML 更新');
+        }, 400);
+    });
+}
+
 function setupMidiInput(): void {
     const midiInput = document.getElementById('midi-input') as HTMLInputElement | null;
     if (!midiInput) return;
@@ -258,6 +396,8 @@ function setupMidiInput(): void {
         const file = target.files?.[0];
         if (!file) {
             midiBytes = null;
+            lastMidiSource = null;
+            latestMidiRequestId += 1;
             updateOutputWithState('');
             setEventCountDisplay(eventCount, undefined);
             setStatus(fileStatus, 'SMF ファイルを選択してください。');
@@ -267,12 +407,18 @@ function setupMidiInput(): void {
 
         setStatus(fileStatus, `${file.name} を読み込み中...`);
         try {
+            const requestId = ++latestMidiRequestId;
             const arrayBuffer = await file.arrayBuffer();
+            if (requestId !== latestMidiRequestId) {
+                return;
+            }
             midiBytes = new Uint8Array(arrayBuffer);
+            lastMidiSource = 'file';
             setStatus(fileStatus, `${file.name} を読み込みました (${midiBytes.byteLength} bytes)`);
             void runConversion('MIDI 更新');
         } catch (error) {
             midiBytes = null;
+            lastMidiSource = null;
             setStatus(fileStatus, `読み込みに失敗しました: ${(error as Error).message}`, true);
         }
     });
@@ -293,6 +439,7 @@ function bootstrapWebYm(): void {
 function main(): void {
     setupAttachmentEditor();
     setupMidiInput();
+    setupMmlInput();
     updateOutputWithState('');
     updatePlayButtonState();
     bootstrapWebYm();
