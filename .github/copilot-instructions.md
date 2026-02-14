@@ -211,3 +211,6 @@ When making changes to the demo or deployment:
 ## Project Status
 
 This project is in active development. The implementation is functional but may not support all MIDI features yet. Check IMPLEMENTATION.md for detailed implementation progress and planned features.
+
+# TypeScript demo
+- demoを開発するとき、formatterとlinterを適用すること
