@@ -231,6 +231,10 @@ async function convertMmlToSmf(trigger: string): Promise<void> {
     if (!mmlInput) return;
     const mmlText = mmlInput.value.trim();
     if (mmlText.length === 0) {
+        if (lastMidiSource === 'mml') {
+            midiBytes = null;
+            lastMidiSource = null;
+        }
         setStatus(mmlStatus, 'MML を入力すると SMF を生成します。');
         return;
     }
@@ -238,6 +242,9 @@ async function convertMmlToSmf(trigger: string): Promise<void> {
     const requestId = ++latestMidiRequestId;
     const initialized = await ensureMmlRuntime();
     if (!initialized || !mmlParser || !parseTreeJsonToSmf) {
+        return;
+    }
+    if (requestId !== latestMidiRequestId) {
         return;
     }
 
