@@ -9,6 +9,7 @@ import {
     setStatus,
     updateOutput,
 } from './shared-demo';
+import { setupMmlToSmf } from './mml-support';
 
 const DEFAULT_ATTACHMENT = `{
   "DelayVibrato": true
@@ -18,16 +19,29 @@ let wasmReady = false;
 let midiBytes: Uint8Array | null = null;
 let currentOutput: string | null = null;
 let attachmentDebounce: number | null = null;
+let lastMidiSource: 'file' | 'mml' | null = null;
+let latestMidiRequestId = 0;
 
 const attachmentField = document.getElementById('attachment-json') as HTMLTextAreaElement | null;
 const conversionOutput = document.getElementById('conversion-output') as HTMLPreElement | null;
 const conversionStatus = document.getElementById('conversion-status');
 const attachmentStatus = document.getElementById('attachment-status');
 const fileStatus = document.getElementById('file-status');
+const mmlStatus = document.getElementById('mml-status');
 const eventCount = document.getElementById('event-count');
 const jsonEditor = document.getElementById('jsonEditor') as HTMLTextAreaElement | null;
 const playButton = document.getElementById('play-audio') as HTMLButtonElement | null;
 const webYmStatus = document.getElementById('web-ym-status');
+const mmlInput = document.getElementById('mml-input') as HTMLTextAreaElement | null;
+
+function nextRequestId(): number {
+    latestMidiRequestId += 1;
+    return latestMidiRequestId;
+}
+
+function isLatestRequest(id: number): boolean {
+    return id === latestMidiRequestId;
+}
 
 function updateOutputWithState(text: string): void {
     currentOutput = text;
@@ -61,7 +75,7 @@ async function runConversion(trigger: string): Promise<void> {
         return;
     }
     if (!midiBytes) {
-        setStatus(conversionStatus, 'MIDI ファイルを先に選択してください。', true);
+        setStatus(conversionStatus, 'MIDI ファイルを選択するか、MML を入力してください。', true);
         return;
     }
 
@@ -72,7 +86,13 @@ async function runConversion(trigger: string): Promise<void> {
     }
 
     try {
-        setStatus(conversionStatus, `変換中... (${trigger})`);
+        const triggerLabel =
+            lastMidiSource === 'mml'
+                ? `${trigger} (MML 入力)`
+                : lastMidiSource === 'file'
+                  ? `${trigger} (SMF ファイル)`
+                  : trigger;
+        setStatus(conversionStatus, `変換中... (${triggerLabel})`);
         const result = smf_to_ym2151_json_with_attachment(midiBytes, attachmentBytes);
         const parsed = JSON.parse(result);
         const formatted = JSON.stringify(parsed, null, 2);
@@ -114,6 +134,29 @@ function setupAttachmentEditor(): void {
     });
 }
 
+function setupMmlInput(): void {
+    setupMmlToSmf({
+        mmlInput,
+        mmlStatus,
+        fileStatus,
+        nextRequestId,
+        isLatestRequest,
+        onMidiReady: bytes => {
+            midiBytes = bytes;
+            lastMidiSource = 'mml';
+        },
+        onClear: () => {
+            if (lastMidiSource === 'mml') {
+                midiBytes = null;
+                lastMidiSource = null;
+            }
+        },
+        onAfterConvert: trigger => {
+            void runConversion(trigger);
+        },
+    });
+}
+
 function setupMidiInput(): void {
     const midiInput = document.getElementById('midi-input') as HTMLInputElement | null;
     if (!midiInput) return;
@@ -122,22 +165,30 @@ function setupMidiInput(): void {
         const target = event.target as HTMLInputElement;
         const file = target.files?.[0];
         if (!file) {
+            nextRequestId();
             midiBytes = null;
+            lastMidiSource = null;
             updateOutputWithState('');
             setEventCountDisplay(eventCount, undefined);
-            setStatus(fileStatus, 'SMF ファイルを選択してください。');
+            setStatus(fileStatus, 'SMF ファイルを選択するか、MML を入力してください。');
             updatePlayButtonState();
             return;
         }
 
+        const requestId = nextRequestId();
         setStatus(fileStatus, `${file.name} を読み込み中...`);
         try {
             const arrayBuffer = await file.arrayBuffer();
+            if (!isLatestRequest(requestId)) {
+                return;
+            }
             midiBytes = new Uint8Array(arrayBuffer);
+            lastMidiSource = 'file';
             setStatus(fileStatus, `${file.name} を読み込みました (${midiBytes.byteLength} bytes)`);
             void runConversion('MIDI 更新');
         } catch (error) {
             midiBytes = null;
+            lastMidiSource = null;
             setStatus(fileStatus, `読み込みに失敗しました: ${(error as Error).message}`, true);
         }
     });
@@ -158,6 +209,7 @@ function bootstrapWebYm(): void {
 function main(): void {
     setupAttachmentEditor();
     setupMidiInput();
+    setupMmlInput();
     updateOutputWithState('');
     updatePlayButtonState();
     bootstrapWebYm();
