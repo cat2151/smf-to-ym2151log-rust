@@ -1,3 +1,7 @@
+//! Waveform generation utilities
+//!
+//! Provides waveform generation helpers for LFO effects.
+
 use crate::LfoWaveform;
 
 pub(super) fn lfo_waveform_value(waveform: LfoWaveform, phase: f64) -> f64 {

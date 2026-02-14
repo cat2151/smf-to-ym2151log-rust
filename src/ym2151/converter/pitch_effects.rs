@@ -1,3 +1,7 @@
+//! Pitch-related effects
+//!
+//! Provides delay vibrato and portamento implementations for YM2151 conversion.
+
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
