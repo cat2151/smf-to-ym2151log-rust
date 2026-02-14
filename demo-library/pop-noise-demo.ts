@@ -45,7 +45,6 @@ const mmlStatus = document.getElementById('mml-status');
 const eventCount = document.getElementById('event-count');
 const jsonEditor = document.getElementById('jsonEditor') as HTMLTextAreaElement | null;
 const playButton = document.getElementById('play-audio') as HTMLButtonElement | null;
-const webYmStatus = document.getElementById('web-ym-status');
 const mmlInput = document.getElementById('mml-input') as HTMLTextAreaElement | null;
 const logVisualizer = createLogVisualizer(document.getElementById('log-visualizer'));
 
