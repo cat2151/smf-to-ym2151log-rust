@@ -181,31 +181,33 @@ pub fn convert_to_ym2151_log_with_options(
         append_portamento_events(&vibrato_segments, &mut ym2151_events);
     }
 
-    if !options.software_lfo.is_empty() {
-        append_register_lfo_events(&options.software_lfo, &vibrato_segments, &mut ym2151_events);
-    }
-
     let need_pre_note_events =
         options.pop_noise_envelope.is_some() || options.attack_continuation_fix.is_some();
-    let base_snapshot = if need_pre_note_events {
-        Some(ym2151_events.clone())
+    let need_register_cache = !options.software_lfo.is_empty() || need_pre_note_events;
+    let register_cache = if need_register_cache {
+        Some(build_register_state_cache(&ym2151_events))
     } else {
         None
     };
 
-    if let (Some(config), Some(snapshot)) = (&options.pop_noise_envelope, base_snapshot.as_ref()) {
-        append_pop_noise_envelope_events(config, &vibrato_segments, snapshot, &mut ym2151_events);
+    if !options.software_lfo.is_empty() {
+        if let Some(cache) = register_cache.as_ref() {
+            append_register_lfo_events(
+                &options.software_lfo,
+                &vibrato_segments,
+                cache,
+                &mut ym2151_events,
+            );
+        }
     }
 
-    if let (Some(config), Some(snapshot)) =
-        (&options.attack_continuation_fix, base_snapshot.as_ref())
+    if let (Some(config), Some(cache)) = (&options.pop_noise_envelope, register_cache.as_ref()) {
+        append_pop_noise_envelope_events(config, &vibrato_segments, cache, &mut ym2151_events);
+    }
+
+    if let (Some(config), Some(cache)) = (&options.attack_continuation_fix, register_cache.as_ref())
     {
-        append_attack_continuation_fix_events(
-            config,
-            &vibrato_segments,
-            snapshot,
-            &mut ym2151_events,
-        );
+        append_attack_continuation_fix_events(config, &vibrato_segments, cache, &mut ym2151_events);
     }
 
     ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
@@ -353,6 +355,7 @@ fn append_portamento_glide(
 fn append_register_lfo_events(
     lfo_defs: &[RegisterLfoDefinition],
     segments: &[NoteSegment],
+    cache: &RegisterStateCache,
     events: &mut Vec<Ym2151Event>,
 ) {
     if lfo_defs.is_empty() || segments.is_empty() {
@@ -366,17 +369,13 @@ fn append_register_lfo_events(
             .unwrap_or(Ordering::Equal)
     });
 
-    let base_snapshot = events.clone();
-
     for segment in &ordered_segments {
         for def in lfo_defs {
             let Some(base_reg) = parse_hex_byte(&def.base_register) else {
                 continue;
             };
             let resolved_addr = resolve_register_for_channel(base_reg, segment.ym2151_channel);
-            let Some(base_value) =
-                latest_register_value(&base_snapshot, resolved_addr, segment.start_time)
-            else {
+            let Some(base_value) = cache.latest_value(resolved_addr, segment.start_time) else {
                 continue;
             };
 
@@ -440,7 +439,7 @@ fn append_register_lfo_for_segment(
 fn append_pop_noise_envelope_events(
     config: &PopNoiseEnvelope,
     segments: &[NoteSegment],
-    base_events: &[Ym2151Event],
+    cache: &RegisterStateCache,
     events: &mut Vec<Ym2151Event>,
 ) {
     if config.registers.is_empty() || segments.is_empty() {
@@ -457,7 +456,7 @@ fn append_pop_noise_envelope_events(
     let offset = config.offset_seconds.max(0.0);
 
     for segment in ordered_segments {
-        if segment.start_time <= offset {
+        if segment.start_time <= offset || offset <= RESTORE_BEFORE_NOTE_EPSILON {
             continue;
         }
         let apply_time = segment.start_time - offset;
@@ -471,9 +470,7 @@ fn append_pop_noise_envelope_events(
                 continue;
             };
             let resolved_addr = resolve_register_for_channel(base_reg, segment.ym2151_channel);
-            let Some(base_value) =
-                latest_register_value(base_events, resolved_addr, segment.start_time)
-            else {
+            let Some(base_value) = cache.latest_value(resolved_addr, restore_time) else {
                 continue;
             };
             if base_value == override_value {
@@ -498,7 +495,7 @@ fn append_pop_noise_envelope_events(
 fn append_attack_continuation_fix_events(
     config: &AttackContinuationFix,
     segments: &[NoteSegment],
-    base_events: &[Ym2151Event],
+    cache: &RegisterStateCache,
     events: &mut Vec<Ym2151Event>,
 ) {
     if segments.is_empty() {
@@ -518,7 +515,7 @@ fn append_attack_continuation_fix_events(
     });
 
     for segment in ordered_segments {
-        if segment.start_time <= offset {
+        if segment.start_time <= offset || offset <= RESTORE_BEFORE_NOTE_EPSILON {
             continue;
         }
         let pre_time = segment.start_time - offset;
@@ -528,9 +525,7 @@ fn append_attack_continuation_fix_events(
         for op in 0..4 {
             let base_reg = 0xE0u8 + (op * 8);
             let resolved = resolve_register_for_channel(base_reg, segment.ym2151_channel);
-            if let Some(base_value) =
-                latest_register_value(base_events, resolved, segment.start_time)
-            {
+            if let Some(base_value) = cache.latest_value(resolved, pre_time) {
                 if base_value != override_release {
                     release_registers.push((resolved, base_value));
                 }
@@ -565,6 +560,53 @@ fn append_attack_continuation_fix_events(
     }
 }
 
+struct RegisterStateCache {
+    by_addr: HashMap<u8, Vec<(f64, u8)>>,
+}
+
+fn build_register_state_cache(events: &[Ym2151Event]) -> RegisterStateCache {
+    let mut by_addr: HashMap<u8, Vec<(f64, u8)>> = HashMap::new();
+
+    for e in events {
+        let Some(addr) = parse_hex_byte(&e.addr) else {
+            continue;
+        };
+        let Some(value) = parse_hex_byte(&e.data) else {
+            continue;
+        };
+        by_addr.entry(addr).or_default().push((e.time, value));
+    }
+
+    for values in by_addr.values_mut() {
+        values.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal));
+    }
+
+    RegisterStateCache { by_addr }
+}
+
+impl RegisterStateCache {
+    fn latest_value(&self, addr: u8, time: f64) -> Option<u8> {
+        let Some(entries) = self.by_addr.get(&addr) else {
+            return None;
+        };
+        let mut lo = 0;
+        let mut hi = entries.len();
+        while lo < hi {
+            let mid = (lo + hi) / 2;
+            if entries[mid].0 <= time + f64::EPSILON {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        if lo == 0 {
+            None
+        } else {
+            Some(entries[lo - 1].1)
+        }
+    }
+}
+
 fn resolve_register_for_channel(base_register: u8, channel: u8) -> u8 {
     match base_register {
         0x20..=0x27 => 0x20 + channel,
@@ -580,15 +622,6 @@ fn resolve_register_for_channel(base_register: u8, channel: u8) -> u8 {
         }
         _ => base_register,
     }
-}
-
-fn latest_register_value(events: &[Ym2151Event], addr: u8, time: f64) -> Option<u8> {
-    let target_addr = format!("0x{:02X}", addr);
-    events
-        .iter()
-        .filter(|e| e.addr == target_addr && e.time <= time + f64::EPSILON)
-        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal))
-        .and_then(|e| parse_hex_byte(&e.data))
 }
 
 fn parse_hex_byte(value: &str) -> Option<u8> {
