@@ -57,9 +57,45 @@ pub struct ConversionOptions {
     /// Enable portamento glides between consecutive notes
     #[serde(rename = "Portamento", default)]
     pub portamento: bool,
+    /// Optional software LFO definitions that modulate tone registers
+    #[serde(rename = "SoftwareLfo", default)]
+    pub software_lfo: Vec<RegisterLfoDefinition>,
     /// Optional YM2151 tone definitions keyed by MIDI program number
     #[serde(rename = "Tones", default)]
     pub tones: HashMap<u8, ToneDefinition>,
+}
+
+/// Defines a software LFO targeting a YM2151 tone register (per channel/operator)
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct RegisterLfoDefinition {
+    /// Base register address (channel 0 / operator base, e.g. "0x60")
+    pub base_register: String,
+    /// Peak modulation amount applied around the base register value
+    #[serde(default)]
+    pub depth: f64,
+    /// Oscillation rate in Hz
+    pub rate_hz: f64,
+    /// Delay before the LFO starts after the note-on
+    #[serde(default)]
+    pub delay_seconds: f64,
+    /// Attack time before reaching full depth
+    #[serde(default)]
+    pub attack_seconds: f64,
+    /// Waveform shape
+    #[serde(default = "default_lfo_waveform")]
+    pub waveform: LfoWaveform,
+}
+
+/// Supported software LFO waveforms
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum LfoWaveform {
+    Triangle,
+}
+
+fn default_lfo_waveform() -> LfoWaveform {
+    LfoWaveform::Triangle
 }
 
 impl ConversionOptions {

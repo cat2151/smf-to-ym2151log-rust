@@ -5,7 +5,7 @@
 use super::*;
 use crate::midi::{midi_to_kc_kf, MidiEvent};
 use crate::ym2151::{ToneDefinition, Ym2151Event};
-use crate::ConversionOptions;
+use crate::{ConversionOptions, LfoWaveform, RegisterLfoDefinition};
 
 #[test]
 fn test_convert_empty_midi() {
@@ -333,6 +333,68 @@ fn test_portamento_generates_pitch_glide_events() {
             .iter()
             .any(|e| e.data == format!("0x{:02X}", kc_second)),
         "Glide should arrive at the target KC"
+    );
+}
+
+#[test]
+fn test_register_lfo_modulates_tone_register() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 240,
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 1,
+                note: 64,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 1,
+                note: 64,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        software_lfo: vec![RegisterLfoDefinition {
+            base_register: "0x60".to_string(),
+            depth: 4.0,
+            rate_hz: 2.0,
+            delay_seconds: 0.0,
+            attack_seconds: 0.0,
+            waveform: LfoWaveform::Triangle,
+        }],
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    // MIDI channel 1 maps to YM channel 1 when channel 0 is also present, so TL base reg 0x60 -> 0x61
+    let lfo_events: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x61" && e.time > 0.0)
+        .collect();
+
+    assert!(
+        !lfo_events.is_empty(),
+        "Software LFO should emit TL updates for channel 1"
+    );
+    assert!(
+        lfo_events.iter().any(|e| e.data != "0x00"),
+        "LFO should modulate TL away from the base value"
     );
 }
 
