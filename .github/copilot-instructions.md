@@ -212,5 +212,8 @@ When making changes to the demo or deployment:
 
 This project is in active development. The implementation is functional but may not support all MIDI features yet. Check IMPLEMENTATION.md for detailed implementation progress and planned features.
 
+# ソース行数
+- 単一責任の原則に従ってソース分割すること。特に500行を超えたときはソース分割の優先度を高めること
+
 # TypeScript demo
 - demoを開発するとき、formatterとlinterを適用すること
