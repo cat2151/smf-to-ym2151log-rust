@@ -12,19 +12,22 @@ import {
 import { setupMmlToSmf } from './mml-support';
 import { createLogVisualizer } from './log-visualizer';
 
-const DEFAULT_ATTACHMENT = `{
-  "Portamento": true,
-  "SoftwareLfo": [
-    {
-      "BaseRegister": "0x60",
-      "Depth": 6,
-      "RateHz": 4.0,
-      "DelaySeconds": 0.1,
-      "AttackSeconds": 0.05,
-      "Waveform": "triangle"
-    }
-  ]
-}`;
+const DEFAULT_ATTACHMENT = `[
+  {
+    "ProgramChange": 0,
+    "Portamento": true,
+    "SoftwareLfo": [
+      {
+        "BaseRegister": "0x60",
+        "Depth": 6,
+        "RateHz": 4.0,
+        "DelaySeconds": 0.1,
+        "AttackSeconds": 0.05,
+        "Waveform": "triangle"
+      }
+    ]
+  }
+]`;
 
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;

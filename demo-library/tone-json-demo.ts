@@ -35,21 +35,33 @@ type TreeSitterParser = {
     setLanguage: (language: unknown) => void;
 };
 
-const YM_LOG_STYLE_PRESET = `{
-  "event_count": 4,
-  "events": [
-    { "time": 0, "addr": "0x20", "data": "0xC7" },
-    { "time": 0, "addr": "0x60", "data": "0x10" },
-    { "time": 0, "addr": "0x80", "data": "0x1F" },
-    { "time": 0, "addr": "0xE0", "data": "0x0F" }
-  ]
-}`;
-
-const COMPACT_NIBBLE_PRESET = `{
-  "CompactTones": {
-    "0": "20C76010801FE00F"
+const YM_LOG_STYLE_PRESET = `[
+  {
+    "ProgramChange": 0,
+    "Tone": {
+      "events": [
+        { "time": 0, "addr": "0x20", "data": "0xC7" },
+        { "time": 0, "addr": "0x60", "data": "0x10" },
+        { "time": 0, "addr": "0x80", "data": "0x1F" },
+        { "time": 0, "addr": "0xE0", "data": "0x0F" }
+      ]
+    }
   }
-}`;
+]`;
+
+const COMPACT_NIBBLE_PRESET = `[
+  {
+    "ProgramChange": 0,
+    "Tone": {
+      "events": [
+        { "time": 0, "addr": "0x20", "data": "0xC7" },
+        { "time": 0, "addr": "0x60", "data": "0x10" },
+        { "time": 0, "addr": "0x80", "data": "0x1F" },
+        { "time": 0, "addr": "0xE0", "data": "0x0F" }
+      ]
+    }
+  }
+]`;
 
 const ATTACHMENT_PRESETS: AttachmentPreset[] = [
     {
@@ -155,20 +167,29 @@ function normalizeAttachmentText(raw: string, statusEl: HTMLElement | null): str
 
     try {
         const parsed = JSON.parse(trimmed);
-        const normalized = { ...parsed } as Record<string, any>;
-        let mutated = false;
+
+        if (Array.isArray(parsed)) {
+            setStatus(statusEl, '音色 JSON を適用します');
+            return JSON.stringify(parsed, null, 2);
+        }
+
+        const baseOptions: Record<string, unknown> = {};
+        ['DelayVibrato', 'Portamento', 'SoftwareLfo', 'PopNoiseEnvelope', 'AttackContinuationFix'].forEach(
+            key => {
+                if ((parsed as Record<string, unknown>)[key] !== undefined) {
+                    baseOptions[key] = (parsed as Record<string, unknown>)[key];
+                }
+            },
+        );
+
+        const toneMap: Record<string, any> = { ...(parsed.Tones ?? {}) };
 
         if (Array.isArray(parsed.events)) {
-            normalized.Tones = normalized.Tones ?? {};
-            normalized.Tones['0'] = { events: parsed.events };
-            delete normalized.events;
-            delete normalized.event_count;
-            mutated = true;
+            toneMap['0'] = { events: parsed.events };
         }
 
         if (parsed.CompactTones && typeof parsed.CompactTones === 'object') {
             const compactTones = parsed.CompactTones as Record<string, unknown>;
-            const toneMap = normalized.Tones ?? {};
             Object.entries(compactTones).forEach(([program, value]) => {
                 if (typeof value !== 'string') {
                     throw new Error('CompactTones の値は16進文字列である必要があります');
@@ -176,14 +197,30 @@ function normalizeAttachmentText(raw: string, statusEl: HTMLElement | null): str
                 const events = buildEventsFromCompact(value);
                 toneMap[program] = { events };
             });
-            normalized.Tones = toneMap;
-            delete normalized.CompactTones;
-            mutated = true;
         }
 
-        const output = JSON.stringify(normalized, null, 2);
-        setStatus(statusEl, mutated ? 'プリセットを YM2151 音色 JSON に正規化しました' : '音色 JSON を適用します');
-        return output;
+        const entries: any[] = [];
+        Object.entries(toneMap).forEach(([program, tone]) => {
+            const programNumber = Number(program);
+            if (!Number.isFinite(programNumber)) {
+                throw new Error('ProgramChange は数値で指定してください');
+            }
+            entries.push({
+                ProgramChange: programNumber,
+                Tone: tone,
+                ...baseOptions,
+            });
+        });
+
+        if (entries.length === 0 && Object.keys(baseOptions).length > 0) {
+            entries.push({
+                ProgramChange: 0,
+                ...baseOptions,
+            });
+        }
+
+        setStatus(statusEl, '音色 JSON を適用します');
+        return JSON.stringify(entries, null, 2);
     } catch (error) {
         setStatus(statusEl, `JSON が不正です: ${(error as Error).message}`, true);
         return null;

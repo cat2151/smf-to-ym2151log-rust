@@ -12,9 +12,12 @@ import {
 import { setupMmlToSmf } from './mml-support';
 import { createLogVisualizer } from './log-visualizer';
 
-const DEFAULT_ATTACHMENT = `{
-  "DelayVibrato": true
-}`;
+const DEFAULT_ATTACHMENT = `[
+  {
+    "ProgramChange": 0,
+    "DelayVibrato": true
+  }
+]`;
 
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;

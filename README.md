@@ -116,65 +116,75 @@ smf-to-ym2151log = { git = "https://github.com/cat2151/smf-to-ym2151log-rust" }
 
 ### Optional Attachment JSON (Delay Vibrato / Portamento / Pop Noise / Attack Continuation Fix / Software LFO / Custom Tones)
 
-You can provide an optional attachment JSON to enable delayed vibrato, portamento, software LFOs for tone registers, or override YM2151 tone definitions (keyed by MIDI program number). Use the helper APIs:
+You can provide an optional attachment JSON (array of 0-128 entries). Each entry is tied to a specific `ProgramChange` (0-127) and can enable per-program features such as delayed vibrato, portamento, software LFOs, pop-noise guards, attack-continuation guards, or an inline tone definition. Use the helper APIs:
 
 - Rust: `convert_smf_to_ym2151_log_with_options(smf_bytes, Some(attachment_json_bytes))`
 - WASM: `smf_to_ym2151_json_with_attachment(smf_bytes, attachment_json_bytes)`
 
-Attachment examples:
+Attachment examples (per-program entries):
 
 ```json
-{
-  "DelayVibrato": true,
-  "Portamento": true
-}
+[
+  {
+    "ProgramChange": 0,
+    "DelayVibrato": true,
+    "Portamento": true
+  }
+]
 ```
 
 ```json
-{
-  "SoftwareLfo": [
-    {
-      "BaseRegister": "0x60",
-      "Depth": 4,
-      "RateHz": 2.0,
-      "DelaySeconds": 0.0,
-      "AttackSeconds": 0.05,
-      "Waveform": "triangle"
-    }
-  ]
-}
+[
+  {
+    "ProgramChange": 0,
+    "SoftwareLfo": [
+      {
+        "BaseRegister": "0x60",
+        "Depth": 4,
+        "RateHz": 2.0,
+        "DelaySeconds": 0.0,
+        "AttackSeconds": 0.05,
+        "Waveform": "triangle"
+      }
+    ]
+  }
+]
 ```
 
 ```json
-{
-  "Tones": {
-    "0": {
+[
+  {
+    "ProgramChange": 0,
+    "Tone": {
       "events": [
         { "time": 0, "addr": "0x20", "data": "0xC7" },
         { "time": 0, "addr": "0x60", "data": "0x10" }
       ]
     }
   }
-}
+]
 ```
 
 ```json
-{
-  "PopNoiseEnvelope": {
-    "Enabled": true,
-    "OffsetSeconds": 0.001,
-    "Registers": [
-      { "BaseRegister": "0x80", "Value": "0x0A" },
-      { "BaseRegister": "0xA0", "Value": "0x04" },
-      { "BaseRegister": "0xA8", "Value": "0x04" }
-    ]
-  },
-  "AttackContinuationFix": {
-    "Enabled": true,
-    "OffsetSeconds": 0.001,
-    "ReleaseRate": 240
+[
+  {
+    "ProgramChange": 0,
+    "PopNoiseEnvelope": {
+      "Enabled": true,
+      "OffsetSeconds": 0.001,
+      "Registers": [
+        { "BaseRegister": "0x80", "Value": "0x0A" },
+        { "BaseRegister": "0xA0", "Value": "0x04" },
+        { "BaseRegister": "0xA8", "Value": "0x04" }
+      ]
+    },
+    "AttackContinuationFix": {
+      "Enabled": true,
+      "OffsetSeconds": 0.001,
+      "ReleaseRate": 240
+    }
   }
-}
+]
 ```
 
 Detailed API documentation: `cargo doc --open`

@@ -340,6 +340,99 @@ fn test_portamento_generates_pitch_glide_events() {
 }
 
 #[test]
+fn test_program_specific_portamento_applies_per_program() {
+    let attachment = br#"[
+  { "ProgramChange": 0, "Portamento": true },
+  { "ProgramChange": 1, "Portamento": false }
+]"#;
+
+    let options = ConversionOptions::from_attachment_bytes(Some(attachment)).unwrap();
+
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::ProgramChange {
+                ticks: 0,
+                channel: 0,
+                program: 0,
+            },
+            MidiEvent::ProgramChange {
+                ticks: 0,
+                channel: 1,
+                program: 1,
+            },
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 240,
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::NoteOn {
+                ticks: 240,
+                channel: 0,
+                note: 64,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 64,
+            },
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 1,
+                note: 67,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 240,
+                channel: 1,
+                note: 67,
+            },
+            MidiEvent::NoteOn {
+                ticks: 240,
+                channel: 1,
+                note: 71,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 1,
+                note: 71,
+            },
+        ],
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    let ch0_kc_after_second = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time >= 0.25)
+        .count();
+    assert!(
+        ch0_kc_after_second > 1,
+        "Channel 0 should include portamento KC glide when enabled for its program"
+    );
+
+    let ch1_kc_after_second = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x29" && e.time >= 0.25)
+        .count();
+    assert_eq!(
+        ch1_kc_after_second, 1,
+        "Channel 1 should not apply portamento when its program disables it"
+    );
+}
+
+#[test]
 fn test_register_lfo_modulates_tone_register() {
     let midi_data = MidiData {
         ticks_per_beat: 480,

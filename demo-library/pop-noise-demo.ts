@@ -12,22 +12,25 @@ import {
 import { setupMmlToSmf } from './mml-support';
 import { createLogVisualizer } from './log-visualizer';
 
-const DEFAULT_ATTACHMENT = `{
-  "PopNoiseEnvelope": {
-    "Enabled": true,
-    "OffsetSeconds": 0.001,
-    "Registers": [
-      { "BaseRegister": "0x80", "Value": "0x0A" },
-      { "BaseRegister": "0xA0", "Value": "0x04" },
-      { "BaseRegister": "0xA8", "Value": "0x04" }
-    ]
-  },
-  "AttackContinuationFix": {
-    "Enabled": true,
-    "OffsetSeconds": 0.001,
-    "ReleaseRate": 240
+const DEFAULT_ATTACHMENT = `[
+  {
+    "ProgramChange": 0,
+    "PopNoiseEnvelope": {
+      "Enabled": true,
+      "OffsetSeconds": 0.001,
+      "Registers": [
+        { "BaseRegister": "0x80", "Value": "0x0A" },
+        { "BaseRegister": "0xA0", "Value": "0x04" },
+        { "BaseRegister": "0xA8", "Value": "0x04" }
+      ]
+    },
+    "AttackContinuationFix": {
+      "Enabled": true,
+      "OffsetSeconds": 0.001,
+      "ReleaseRate": 240
+    }
   }
-}`;
+]`;
 
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;

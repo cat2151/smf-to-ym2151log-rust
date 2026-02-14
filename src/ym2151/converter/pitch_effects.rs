@@ -52,7 +52,13 @@ pub(super) fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut
     }
 }
 
-pub(super) fn append_portamento_events(segments: &[NoteSegment], events: &mut Vec<Ym2151Event>) {
+pub(super) fn append_portamento_events<F>(
+    segments: &[NoteSegment],
+    should_apply: F,
+    events: &mut Vec<Ym2151Event>,
+) where
+    F: Fn(&NoteSegment, &NoteSegment) -> bool,
+{
     if segments.is_empty() {
         return;
     }
@@ -77,6 +83,9 @@ pub(super) fn append_portamento_events(segments: &[NoteSegment], events: &mut Ve
         for pair in list.windows(2) {
             let prev = pair[0];
             let next = pair[1];
+            if !should_apply(prev, next) {
+                continue;
+            }
             let stop_time = (next.start_time + PORTAMENTO_TIME_SECONDS).min(next.end_time);
             if stop_time <= next.start_time {
                 continue;

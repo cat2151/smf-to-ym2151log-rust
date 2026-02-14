@@ -118,7 +118,14 @@ pub fn convert_to_ym2151_log_with_options(
         || options.portamento
         || !options.software_lfo.is_empty()
         || options.pop_noise_envelope.is_some()
-        || options.attack_continuation_fix.is_some();
+        || options.attack_continuation_fix.is_some()
+        || options.program_settings.values().any(|cfg| {
+            cfg.delay_vibrato
+                || cfg.portamento
+                || !cfg.software_lfo.is_empty()
+                || cfg.pop_noise_envelope.is_some()
+                || cfg.attack_continuation_fix.is_some()
+        });
     let mut vibrato_active_notes = if need_note_segments {
         Some(HashMap::new())
     } else {
@@ -164,22 +171,63 @@ pub fn convert_to_ym2151_log_with_options(
                     end_tick: last_tick,
                     start_time: note_on.start_time,
                     end_time,
+                    program: note_on.program,
                 });
             }
         }
     }
 
-    if options.delay_vibrato {
-        append_delay_vibrato_events(&vibrato_segments, &mut ym2151_events);
+    let delay_vibrato_enabled = |segment: &NoteSegment| {
+        options.delay_vibrato
+            || options
+                .program_settings
+                .get(&segment.program)
+                .map_or(false, |cfg| cfg.delay_vibrato)
+    };
+
+    let portamento_enabled = |segment: &NoteSegment| {
+        options.portamento
+            || options
+                .program_settings
+                .get(&segment.program)
+                .map_or(false, |cfg| cfg.portamento)
+    };
+
+    if vibrato_segments
+        .iter()
+        .any(|segment| delay_vibrato_enabled(segment))
+    {
+        let delay_segments: Vec<NoteSegment> = vibrato_segments
+            .iter()
+            .filter(|segment| delay_vibrato_enabled(segment))
+            .cloned()
+            .collect();
+        append_delay_vibrato_events(&delay_segments, &mut ym2151_events);
     }
 
-    if options.portamento {
-        append_portamento_events(&vibrato_segments, &mut ym2151_events);
+    if vibrato_segments
+        .iter()
+        .any(|segment| portamento_enabled(segment))
+    {
+        append_portamento_events(
+            &vibrato_segments,
+            |_, next| portamento_enabled(next),
+            &mut ym2151_events,
+        );
     }
 
-    let need_pre_note_events =
-        options.pop_noise_envelope.is_some() || options.attack_continuation_fix.is_some();
-    let need_register_cache = !options.software_lfo.is_empty() || need_pre_note_events;
+    let need_pre_note_events = options.pop_noise_envelope.is_some()
+        || options.attack_continuation_fix.is_some()
+        || options
+            .program_settings
+            .values()
+            .any(|cfg| cfg.pop_noise_envelope.is_some() || cfg.attack_continuation_fix.is_some());
+    let need_register_cache = !options.software_lfo.is_empty()
+        || options
+            .program_settings
+            .values()
+            .any(|cfg| !cfg.software_lfo.is_empty())
+        || need_pre_note_events;
     let register_cache = if need_register_cache {
         Some(build_register_state_cache(&ym2151_events))
     } else {
@@ -204,6 +252,72 @@ pub fn convert_to_ym2151_log_with_options(
     if let (Some(config), Some(cache)) = (&options.attack_continuation_fix, register_cache.as_ref())
     {
         append_attack_continuation_fix_events(config, &vibrato_segments, cache, &mut ym2151_events);
+    }
+
+    if let Some(cache) = register_cache.as_ref() {
+        for (program, cfg) in options
+            .program_settings
+            .iter()
+            .filter(|(_, cfg)| !cfg.software_lfo.is_empty())
+        {
+            let program_segments: Vec<NoteSegment> = vibrato_segments
+                .iter()
+                .filter(|segment| segment.program == *program)
+                .cloned()
+                .collect();
+            if !program_segments.is_empty() {
+                append_register_lfo_events(
+                    &cfg.software_lfo,
+                    &program_segments,
+                    cache,
+                    &mut ym2151_events,
+                );
+            }
+        }
+
+        for (program, cfg) in options
+            .program_settings
+            .iter()
+            .filter(|(_, cfg)| cfg.pop_noise_envelope.is_some())
+        {
+            if let Some(config) = &cfg.pop_noise_envelope {
+                let program_segments: Vec<NoteSegment> = vibrato_segments
+                    .iter()
+                    .filter(|segment| segment.program == *program)
+                    .cloned()
+                    .collect();
+                if !program_segments.is_empty() {
+                    append_pop_noise_envelope_events(
+                        config,
+                        &program_segments,
+                        cache,
+                        &mut ym2151_events,
+                    );
+                }
+            }
+        }
+
+        for (program, cfg) in options
+            .program_settings
+            .iter()
+            .filter(|(_, cfg)| cfg.attack_continuation_fix.is_some())
+        {
+            if let Some(config) = &cfg.attack_continuation_fix {
+                let program_segments: Vec<NoteSegment> = vibrato_segments
+                    .iter()
+                    .filter(|segment| segment.program == *program)
+                    .cloned()
+                    .collect();
+                if !program_segments.is_empty() {
+                    append_attack_continuation_fix_events(
+                        config,
+                        &program_segments,
+                        cache,
+                        &mut ym2151_events,
+                    );
+                }
+            }
+        }
     }
 
     ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));

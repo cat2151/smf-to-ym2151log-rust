@@ -15,6 +15,7 @@ use std::collections::{HashMap, HashSet};
 pub struct NoteOnInfo {
     pub start_tick: u32,
     pub start_time: f64,
+    pub program: u8,
 }
 
 /// Captures a full note span on a specific YM2151 channel
@@ -26,6 +27,7 @@ pub struct NoteSegment {
     pub end_tick: u32,
     pub start_time: f64,
     pub end_time: f64,
+    pub program: u8,
 }
 
 /// Context for processing MIDI events
@@ -91,6 +93,7 @@ pub fn process_note_on(
 
     let time_seconds = ticks_to_seconds_with_tempo_map(ticks, ctx.ticks_per_beat, ctx.tempo_map);
     let (kc, kf) = midi_to_kc_kf(note);
+    let program = *ctx.channel_programs.get(&ym2151_channel).unwrap_or(&0);
 
     // Set KC (Key Code)
     events.push(Ym2151Event {
@@ -120,6 +123,7 @@ pub fn process_note_on(
             NoteOnInfo {
                 start_tick: ticks,
                 start_time: time_seconds,
+                program,
             },
         );
     }
@@ -177,6 +181,7 @@ pub fn process_note_off(
                         end_tick: ticks,
                         start_time: note_on.start_time,
                         end_time: time_seconds,
+                        program: note_on.program,
                     });
                 }
             }

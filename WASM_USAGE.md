@@ -149,23 +149,27 @@ Converts SMF data while honoring an optional attachment JSON payload (e.g., enab
 **Example attachments:**
 
 ```json
-{
-  "DelayVibrato": true,
-  "Portamento": true
-}
+[
+  {
+    "ProgramChange": 0,
+    "DelayVibrato": true,
+    "Portamento": true
+  }
+]
 ```
 
 ```json
-{
-  "Tones": {
-    "0": {
+[
+  {
+    "ProgramChange": 0,
+    "Tone": {
       "events": [
         { "time": 0, "addr": "0x20", "data": "0xC7" },
         { "time": 0, "addr": "0x60", "data": "0x10" }
       ]
     }
   }
-}
+]
 ```
 
 ## Output Format

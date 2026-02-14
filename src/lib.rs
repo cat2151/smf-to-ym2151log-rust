@@ -46,7 +46,6 @@ pub mod wasm;
 use crate::ym2151::ToneDefinition;
 pub use error::{Error, Result};
 use serde::Deserialize;
-use serde_json;
 use std::collections::HashMap;
 
 /// Optional conversion options supplied via attachment JSON
@@ -70,6 +69,9 @@ pub struct ConversionOptions {
     /// Optional YM2151 tone definitions keyed by MIDI program number
     #[serde(rename = "Tones", default)]
     pub tones: HashMap<u8, ToneDefinition>,
+    /// Optional per-program conversion settings supplied via attachment JSON
+    #[serde(skip, default)]
+    pub program_settings: HashMap<u8, ProgramConfig>,
 }
 
 /// Defines a software LFO targeting a YM2151 tone register (per channel/operator)
@@ -141,6 +143,40 @@ pub enum LfoWaveform {
     Triangle,
 }
 
+/// Per-program conversion settings from attachment JSON
+#[derive(Debug, Clone, Default)]
+pub struct ProgramConfig {
+    /// Enable delayed vibrato for this program
+    pub delay_vibrato: bool,
+    /// Enable portamento glides for this program
+    pub portamento: bool,
+    /// Optional pre-note envelope overrides to reduce pop noise
+    pub pop_noise_envelope: Option<PopNoiseEnvelope>,
+    /// Optional release-rate reset to avoid attack continuation
+    pub attack_continuation_fix: Option<AttackContinuationFix>,
+    /// Optional software LFO definitions that modulate tone registers
+    pub software_lfo: Vec<RegisterLfoDefinition>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct ProgramAttachment {
+    #[serde(rename = "ProgramChange")]
+    program_change: u8,
+    #[serde(default)]
+    delay_vibrato: bool,
+    #[serde(default)]
+    portamento: bool,
+    #[serde(default)]
+    pop_noise_envelope: Option<PopNoiseEnvelope>,
+    #[serde(default)]
+    attack_continuation_fix: Option<AttackContinuationFix>,
+    #[serde(default)]
+    software_lfo: Vec<RegisterLfoDefinition>,
+    #[serde(default)]
+    tone: Option<ToneDefinition>,
+}
+
 fn default_lfo_waveform() -> LfoWaveform {
     LfoWaveform::Triangle
 }
@@ -179,11 +215,43 @@ impl ConversionOptions {
     pub fn from_attachment_bytes(attachment_json: Option<&[u8]>) -> Result<Self> {
         match attachment_json {
             Some(bytes) if !bytes.is_empty() => {
+                if let Ok(programs) = serde_json::from_slice::<Vec<ProgramAttachment>>(bytes) {
+                    return Self::from_program_attachments(programs);
+                }
                 let options: ConversionOptions = serde_json::from_slice(bytes)?;
                 Ok(options)
             }
             _ => Ok(ConversionOptions::default()),
         }
+    }
+
+    fn from_program_attachments(programs: Vec<ProgramAttachment>) -> Result<Self> {
+        let mut options = ConversionOptions::default();
+
+        for entry in programs {
+            if entry.program_change > 127 {
+                return Err(Error::MidiParse(
+                    "ProgramChange must be in the range 0-127".to_string(),
+                ));
+            }
+
+            if let Some(tone) = entry.tone {
+                options.tones.insert(entry.program_change, tone);
+            }
+
+            options.program_settings.insert(
+                entry.program_change,
+                ProgramConfig {
+                    delay_vibrato: entry.delay_vibrato,
+                    portamento: entry.portamento,
+                    pop_noise_envelope: entry.pop_noise_envelope,
+                    attack_continuation_fix: entry.attack_continuation_fix,
+                    software_lfo: entry.software_lfo,
+                },
+            );
+        }
+
+        Ok(options)
     }
 }
 
@@ -243,4 +311,49 @@ pub fn convert_smf_to_ym2151_log_with_options(
     let json = serde_json::to_string_pretty(&ym2151_log)?;
 
     Ok(json)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_program_attachment_array_parses_into_options() {
+        let attachment = br#"[
+  {
+    "ProgramChange": 7,
+    "DelayVibrato": true,
+    "Portamento": true,
+    "SoftwareLfo": [
+      { "BaseRegister": "0x60", "Depth": 2.0, "RateHz": 3.0, "DelaySeconds": 0.0, "AttackSeconds": 0.0, "Waveform": "triangle" }
+    ],
+    "Tone": {
+      "events": [
+        { "time": 0.0, "addr": "0x20", "data": "0xAA" }
+      ]
+    }
+  }
+]"#;
+
+        let options = ConversionOptions::from_attachment_bytes(Some(attachment)).unwrap();
+        let program_cfg = options
+            .program_settings
+            .get(&7)
+            .expect("program settings should include program 7");
+
+        assert!(program_cfg.delay_vibrato);
+        assert!(program_cfg.portamento);
+        assert_eq!(program_cfg.software_lfo.len(), 1);
+
+        let tone = options
+            .tones
+            .get(&7)
+            .expect("tone definition should be stored for program 7");
+        assert_eq!(tone.events.len(), 1);
+        assert_eq!(tone.events[0].data, "0xAA");
+
+        // Global options remain unset when supplied via per-program attachments
+        assert!(!options.delay_vibrato);
+        assert!(options.software_lfo.is_empty());
+    }
 }
