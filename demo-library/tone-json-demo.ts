@@ -21,19 +21,6 @@ type Ym2151Event = {
     data: string;
 };
 
-const DEFAULT_TONE_ATTACHMENT = `{
-  "Tones": {
-    "0": {
-      "events": [
-        { "time": 0, "addr": "0x20", "data": "0xC7" },
-        { "time": 0, "addr": "0x60", "data": "0x10" },
-        { "time": 0, "addr": "0x80", "data": "0x1F" },
-        { "time": 0, "addr": "0xE0", "data": "0x0F" }
-      ]
-    }
-  }
-}`;
-
 const YM_LOG_STYLE_PRESET = `{
   "event_count": 4,
   "events": [
@@ -51,11 +38,6 @@ const COMPACT_NIBBLE_PRESET = `{
 }`;
 
 const ATTACHMENT_PRESETS: AttachmentPreset[] = [
-    {
-        id: 'tones-map',
-        label: 'Tones マップ (イベント配列)',
-        value: DEFAULT_TONE_ATTACHMENT,
-    },
     {
         id: 'ym-log',
         label: 'YM2151 log 形式 (time + addr + data)',
@@ -234,7 +216,7 @@ async function handlePlay(): Promise<void> {
 
 function setupAttachmentEditor(): void {
     if (!toneJsonField) return;
-    toneJsonField.value = DEFAULT_TONE_ATTACHMENT;
+    toneJsonField.value = YM_LOG_STYLE_PRESET;
 
     if (attachmentPresetSelect) {
         attachmentPresetSelect.innerHTML = '';
