@@ -276,7 +276,8 @@ function readAttachmentBytes(): Uint8Array | null {
         return new Uint8Array();
     }
 
-    const normalized = normalizeAttachmentText(toneJsonField.value, attachmentStatus);
+    const original = toneJsonField.value;
+    const normalized = normalizeAttachmentText(original, attachmentStatus);
     if (normalized === null) {
         return null;
     }
@@ -285,6 +286,9 @@ function readAttachmentBytes(): Uint8Array | null {
     }
 
     toneJsonField.value = normalized;
+    if (attachmentPresetSelect && attachmentPresetSelect.value !== '' && normalized.trim() !== original.trim()) {
+        attachmentPresetSelect.value = '';
+    }
     return new TextEncoder().encode(normalized);
 }
 
@@ -366,6 +370,9 @@ function setupAttachmentEditor(): void {
     }
 
     toneJsonField.addEventListener('input', () => {
+        if (attachmentPresetSelect && attachmentPresetSelect.value !== '') {
+            attachmentPresetSelect.value = '';
+        }
         if (attachmentDebounce) {
             window.clearTimeout(attachmentDebounce);
         }

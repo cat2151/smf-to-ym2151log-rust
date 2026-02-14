@@ -19,7 +19,10 @@
     <h2>1. MIDI ファイルを選択</h2>
     <label for="midi-input" class="sr-only">MIDI ファイルを選択</label>
     <input type="file" id="midi-input" accept=".mid,.midi">
-    <div class="status" id="file-status">SMF ファイルを選択してください。</div>
+    <div class="status" id="file-status">SMF ファイルを選択するか、MML を入力してください。</div>
+    <label for="mml-input">MML を直接入力して SMF を生成</label>
+    <textarea id="mml-input" class="code-input" rows="6" spellcheck="false" placeholder="cdefgab;"></textarea>
+    <div class="status" id="mml-status">SMF アップロードと MML 入力は後着を優先します。</div>
   </section>
 
   <section class="demo-section">
