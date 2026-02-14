@@ -434,6 +434,7 @@ fn test_pop_noise_envelope_adds_pre_note_overrides() {
 
     let options = ConversionOptions {
         pop_noise_envelope: Some(PopNoiseEnvelope {
+            enabled: true,
             offset_seconds: 0.001,
             registers: vec![RegisterOverride {
                 base_register: "0xA0".to_string(),
@@ -500,8 +501,9 @@ fn test_attack_continuation_fix_forces_release_before_note_on() {
 
     let options = ConversionOptions {
         attack_continuation_fix: Some(AttackContinuationFix {
+            enabled: true,
             offset_seconds: 0.001,
-            release_rate: "0xF0".to_string(),
+            release_rate: 0xF0,
         }),
         ..ConversionOptions::default()
     };

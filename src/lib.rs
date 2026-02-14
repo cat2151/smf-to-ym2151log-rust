@@ -46,6 +46,7 @@ pub mod wasm;
 use crate::ym2151::ToneDefinition;
 pub use error::{Error, Result};
 use serde::Deserialize;
+use serde_json;
 use std::collections::HashMap;
 
 /// Optional conversion options supplied via attachment JSON
@@ -107,6 +108,9 @@ pub struct RegisterOverride {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PopNoiseEnvelope {
+    /// Whether to apply pop-noise mitigation
+    #[serde(default)]
+    pub enabled: bool,
     /// How far before the note-on to apply the temporary envelope
     #[serde(default = "default_pre_note_offset")]
     pub offset_seconds: f64,
@@ -119,11 +123,15 @@ pub struct PopNoiseEnvelope {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct AttackContinuationFix {
+    /// Whether to apply attack continuation guard
+    #[serde(default)]
+    pub enabled: bool,
     /// How far before note-on to send the release-rate override + key-off
     #[serde(default = "default_pre_note_offset")]
     pub offset_seconds: f64,
     /// Release rate value to apply during the forced key-off
-    pub release_rate: String,
+    #[serde(deserialize_with = "deserialize_u8_hex_or_dec")]
+    pub release_rate: u8,
 }
 
 /// Supported software LFO waveforms
@@ -139,6 +147,29 @@ fn default_lfo_waveform() -> LfoWaveform {
 
 fn default_pre_note_offset() -> f64 {
     0.001
+}
+
+fn deserialize_u8_hex_or_dec<'de, D>(deserializer: D) -> std::result::Result<u8, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de::Error;
+
+    let value: serde_json::Value = serde::Deserialize::deserialize(deserializer)?;
+    match value {
+        serde_json::Value::Number(n) => n
+            .as_u64()
+            .and_then(|v| u8::try_from(v).ok())
+            .ok_or_else(|| D::Error::custom("expected u8 numeric value")),
+        serde_json::Value::String(s) => {
+            if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
+                u8::from_str_radix(hex, 16).map_err(D::Error::custom)
+            } else {
+                u8::from_str_radix(&s, 10).map_err(D::Error::custom)
+            }
+        }
+        _ => Err(D::Error::custom("expected number or string")),
+    }
 }
 
 impl ConversionOptions {

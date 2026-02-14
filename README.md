@@ -161,6 +161,7 @@ Attachment examples:
 ```json
 {
   "PopNoiseEnvelope": {
+    "Enabled": true,
     "OffsetSeconds": 0.001,
     "Registers": [
       { "BaseRegister": "0x80", "Value": "0x0A" },
@@ -169,8 +170,9 @@ Attachment examples:
     ]
   },
   "AttackContinuationFix": {
+    "Enabled": true,
     "OffsetSeconds": 0.001,
-    "ReleaseRate": "0xF0"
+    "ReleaseRate": 240
   }
 }
 ```

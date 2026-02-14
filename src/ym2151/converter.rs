@@ -442,7 +442,7 @@ fn append_pop_noise_envelope_events(
     cache: &RegisterStateCache,
     events: &mut Vec<Ym2151Event>,
 ) {
-    if config.registers.is_empty() || segments.is_empty() {
+    if !config.enabled || config.registers.is_empty() || segments.is_empty() {
         return;
     }
 
@@ -498,13 +498,11 @@ fn append_attack_continuation_fix_events(
     cache: &RegisterStateCache,
     events: &mut Vec<Ym2151Event>,
 ) {
-    if segments.is_empty() {
+    if !config.enabled || segments.is_empty() {
         return;
     }
 
-    let Some(override_release) = parse_hex_byte(&config.release_rate) else {
-        return;
-    };
+    let override_release = config.release_rate;
     let offset = config.offset_seconds.max(0.0);
 
     let mut ordered_segments = segments.to_vec();

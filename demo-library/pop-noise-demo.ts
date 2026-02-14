@@ -14,6 +14,7 @@ import { createLogVisualizer } from './log-visualizer';
 
 const DEFAULT_ATTACHMENT = `{
   "PopNoiseEnvelope": {
+    "Enabled": true,
     "OffsetSeconds": 0.001,
     "Registers": [
       { "BaseRegister": "0x80", "Value": "0x0A" },
@@ -22,8 +23,9 @@ const DEFAULT_ATTACHMENT = `{
     ]
   },
   "AttackContinuationFix": {
+    "Enabled": true,
     "OffsetSeconds": 0.001,
-    "ReleaseRate": "0xF0"
+    "ReleaseRate": 240
   }
 }`;
 
