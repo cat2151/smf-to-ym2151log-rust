@@ -1,4 +1,4 @@
-Last updated: 2026-02-15
+Last updated: 2026-02-16
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -248,6 +248,9 @@ Last updated: 2026-02-15
 - issue-notes/117.md
 - issue-notes/122.md
 - issue-notes/123.md
+- issue-notes/125.md
+- issue-notes/126.md
+- issue-notes/128.md
 - issue-notes/22.md
 - issue-notes/33.md
 - issue-notes/45.md
@@ -292,19 +295,57 @@ Last updated: 2026-02-15
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #124](../issue-notes/124.md): deploy-demo workflow failed
-## deploy-demo workflow failed
+## [Issue #128](../issue-notes/128.md): demoの、YM2151レジスタのビジュアライザを改善する。keyon/offとKCの高い低いを可視化する。KC maxとminを算出して上下いっぱいに表示する
+[issue-notes/128.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/128.md)
 
-**Workflow run:** https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/22018832539
-**Branch:** main
-**Commit:** 0f9af24c8dd9d7841a82bdf47d51fc314bc932d5
-**Triggered by:** workflow_run
-
-Please investigate the workflow logs for details....
-ラベル: deploy-demo-failure
---- issue-notes/124.md の内容 ---
+...
+ラベル: 
+--- issue-notes/128.md の内容 ---
 
 ```markdown
+# issue demoの、YM2151レジスタのビジュアライザを改善。KCの高い低いも可視化する。KC maxとminを算出して上下いっぱいに表示する #128
+[issues #128](https://github.com/cat2151/smf-to-ym2151log-rust/issues/128)
+
+
+
+```
+
+## [Issue #127](../issue-notes/127.md): ディレイビブラートとLFOが低品質。ずっとクリックノイズが乗っている。wav exportをdemoに実装して分析せよ。ポルタメントは大丈夫のようだ
+
+ラベル: 
+--- issue-notes/127.md の内容 ---
+
+```markdown
+
+```
+
+## [Issue #126](../issue-notes/126.md): ポップノイズdemoで、添付JSONを変更しても、最終log JSONに反映されていない
+[issue-notes/126.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/126.md)
+
+...
+ラベル: 
+--- issue-notes/126.md の内容 ---
+
+```markdown
+# issue ポップノイズdemoで、添付JSONを変更しても、最終log JSONに反映されていない #126
+[issues #126](https://github.com/cat2151/smf-to-ym2151log-rust/issues/126)
+
+
+
+```
+
+## [Issue #125](../issue-notes/125.md): CIがclippyで落ちたとき等にissueを自動起票、を実装する。このリポジトリの他のワークフローymlを参考にする
+[issue-notes/125.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/125.md)
+
+...
+ラベル: 
+--- issue-notes/125.md の内容 ---
+
+```markdown
+# issue CIがclippyで落ちたとき等にissueを自動起票、を実装する。このリポジトリの他のワークフローymlを参考にする #125
+[issues #125](https://github.com/cat2151/smf-to-ym2151log-rust/issues/125)
+
+
 
 ```
 
@@ -347,22 +388,6 @@ Please investigate the workflow logs for details....
 [issues #122](https://github.com/cat2151/smf-to-ym2151log-rust/issues/122)
 
 
-
-```
-
-## [Issue #120](../issue-notes/120.md): deploy-demo workflow failed
-## deploy-demo workflow failed
-
-**Workflow run:** https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/22017670347
-**Branch:** main
-**Commit:** 00342e6fa8e777dbd2ea2587053b4716d798454e
-**Triggered by:** workflow_run
-
-Please investigate the workflow logs for details....
-ラベル: 
---- issue-notes/120.md の内容 ---
-
-```markdown
 
 ```
 
@@ -440,36 +465,6 @@ Please investigate the workflow logs for details....
 - これをやりたい：「ブラウザ、ランダム音色で、音符はMMLでその場で入力して鳴らす、和音も可」
 - 制約：ブラウザ音色エディタは別リポジトリ（web-ym2151）である
 - 対策案： 音色データreadを使ったdemo、上記のランダム音色かつ、音符MML演奏demo、は、web-ym2151側で実施とする
-
-```
-
-## [Issue #33](../issue-notes/33.md): 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。
-[issue-notes/33.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/33.md)
-
-...
-ラベル: 
---- issue-notes/33.md の内容 ---
-
-```markdown
-# issue 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。 #33
-[issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
-
-
-
-```
-
-## [Issue #22](../issue-notes/22.md): （手作業）仮で tones/000.json～127.json のうちいくつかを実際に配置する。ym2151-tone-editorを利用して作成できる
-[issue-notes/22.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/22.md)
-
-...
-ラベル: 
---- issue-notes/22.md の内容 ---
-
-```markdown
-# issue tones/000.json～127.json を、ym2151-tone-editorを利用して作成する #22
-[issues #22](https://github.com/cat2151/smf-to-ym2151log-rust/issues/22)
-
-
 
 ```
 
@@ -851,81 +846,6 @@ jobs:
 {% endraw %}
 ```
 
-### .github/actions-tmp/issue-notes/20.md
-```md
-{% raw %}
-# issue project-summary の development-status 生成時、issue-notes/ 配下のmdにファイル名が書いてあれば、そのファイル内容もpromptに添付、を試す #20
-[issues #20](https://github.com/cat2151/github-actions/issues/20)
-
-# 何が困るの？
-- Geminiに次の一手を生成させるとき、cjsの内容も添付したほうが、生成品質が改善できる可能性がある。
-
-# 案
-## outputのimage
-- promptが言及するfilename、について、そのfileの内容もすべてpromptに含める。
-    - 軸は、projectのfilename一覧である。
-        - 一覧それぞれのfilenameについて、promptで言及されているものをfile内容埋め込み、とする。
-- 方向性
-    - シンプルで明確なルール、曖昧さのないルールで、メンテを楽にすることを優先する
-    - 余分なファイルが出てしまうが割り切ってOKとし、欠落リスクを減らせることを優先する
-- 備考
-    - 曖昧でメンテが必要な「documentからのfilename抽出」をやめ、
-        - かわりに、逆に、「今のprojectにあるfileすべてのうち、promptで言及されているもの」を軸とする
-## 実現方法の案
-- project全体について、filenameと、filepath配列（複数ありうる）、のmapを取得する。そういう関数Aをまず実装する。
-    - filepathは、agentが扱えるよう、github上のworkの絶対pathではなく、projectRootからの相対パス表記とする。
-- そして、そのfilenameにmatchするfilepath配列について、filepathとファイル内容を記したmarkdown文字列を返却、という関数Bを実装する。
-- さらに、Geminiにわたすpromptについて、前述の関数Aのfilenameそれぞれについて、prompt内を検索し、filenameが存在する場合は、そのfilenameについて、関数Bを用いてmarkdown文字列を取得する。そうして得られたmarkdown文字列群を返却する、という関数Cを実装する。
-- さらに、promptの末尾に書いてあるプレースホルダー「`${file_contents}`」を、関数Cの結果で置き換える、という関数Dを実装する。
-- 実際には、Geminiにわたすpromptのプレースホルダー展開は、2回にわたる必要がある。1回目でissues-note内容をpromptに埋め込む。2回目でそのpromptに対して関数Dを適用する。
-## 備忘
-- 上記は、agentにplanさせてレビューし、context不足と感じたら上記をメンテ、というサイクルで書いた。
-
-# どうする？
-- 上記をagentに投げる。documentやtestについてのplanもしてくるかもしれないがそこは時間の都合で省略して実施させるつもり。
-- 投げた、実装させた、レビューして人力リファクタリングした
-- testする
-
-# 結果
-- バグ
-    - この20.mdにあるプレースホルダーが置換されてしまっている
-    - issue-notesで言及されていないfileまで添付されてしまっている
-- 分析
-    - この20.mdにあるプレースホルダーが置換されてしまっている
-        - 原因
-            - 20.mdにあるプレースホルダーまで置換対象としてしまっていたため。
-            - prompt全体のプレースホルダーを置換対象としてしまっていたため。
-            - issue-notesを埋め込んだあとでの、プレースホルダー処理だったので、
-                - 20.md が置換対象となってしまったため。
-        - 対策案
-            - プレースホルダーはすべて、「行頭と行末で囲まれている」ときだけ置換対象とする。
-                - つまり文中やcode中のプレースホルダーは置換対象外とする。
-            - さらに、2つ以上プレースホルダーが出たら想定外なので早期エラー終了させ、検知させる。
-    - issue-notesで言及されていないfileまで添付されてしまっている
-        - 原因
-            - promptに、既にprojectの全file listが書き込まれたあとなので、
-                - issue-noteで言及されていなくても、
-                - promptの全file listを対象に検索してしまっている
-        - 対策案の候補
-            - プレースホルダー置換の順番を変更し、全file listは最後に置換する
-            - file添付の対象を変更し、promptでなく、issue-notesとする
-                - これが範囲が絞られているので安全である、と考える
-        - 備忘
-            - 全fileの対象は、リモートリポジトリ側のfileなので、secretsの心配はないし、実際に検索して確認済み
-
-# どうする？
-- agent半分、人力が半分（agentがハルシネーションでソース破壊したので、関数切り分けしたり、リファクタリングしたり）。
-- で実装した。
-- testする
-
-# 結果
-- test green
-
-# closeとする
-
-{% endraw %}
-```
-
 ### .github/actions-tmp/issue-notes/22.md
 ```md
 {% raw %}
@@ -999,41 +919,251 @@ jobs:
 {% endraw %}
 ```
 
-### .github/actions-tmp/issue-notes/24.md
+### .github/actions-tmp/issue-notes/25.md
 ```md
 {% raw %}
-# issue Geminiが503で落ちたのでretryを実装する #24
-[issues #24](https://github.com/cat2151/github-actions/issues/24)
+# issue project summaryを他projectからcallしたところ、issue-notes参照ディレクトリ誤りが発覚した #25
+[issues #25](https://github.com/cat2151/github-actions/issues/25)
 
-# 何が困るの？
-- 朝起きて、development statusがgenerateされてないのは困る
-    - それをタスク実施のヒントにしているので
-    - 毎朝generatedな状態を維持したい
-
-# 方法
-- retryを実装する
-    - 現在は `this.model.generateContent(developmentPrompt);`
-    - 実装後は `this.generateContent(developmentPrompt);`
-    - BaseGenerator 側に、
-        - generateContent関数を実装する
-            - そこで、
-                - `this.model.generateContent(developmentPrompt);` する
-                - 503のとき、
-                    - retryあり
-                    - Exponential Backoff
-
-# 結果
-- 直近の実行結果をlog確認した
-    - 本番で503が発生しなかったことをlog確認した
-- 本番の503 testは、今回発生しなかったので、できず
-- ここ1週間で2回発生しているので、次の1週間で1回発生する想定
-- ソース机上確認した
+# 事象
+- `Issueノートが存在しません: /home/runner/work/tonejs-mml-to-json/tonejs-mml-to-json/.github/actions-tmp/issue-notes/6.md`
 
 # どうする？
-- このissueはcloseしたほうがわかりやすい、と判断する
-- 1週間503を毎日チェック、は省略とする
-- もし今後503が発生したら別issueとする
-- 2日チェックして503なし
+- 当該処理のディレクトリ部分を確認する
+- 日次バッチでGeminiに確認させてみる
+- 結果
+    - Geminiに確認させてpromptを生成させ、agentに投げた
+    - 結果、projectRootの扱いの誤り、と判明
+        - 共通workflow側のdirを引数でわたしてしまっていた
+        - target repository側のdirを引数でわたすべき
+- 修正したつもり
+- 次の日次バッチで動作確認させるつもり
+
+# 結果
+- test green
+
+# closeとする
+
+{% endraw %}
+```
+
+### .github/actions-tmp/issue-notes/26.md
+```md
+{% raw %}
+# issue userによるcommitがなくなって24時間超経過しているのに、毎日ムダにproject summaryとcallgraphの自動生成が行われてしまっている #26
+[issues #26](https://github.com/cat2151/github-actions/issues/26)
+
+# どうする？
+- logを確認する。24時間チェックがバグっている想定。
+- もしlogから判別できない場合は、logを改善する。
+
+# log確認結果
+- botによるcommitなのに、user commitとして誤判別されている
+```
+Checking for user commits in the last 24 hours...
+User commits found: true
+Recent user commits:
+7654bf7 Update callgraph.html [auto]
+abd2f2d Update project summaries (overview & development status)
+```
+
+# ざっくり調査結果
+- #27 が判明した
+
+# どうする？
+- [x] #27 を修正する。これで自動的に #26 も修正される想定。
+    - 当該処理を修正する。
+    - もしデータ不足なら、より詳細なlog生成を実装する。
+- 別件として、このチェックはむしろworkflow ymlの先頭で行うのが適切と考える。なぜなら、以降のムダな処理をカットできるのでエコ。
+    - [x] #28 を起票したので、そちらで実施する。
+
+# close条件は？
+- 前提
+    - [x] 先行タスクである #27 と #28 が完了済みであること
+- 誤爆がなくなること。
+    - つまり、userによるcommitがなくなって24時間超経過後の日次バッチにて、
+        - ムダなdevelopment status生成、等がないこと
+        - jobのlogに「commitがないので処理しません」的なmessageが出ること
+- どうする？
+    - 日次バッチを本番を流して本番testする
+
+# 結果
+- github-actions logより：
+    - 直近24hのcommitはbotによる1件のみであった
+    - よって後続jobはskipとなった
+    - ことを確認した
+- close条件を満たした、と判断する
+```
+Run node .github_automation/check_recent_human_commit/scripts/check-recent-human-commit.cjs
+BOT: Commit 5897f0c6df6bc2489f9ce3579b4f351754ee0551 | Author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com> | Message: Update project summaries (overview & development status) [auto]
+has_recent_human_commit=false
+```
+
+# closeとする
+
+{% endraw %}
+```
+
+### .github/actions-tmp/issue-notes/27.md
+```md
+{% raw %}
+# issue LLMが生成したコードに、commit時のemailとnameについて公式推奨と公式非推奨の2つがブレて混在している。さらに判定処理が片方だけ対応になっている #27
+[issues #27](https://github.com/cat2151/github-actions/issues/27)
+
+# 補足
+- さらに、commit messageもブレている。auto があったりなかったりしている。
+    - auto があるほうが適切である、と判断する。
+- 公式推奨とは：
+    - name, emailが推奨、commit messageにautoが入っている
+```
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git commit -m "Update callgraph.html [auto]"
+```
+- 公式非推奨とは：
+    - name, emailが非推奨、commit messageにもautoが入っていない
+```
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git commit -m "Add issue note for #${{ inputs.issue_number }}"
+```
+
+# どうする？
+- 当該のworkflowとscriptで、github-actions@github.com 等をgrepし、公式推奨に統一する
+    - 影響範囲
+        - 24hチェック側もブレているので、しばらくは誤爆が続く
+        - #28 を修正して24h待てば、誤爆は解消する見込みである
+- 注意、24hチェックは変更しない。
+    - なぜなら #28 で全面的に修正するため、変更しても手戻りになる。
+- 過去commit messageはそのままとする
+
+# close条件は？
+- [x] name, email, commit comment のlogicが、公式推奨に統一されること
+- [x] #28 が修正されること
+- 以上を満たせば、test不要で、机上checkのみでcloseとする。
+- ほかは #26 のtestで担保する。
+
+{% endraw %}
+```
+
+### .github/actions-tmp/issue-notes/28.md
+```md
+{% raw %}
+# issue 直近24時間でuser commitがあるかどうか、のチェックを、workflowのjobs先頭に新規jobを追加して実施し、本体jobの先頭にneedsを書く #28
+[issues #28](https://github.com/cat2151/github-actions/issues/28)
+
+# これまでの課題は？
+- これまでは各workflow内の終盤のscriptにバラバラに実装されていたので、
+    - ムダにcheckout等、各種処理が走っていた
+
+# 対策案は？
+- 直近24時間でuser commitがあるかどうか、
+    - のチェックを、
+        - workflowのjobs先頭に新規jobを追加して実施し、
+            - 本体jobの先頭にneedsを書く
+- この対策で、各workflow先頭にこれを書くだけでよくなり、エコになる想定
+
+# ChatGPTに生成させた
+## 呼び出し元のサンプル
+- 実際には、共通workflowのjobsの先頭付近を、このサンプルを参考に書き換えるイメージ
+```
+jobs:
+  check_recent_human_commit:
+    uses: ./.github/workflows/check-recent-human-commit.yml
+
+  build:
+    needs: check_recent_human_commit
+    if: needs.check_recent_human_commit.outputs.has_recent_human_commit == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run build
+        run: echo "Building because there is a recent human commit!"
+```
+## 共通ワークフロー側の案
+- シンプルにmailのみを条件とし、mailも1種類のみに明示する
+```
+name: "Check recent human commit"
+
+on:
+  workflow_call:
+
+jobs:
+  check-recent-human-commit:
+    runs-on: ubuntu-latest
+    outputs:
+      has_recent_human_commit: ${{ steps.check.outputs.has_recent_human_commit }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Check recent human commit
+        id: check
+        run: |
+          set -e
+
+          HAS_HUMAN=false
+
+          while IFS=$'\x01' read -r HASH NAME EMAIL SUBJECT; do
+            SUBJECT="${SUBJECT%$'\x02'}"
+
+            if [[ ! "$EMAIL" =~ ^41898282\+github-actions\[bot\]@users\.noreply\.github\.com$ ]]; then
+              echo "HUMAN: Commit $HASH | Author: $NAME <$EMAIL> | Message: $SUBJECT"
+              HAS_HUMAN=true
+              break
+            else
+              echo "BOT: Commit $HASH | Author: $NAME <$EMAIL> | Message: $SUBJECT"
+            fi
+          done <<< "$(git log --since="24 hours ago" --pretty=format:'%H%x01%an%x01%ae%x01%s%x02')"
+
+          if [ "$HAS_HUMAN" = true ]; then
+            echo "Found recent human commit."
+            echo "has_recent_human_commit=true" >> $GITHUB_OUTPUT
+          else
+            echo "No human commits in last 24h."
+            echo "has_recent_human_commit=false" >> $GITHUB_OUTPUT
+```
+## 備忘
+- 上記はChatGPTに生成させ、それをレビューさせて改善させる、のサイクルで生成した。
+    - 一発で生成はできなかった
+    - ChatGPTが自分で生成したものに対して自己レビューでミスや改善点が多発していた
+        - ブレも発生し、二転三転気味でもあり、
+            - ハルシネーションに近い低品質状態だと感じた
+                - これは経験則からの感覚的なもの
+    - 生成の品質が低い、ということ
+        - LLMはまだ学習不足、github-actions workflow yml の学習不足である、と解釈する
+        - shell scriptの生成品質も低いかも。
+            - もともとshell scriptで複雑なlogicを書くとtest costが高い、なぜなら読みづらいから。
+                - なのでロジックをcjs側に切り出したほうが全体最適の観点からよりよい、と考える
+
+# どうする？
+- shell scriptはやめて、cjsでlogicを担当させる。
+  - 現状のshell scriptを改めて見直すと、これはcjs側にしたほうがよい、と感覚的に、経験則で、わかる。
+- logicをcjs側に切り出す。実際、既存でgitの24hチェックをcjs側でやっている実績がある。そこのロジックを参考にする。
+- 今のmdの仕様をもとに、ymlとcjsを生成させる。
+- 生成させた。ChatGPTに投げた
+- 人力でいくつか変更したり、ChatGPTに投げて修正させるサイクルを回したりした
+- testする
+
+# バグ
+- 結果、バグがあったのでagentにlogを投げ、修正させ、人力修正し、agentにセルフレビューさせ、のサイクルを回した
+- testする
+- 結果、callgraphで、エラーなくhumanを検知したが、callgraphが呼ばれない、というバグが発生
+- ひとまずagentの提案したcodeを切り分けのため試す、バグ状況は変わらない想定
+- 結果、バグ状況は変わらず
+- 対策、trueのlogをagentに投げて、callgraphが呼ばれないことを伝え、可視化を実装させた
+- testする
+- 結果、バグ状況は変わらず
+- 対策、logをagentに投げて、callgraphが呼ばれないことを伝え、さらに可視化を実装させた
+- testする
+- 結果、バグ状況は変わらず
+- 対策、logをagentに投げて、callgraphが呼ばれないことを伝え、さらに可視化を実装させた
+- testする
+- 結果、バグ状況は変わらず
+- 対策、logをagentに投げて、callgraphが呼ばれないことを伝えた
+- ここで、根本的にymlのworkflow記述が間違っていることが判明
+  - agentが最初にcode生成したときから根本的なバグが仕込まれていたということ。
+    - agentの学習不足。github-actionsのworkflowの学習不足。
+- そこをagentに修正させ、test greenとなった
 
 # closeとする
 
@@ -1275,6 +1405,85 @@ jobs:
 
 - 生成できた
 - closeとする
+
+{% endraw %}
+```
+
+### .github/actions-tmp/issue-notes/8.md
+```md
+{% raw %}
+# issue 関数コールグラフhtmlビジュアライズ生成の対象ソースファイルを、呼び出し元ymlで指定できるようにする #8
+[issues #8](https://github.com/cat2151/github-actions/issues/8)
+
+# これまでの課題
+- 以下が決め打ちになっていた
+```
+  const allowedFiles = [
+    'src/main.js',
+    'src/mml2json.js',
+    'src/play.js'
+  ];
+```
+
+# 対策
+- 呼び出し元ymlで指定できるようにする
+
+# agent
+- agentにやらせることができれば楽なので、初手agentを試した
+- 失敗
+    - ハルシネーションしてscriptを大量破壊した
+- 分析
+    - 修正対象scriptはagentが生成したもの
+    - 低品質な生成結果でありソースが巨大
+    - ハルシネーションで破壊されやすいソース
+    - AIの生成したソースは、必ずしもAIフレンドリーではない
+
+# 人力リファクタリング
+- 低品質コードを、最低限agentが扱えて、ハルシネーションによる大量破壊を防止できる内容、にする
+- 手短にやる
+    - そもそもビジュアライズは、agentに雑に指示してやらせたもので、
+    - 今後別のビジュアライザを選ぶ可能性も高い
+    - 今ここで手間をかけすぎてコンコルド効果（サンクコストバイアス）を増やすのは、project群をトータルで俯瞰して見たとき、損
+- 対象
+    - allowedFiles のあるソース
+        - callgraph-utils.cjs
+            - たかだか300行未満のソースである
+            - この程度でハルシネーションされるのは予想外
+            - やむなし、リファクタリングでソース分割を進める
+
+# agentに修正させる
+## prompt
+```
+allowedFilesを引数で受け取るようにしたいです。
+ないならエラー。
+最終的に呼び出し元すべてに波及して修正したいです。
+
+呼び出し元をたどってエントリポイントも見つけて、
+エントリポイントにおいては、
+引数で受け取ったjsonファイル名 allowedFiles.js から
+jsonファイル allowedFiles.jsonの内容をreadして
+変数 allowedFilesに格納、
+後続処理に引き渡す、としたいです。
+
+まずplanしてください。
+planにおいては、修正対象のソースファイル名と関数名を、呼び出し元を遡ってすべて特定し、listしてください。
+```
+
+# 修正が順調にできた
+- コマンドライン引数から受け取る作りになっていなかったので、そこだけ指示して修正させた
+- yml側は人力で修正した
+
+# 他のリポジトリから呼び出した場合にバグらないよう修正する
+- 気付いた
+    - 共通ワークフローとして他のリポジトリから使った場合はバグるはず。
+        - ymlから、共通ワークフロー側リポジトリのcheckoutが漏れているので。
+- 他のyml同様に修正する
+- あわせて全体にymlをリファクタリングし、修正しやすくし、今後のyml読み書きの学びにしやすくする
+
+# local WSL + act : test green
+
+# closeとする
+- もし生成されたhtmlがNGの場合は、別issueとするつもり
 
 {% endraw %}
 ```
@@ -1583,11 +1792,33 @@ This project is in active development. The implementation is functional but may 
 {% endraw %}
 ```
 
-### issue-notes/33.md
+### issue-notes/125.md
 ```md
 {% raw %}
-# issue 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。 #33
-[issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
+# issue CIがclippyで落ちたとき等にissueを自動起票、を実装する。このリポジトリの他のワークフローymlを参考にする #125
+[issues #125](https://github.com/cat2151/smf-to-ym2151log-rust/issues/125)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/126.md
+```md
+{% raw %}
+# issue ポップノイズdemoで、添付JSONを変更しても、最終log JSONに反映されていない #126
+[issues #126](https://github.com/cat2151/smf-to-ym2151log-rust/issues/126)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/128.md
+```md
+{% raw %}
+# issue demoの、YM2151レジスタのビジュアライザを改善。KCの高い低いも可視化する。KC maxとminを算出して上下いっぱいに表示する #128
+[issues #128](https://github.com/cat2151/smf-to-ym2151log-rust/issues/128)
 
 
 
@@ -1611,176 +1842,29 @@ This project is in active development. The implementation is functional but may 
 {% endraw %}
 ```
 
-### tones/000.json
-```json
-{% raw %}
-{
-  "events": [
-    {
-      "time": 0.0,
-      "addr": "0x20",
-      "data": "0xC7"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x38",
-      "data": "0x00"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x40",
-      "data": "0x01"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x60",
-      "data": "0x00"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x80",
-      "data": "0x1F"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xA0",
-      "data": "0x05"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xC0",
-      "data": "0x05"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xE0",
-      "data": "0xF7"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x48",
-      "data": "0x01"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x68",
-      "data": "0x7F"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x88",
-      "data": "0x1F"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xA8",
-      "data": "0x05"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xC8",
-      "data": "0x05"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xE8",
-      "data": "0xF7"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x50",
-      "data": "0x01"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x70",
-      "data": "0x7F"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x90",
-      "data": "0x1F"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xB0",
-      "data": "0x05"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xD0",
-      "data": "0x05"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xF0",
-      "data": "0xF7"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x58",
-      "data": "0x01"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x78",
-      "data": "0x7F"
-    },
-    {
-      "time": 0.0,
-      "addr": "0x98",
-      "data": "0x1F"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xB8",
-      "data": "0x05"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xD8",
-      "data": "0x05"
-    },
-    {
-      "time": 0.0,
-      "addr": "0xF8",
-      "data": "0xF7"
-    }
-  ]
-}
-
-{% endraw %}
-```
-
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+9ed088a Add issue note for #128 [auto]
+b69e10a Add issue note for #126 [auto]
+d2f06d7 CIが落ちていたのをfmtで修正
+e0760c3 CIがclippyで落ちていたので、clippy警告が出ないよう修正
+a1c0c7e Add issue note for #125 [auto]
+7d36766 CIが落ちていたのをclippyで修正
+ef075b5 404で落ちていたので不要変数定義を削除
+1b0d281 Update project summaries (overview & development status) [auto]
 0f9af24 Modify JSON format for sound program changes
 cd606b5 Add issue note for #123 [auto]
-a6a31c6 Add issue note for #122 [auto]
-2705469 Update copilot instructions with source code guidelines
-2b544fe Merge pull request #119 from cat2151/codex/split-source-code-by-srp
-2a1da01 chore: add module docs to converter modules
-c9ddb84 refactor: split converter responsibilities
-00342e6 Add issue note for #118 [auto]
-3fca6a1 Initial plan
-944ebfb Merge pull request #116 from cat2151/codex/add-demo-page-to-json
 
 ### 変更されたファイル:
-.github/copilot-instructions.md
-README.md
-demo-library/index.html
 demo-library/pop-noise-demo.ts
-demo-library/pop-noise.html
-demo-library/vite.config.ts
-issue-notes/122.md
-issue-notes/123.md
+issue-notes/125.md
+issue-notes/126.md
+issue-notes/128.md
 src/lib.rs
-src/ym2151/converter.rs
-src/ym2151/converter/pitch_effects.rs
 src/ym2151/converter/register_effects.rs
-src/ym2151/converter/waveform.rs
-src/ym2151/converter_tests.rs
+src/ym2151/init.rs
+tests/integration_tests.rs
 
 
 ---
-Generated at: 2026-02-15 07:07:57 JST
+Generated at: 2026-02-16 07:08:27 JST

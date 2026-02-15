@@ -1,4 +1,4 @@
-Last updated: 2026-02-15
+Last updated: 2026-02-16
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -357,6 +357,9 @@ cargo audit
   📖 117.md
   📖 122.md
   📖 123.md
+  📖 125.md
+  📖 126.md
+  📖 128.md
   📖 22.md
   📖 33.md
   📖 45.md
@@ -436,7 +439,7 @@ cargo audit
   - 関数: treeToJson, ensureMmlRuntime, setupMmlToSmf, if, for, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (231行, 7307バイト)
+**demo-library/pop-noise-demo.ts** (230行, 7245バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, bootstrap, if, catch, addEventListener
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -571,4 +574,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-02-15 07:07:57 JST
+Generated at: 2026-02-16 07:08:27 JST
