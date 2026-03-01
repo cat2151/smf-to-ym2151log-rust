@@ -114,6 +114,7 @@ async function runConversion(trigger: string): Promise<void> {
         setEventCountDisplay(eventCount, typeof parsed.event_count === 'number' ? parsed.event_count : undefined);
         updateOutputWithState(formatted);
         setStatus(conversionStatus, '変換が完了しました。');
+        void handlePlay();
     } catch (error) {
         updateOutputWithState('');
         setEventCountDisplay(eventCount, undefined);
