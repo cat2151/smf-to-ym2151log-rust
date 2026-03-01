@@ -217,3 +217,6 @@ This project is in active development. The implementation is functional but may 
 
 # TypeScript demo
 - demoを開発するとき、formatterとlinterを適用すること
+- `demo-library/` の TypeScript formatter と linter には Biome を使用すること
+- formatter の適用: `cd demo-library && npm run format`
+- linter の適用: `cd demo-library && npm run lint`
