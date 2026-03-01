@@ -32,6 +32,7 @@ let currentOutput: string | null = null;
 let attachmentDebounce: number | null = null;
 let lastMidiSource: 'file' | 'mml' | null = null;
 let latestMidiRequestId = 0;
+let latestAutoPlayId = 0;
 
 const attachmentField = document.getElementById('attachment-json') as HTMLTextAreaElement | null;
 const conversionOutput = document.getElementById('conversion-output') as HTMLPreElement | null;
@@ -114,7 +115,7 @@ async function runConversion(trigger: string): Promise<void> {
         setEventCountDisplay(eventCount, typeof parsed.event_count === 'number' ? parsed.event_count : undefined);
         updateOutputWithState(formatted);
         setStatus(conversionStatus, '変換が完了しました。');
-        void handlePlay();
+        void handlePlay(++latestAutoPlayId);
     } catch (error) {
         updateOutputWithState('');
         setEventCountDisplay(eventCount, undefined);
@@ -122,7 +123,7 @@ async function runConversion(trigger: string): Promise<void> {
     }
 }
 
-async function handlePlay(): Promise<void> {
+async function handlePlay(autoPlayId?: number): Promise<void> {
     if (!currentOutput) {
         setStatus(conversionStatus, '先に SMF を変換してください。', true);
         return;
@@ -130,6 +131,9 @@ async function handlePlay(): Promise<void> {
     setStatus(conversionStatus, 'web-ym2151 で再生します...');
     try {
         const api = await ensureWebYm2151();
+        if (autoPlayId !== undefined && autoPlayId !== latestAutoPlayId) {
+            return;
+        }
         api.playAudioWithOverlay();
         setStatus(conversionStatus, '再生コマンドを送信しました。');
     } catch (error) {
