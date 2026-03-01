@@ -9,67 +9,17 @@ import {
 	updateOutput,
 } from "./shared-demo";
 import { createLogVisualizer } from "./log-visualizer";
-
-type AttachmentPreset = {
-	id: string;
-	label: string;
-	value: string;
-};
-
-type Ym2151Event = {
-	time: number;
-	addr: string;
-	data: string;
-};
-
-type TreeSitterNode = {
-	type: string;
-	childCount: number;
-	startIndex: number;
-	endIndex: number;
-	child: (index: number) => TreeSitterNode;
-};
-
-type TreeSitterParser = {
-	parse: (source: string) => { rootNode: TreeSitterNode };
-	setLanguage: (language: unknown) => void;
-};
-
-const YM_LOG_STYLE_PRESET = `{
-  "event_count": 4,
-  "events": [
-    { "time": 0, "addr": "0x20", "data": "0xC7" },
-    { "time": 0, "addr": "0x60", "data": "0x10" },
-    { "time": 0, "addr": "0x80", "data": "0x1F" },
-    { "time": 0, "addr": "0xE0", "data": "0x0F" }
-  ]
-}`;
-
-const COMPACT_NIBBLE_PRESET = `{
-  "CompactTones": {
-    "0": "20C76010801FE00F"
-  }
-}`;
-
-const ATTACHMENT_PRESETS: AttachmentPreset[] = [
-	{
-		id: "ym-log",
-		label: "YM2151 log 形式 (time + addr + data)",
-		value: YM_LOG_STYLE_PRESET,
-	},
-	{
-		id: "compact-nibbles",
-		label: "コンパクト nibble 連結形式",
-		value: COMPACT_NIBBLE_PRESET,
-	},
-];
-
-const WEB_TREE_SITTER_URL =
-	"https://cat2151.github.io/mmlabc-to-smf-rust/demo/web-tree-sitter.js";
-const MML_WASM_MODULE_URL =
-	"https://cat2151.github.io/mmlabc-to-smf-rust/mmlabc-to-smf-wasm/pkg/mmlabc_to_smf_wasm.js";
-const MML_LANGUAGE_URL =
-	"https://cat2151.github.io/mmlabc-to-smf-rust/tree-sitter-mml/tree-sitter-mml.wasm";
+import {
+	ATTACHMENT_PRESETS,
+	YM_LOG_STYLE_PRESET,
+	normalizeAttachmentText,
+} from "./tone-json-attachment";
+import {
+	ensureMmlRuntime,
+	getMmlParser,
+	getParseTreeJsonToSmf,
+	treeToJson,
+} from "./tone-json-mml";
 
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;
@@ -79,11 +29,6 @@ let mmlDebounce: number | null = null;
 let latestMidiRequestId = 0;
 let latestAutoPlayId = 0;
 let lastMidiSource: "file" | "mml" | null = null;
-let mmlInitPromise: Promise<boolean> | null = null;
-let mmlParser: TreeSitterParser | null = null;
-let parseTreeJsonToSmf:
-	| ((treeJson: string, source: string) => Uint8Array | number[] | ArrayBuffer)
-	| null = null;
 
 const toneJsonField = document.getElementById(
 	"tone-json",
@@ -126,146 +71,6 @@ function updatePlayButtonState(): void {
 	playButton.disabled = !currentOutput;
 }
 
-function treeToJson(
-	node: TreeSitterNode,
-	source: string,
-): Record<string, unknown> {
-	const result: Record<string, unknown> = { type: node.type };
-	if (node.childCount === 0) {
-		result.text = source.substring(node.startIndex, node.endIndex);
-		return result;
-	}
-
-	const children: Record<string, unknown>[] = [];
-	for (let i = 0; i < node.childCount; i += 1) {
-		children.push(treeToJson(node.child(i), source));
-	}
-	result.children = children;
-	return result;
-}
-
-function buildEventsFromCompact(compact: string): Ym2151Event[] {
-	const cleaned = compact.replace(/\s+/g, "");
-	if (cleaned.length === 0) {
-		return [];
-	}
-	if (cleaned.length % 4 !== 0) {
-		throw new Error("CompactTones の長さは4の倍数である必要があります");
-	}
-	const events: Ym2151Event[] = [];
-	for (let i = 0; i < cleaned.length; i += 4) {
-		const addr = cleaned.slice(i, i + 2);
-		const data = cleaned.slice(i + 2, i + 4);
-		if (!/^[0-9a-fA-F]{4}$/.test(`${addr}${data}`)) {
-			throw new Error("CompactTones に16進以外の文字が含まれています");
-		}
-		events.push({
-			time: 0,
-			addr: `0x${addr.toUpperCase()}`,
-			data: `0x${data.toUpperCase()}`,
-		});
-	}
-	return events;
-}
-
-function normalizeAttachmentText(
-	raw: string,
-	statusEl: HTMLElement | null,
-): string | null {
-	const trimmed = raw.trim();
-	if (trimmed.length === 0) {
-		setStatus(statusEl, "音色 JSON は空です (デフォルト音色を使用)");
-		return "";
-	}
-
-	try {
-		const parsed = JSON.parse(trimmed);
-		const normalized = { ...parsed } as Record<string, any>;
-		let mutated = false;
-
-		if (Array.isArray(parsed.events)) {
-			normalized.Tones = normalized.Tones ?? {};
-			normalized.Tones["0"] = { events: parsed.events };
-			delete normalized.events;
-			delete normalized.event_count;
-			mutated = true;
-		}
-
-		if (parsed.CompactTones && typeof parsed.CompactTones === "object") {
-			const compactTones = parsed.CompactTones as Record<string, unknown>;
-			const toneMap = normalized.Tones ?? {};
-			Object.entries(compactTones).forEach(([program, value]) => {
-				if (typeof value !== "string") {
-					throw new Error("CompactTones の値は16進文字列である必要があります");
-				}
-				const events = buildEventsFromCompact(value);
-				toneMap[program] = { events };
-			});
-			normalized.Tones = toneMap;
-			delete normalized.CompactTones;
-			mutated = true;
-		}
-
-		const output = JSON.stringify(normalized, null, 2);
-		setStatus(
-			statusEl,
-			mutated
-				? "プリセットを YM2151 音色 JSON に正規化しました"
-				: "音色 JSON を適用します",
-		);
-		return output;
-	} catch (error) {
-		setStatus(statusEl, `JSON が不正です: ${(error as Error).message}`, true);
-		return null;
-	}
-}
-
-async function initializeWasm(): Promise<void> {
-	wasmReady = await ensureWasmInitialized(
-		(message, isError) => setStatus(conversionStatus, message, isError),
-		"WASM 初期化完了。MIDI を読み込んでください。",
-	);
-}
-
-async function ensureMmlRuntime(): Promise<boolean> {
-	if (mmlInitPromise) {
-		return mmlInitPromise;
-	}
-
-	mmlInitPromise = (async () => {
-		setStatus(mmlStatus, "MML モジュールを読み込み中...");
-		// @ts-ignore -- remote module is resolved at runtime
-		const [treeSitterModule, mmlModule] = await Promise.all([
-			// @ts-ignore -- remote module is resolved at runtime
-			import(/* @vite-ignore */ WEB_TREE_SITTER_URL),
-			// @ts-ignore -- remote module is resolved at runtime
-			import(/* @vite-ignore */ MML_WASM_MODULE_URL),
-		]);
-
-		const ParserCtor = (treeSitterModule as { Parser: any }).Parser;
-		const LanguageApi = (treeSitterModule as { Language: any }).Language;
-		await ParserCtor.init();
-		const parser: TreeSitterParser = new ParserCtor();
-		const language = await LanguageApi.load(MML_LANGUAGE_URL);
-		parser.setLanguage(language);
-		await mmlModule.default();
-		mmlParser = parser;
-		parseTreeJsonToSmf = mmlModule.parse_tree_json_to_smf;
-		setStatus(mmlStatus, "MML モジュールの準備ができました。");
-		return true;
-	})().catch((error) => {
-		mmlInitPromise = null;
-		setStatus(
-			mmlStatus,
-			`MML モジュールの読み込みに失敗しました: ${(error as Error).message}`,
-			true,
-		);
-		return false;
-	});
-
-	return mmlInitPromise;
-}
-
 async function convertMmlToSmf(trigger: string): Promise<void> {
 	if (!mmlInput) return;
 	const mmlText = mmlInput.value.trim();
@@ -279,8 +84,8 @@ async function convertMmlToSmf(trigger: string): Promise<void> {
 	}
 
 	const requestId = ++latestMidiRequestId;
-	const initialized = await ensureMmlRuntime();
-	if (!initialized || !mmlParser || !parseTreeJsonToSmf) {
+	const initialized = await ensureMmlRuntime(mmlStatus);
+	if (!initialized || !getMmlParser() || !getParseTreeJsonToSmf()) {
 		return;
 	}
 	if (requestId !== latestMidiRequestId) {
@@ -288,9 +93,11 @@ async function convertMmlToSmf(trigger: string): Promise<void> {
 	}
 
 	try {
-		const tree = mmlParser.parse(mmlText);
+		const parser = getMmlParser()!;
+		const smfConverter = getParseTreeJsonToSmf()!;
+		const tree = parser.parse(mmlText);
 		const treeJson = JSON.stringify(treeToJson(tree.rootNode, mmlText));
-		const smfBytes = parseTreeJsonToSmf(treeJson, mmlText);
+		const smfBytes = smfConverter(treeJson, mmlText);
 		const midiArray =
 			smfBytes instanceof Uint8Array ? smfBytes : new Uint8Array(smfBytes);
 
@@ -529,6 +336,13 @@ function bootstrapWebYm(): void {
 				true,
 			);
 		});
+}
+
+async function initializeWasm(): Promise<void> {
+	wasmReady = await ensureWasmInitialized(
+		(message, isError) => setStatus(conversionStatus, message, isError),
+		"WASM 初期化完了。MIDI を読み込んでください。",
+	);
 }
 
 function main(): void {
