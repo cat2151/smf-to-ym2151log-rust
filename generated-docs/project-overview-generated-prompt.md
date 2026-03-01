@@ -1,4 +1,4 @@
-Last updated: 2026-02-16
+Last updated: 2026-03-02
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -411,7 +411,7 @@ cargo audit
   📖 README.md
 
 ## ファイル詳細分析
-**demo-library/delay-vibrato-demo.ts** (231行, 7405バイト)
+**demo-library/delay-vibrato-demo.ts** (236行, 7600バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch, addEventListener
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -439,7 +439,7 @@ cargo audit
   - 関数: treeToJson, ensureMmlRuntime, setupMmlToSmf, if, for, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (230行, 7245バイト)
+**demo-library/pop-noise-demo.ts** (235行, 7440バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, bootstrap, if, catch, addEventListener
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -447,7 +447,7 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/portamento-soft-lfo-demo.ts** (241行, 7593バイト)
+**demo-library/portamento-soft-lfo-demo.ts** (246行, 7788バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch, addEventListener
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -463,7 +463,7 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/tone-json-demo.ts** (468行, 15859バイト)
+**demo-library/tone-json-demo.ts** (473行, 16054バイト)
   - 関数: updateOutputWithState, updatePlayButtonState, treeToJson, buildEventsFromCompact, normalizeAttachmentText, initializeWasm, ensureMmlRuntime, convertMmlToSmf, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, for, catch, addEventListener
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./log-visualizer
 
@@ -574,4 +574,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-02-16 07:08:27 JST
+Generated at: 2026-03-02 07:08:17 JST
