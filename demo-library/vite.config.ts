@@ -1,23 +1,23 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import { defineConfig } from "vite";
+import { resolve } from "path";
 
 export default defineConfig({
-  base: './',
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    emptyOutDir: true,
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html'),
-        delayVibrato: resolve(__dirname, 'delay-vibrato.html'),
-        portamentoSoftLfo: resolve(__dirname, 'portamento-soft-lfo.html'),
-        toneJson: resolve(__dirname, 'tone-json.html'),
-        popNoise: resolve(__dirname, 'pop-noise.html'),
-      },
-    },
-  },
-  server: {
-    port: 8001,  // Different port to avoid conflict with main demo
-  },
+	base: "./",
+	build: {
+		outDir: "dist",
+		assetsDir: "assets",
+		emptyOutDir: true,
+		rollupOptions: {
+			input: {
+				main: resolve(__dirname, "index.html"),
+				delayVibrato: resolve(__dirname, "delay-vibrato.html"),
+				portamentoSoftLfo: resolve(__dirname, "portamento-soft-lfo.html"),
+				toneJson: resolve(__dirname, "tone-json.html"),
+				popNoise: resolve(__dirname, "pop-noise.html"),
+			},
+		},
+	},
+	server: {
+		port: 8001, // Different port to avoid conflict with main demo
+	},
 });

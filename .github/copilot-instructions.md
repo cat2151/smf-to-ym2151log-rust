@@ -217,3 +217,9 @@ This project is in active development. The implementation is functional but may 
 
 # TypeScript demo
 - demoを開発するとき、formatterとlinterを適用すること
+- `demo-library/` の TypeScript formatter と linter には Biome を使用すること
+- formatter の適用: `cd demo-library && npm run format`
+- linter の適用: `cd demo-library && npm run lint`
+
+# userからの指示
+- demo用のMML to SMF、SMF to JSON は、cat2151のライブラリを利用せよ。cat2151のライブラリは毎日重要なバグ修正があり、それを取り込むのがマストであるため、バージョン指定はせず最新mainを毎回取り込むべし
