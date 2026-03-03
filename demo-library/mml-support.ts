@@ -1,17 +1,10 @@
 import { setStatus } from "./shared-demo";
-
-type TreeSitterNode = {
-	type: string;
-	childCount: number;
-	startIndex: number;
-	endIndex: number;
-	child: (index: number) => TreeSitterNode;
-};
-
-type TreeSitterParser = {
-	parse: (source: string) => { rootNode: TreeSitterNode };
-	setLanguage: (language: unknown) => void;
-};
+import {
+	ensureMmlRuntime,
+	getMmlParser,
+	getParseTreeJsonToSmf,
+	treeToJson,
+} from "./tone-json-mml";
 
 type SetupMmlInputOptions = {
 	mmlInput: HTMLTextAreaElement | null;
@@ -24,78 +17,6 @@ type SetupMmlInputOptions = {
 	nextRequestId: () => number;
 	isLatestRequest: (id: number) => boolean;
 };
-
-const WEB_TREE_SITTER_URL =
-	"https://cat2151.github.io/mmlabc-to-smf-rust/demo/web-tree-sitter.js";
-const MML_WASM_MODULE_URL =
-	"https://cat2151.github.io/mmlabc-to-smf-rust/mmlabc-to-smf-wasm/pkg/mmlabc_to_smf_wasm.js";
-const MML_LANGUAGE_URL =
-	"https://cat2151.github.io/mmlabc-to-smf-rust/tree-sitter-mml/tree-sitter-mml.wasm";
-
-let mmlInitPromise: Promise<boolean> | null = null;
-let mmlParser: TreeSitterParser | null = null;
-let parseTreeJsonToSmf:
-	| ((treeJson: string, source: string) => Uint8Array | number[] | ArrayBuffer)
-	| null = null;
-
-function treeToJson(
-	node: TreeSitterNode,
-	source: string,
-): Record<string, unknown> {
-	const result: Record<string, unknown> = { type: node.type };
-	if (node.childCount === 0) {
-		result.text = source.substring(node.startIndex, node.endIndex);
-		return result;
-	}
-
-	const children: Record<string, unknown>[] = [];
-	for (let i = 0; i < node.childCount; i += 1) {
-		children.push(treeToJson(node.child(i), source));
-	}
-	result.children = children;
-	return result;
-}
-
-async function ensureMmlRuntime(
-	statusEl: HTMLElement | null,
-): Promise<boolean> {
-	if (mmlInitPromise) {
-		return mmlInitPromise;
-	}
-
-	mmlInitPromise = (async () => {
-		setStatus(statusEl, "MML モジュールを読み込み中...");
-		// @ts-ignore -- remote module is resolved at runtime
-		const [treeSitterModule, mmlModule] = await Promise.all([
-			// @ts-ignore -- remote module is resolved at runtime
-			import(/* @vite-ignore */ WEB_TREE_SITTER_URL),
-			// @ts-ignore -- remote module is resolved at runtime
-			import(/* @vite-ignore */ MML_WASM_MODULE_URL),
-		]);
-
-		const ParserCtor = (treeSitterModule as { Parser: any }).Parser;
-		const LanguageApi = (treeSitterModule as { Language: any }).Language;
-		await ParserCtor.init();
-		const parser: TreeSitterParser = new ParserCtor();
-		const language = await LanguageApi.load(MML_LANGUAGE_URL);
-		parser.setLanguage(language);
-		await mmlModule.default();
-		mmlParser = parser;
-		parseTreeJsonToSmf = mmlModule.parse_tree_json_to_smf;
-		setStatus(statusEl, "MML モジュールの準備ができました。");
-		return true;
-	})().catch((error) => {
-		mmlInitPromise = null;
-		setStatus(
-			statusEl,
-			`MML モジュールの読み込みに失敗しました: ${(error as Error).message}`,
-			true,
-		);
-		return false;
-	});
-
-	return mmlInitPromise;
-}
 
 export function setupMmlToSmf(options: SetupMmlInputOptions): void {
 	const {
@@ -126,7 +47,7 @@ export function setupMmlToSmf(options: SetupMmlInputOptions): void {
 
 		const requestId = nextRequestId();
 		const initialized = await ensureMmlRuntime(mmlStatus);
-		if (!initialized || !mmlParser || !parseTreeJsonToSmf) {
+		if (!initialized || !getMmlParser() || !getParseTreeJsonToSmf()) {
 			return;
 		}
 		if (!isLatestRequest(requestId)) {
@@ -134,9 +55,11 @@ export function setupMmlToSmf(options: SetupMmlInputOptions): void {
 		}
 
 		try {
-			const tree = mmlParser.parse(mmlText);
+			const parser = getMmlParser()!;
+			const smfConverter = getParseTreeJsonToSmf()!;
+			const tree = parser.parse(mmlText);
 			const treeJson = JSON.stringify(treeToJson(tree.rootNode, mmlText));
-			const smfBytes = parseTreeJsonToSmf(treeJson, mmlText);
+			const smfBytes = smfConverter(treeJson, mmlText);
 			const midiArray =
 				smfBytes instanceof Uint8Array ? smfBytes : new Uint8Array(smfBytes);
 
