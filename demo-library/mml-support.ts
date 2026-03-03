@@ -47,7 +47,9 @@ export function setupMmlToSmf(options: SetupMmlInputOptions): void {
 
 		const requestId = nextRequestId();
 		const initialized = await ensureMmlRuntime(mmlStatus);
-		if (!initialized || !getMmlParser() || !getParseTreeJsonToSmf()) {
+		const parser = getMmlParser();
+		const smfConverter = getParseTreeJsonToSmf();
+		if (!initialized || !parser || !smfConverter) {
 			return;
 		}
 		if (!isLatestRequest(requestId)) {
@@ -55,8 +57,6 @@ export function setupMmlToSmf(options: SetupMmlInputOptions): void {
 		}
 
 		try {
-			const parser = getMmlParser()!;
-			const smfConverter = getParseTreeJsonToSmf()!;
 			const tree = parser.parse(mmlText);
 			const treeJson = JSON.stringify(treeToJson(tree.rootNode, mmlText));
 			const smfBytes = smfConverter(treeJson, mmlText);
