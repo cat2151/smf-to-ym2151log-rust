@@ -42,21 +42,7 @@ jobs:
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          LABEL="ci-build-failure"
-          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on CI build failure" --color "d73a4a" 2>/dev/null || true
-          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
-          if [ -n "$EXISTING" ]; then
-            gh issue comment "$EXISTING" \
-              --repo "${{ github.repository }}" \
-              --body "$(printf '## CI build failed again\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
-          else
-            gh issue create \
-              --repo "${{ github.repository }}" \
-              --label "$LABEL" \
-              --title "CI build failed" \
-              --body "$(printf '## CI build failed\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
-          fi
+        run: python .github/scripts/create_ci_issue.py --label "ci-build-failure" --title "CI build failed"
 
   test:
     name: Test
@@ -86,21 +72,7 @@ jobs:
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          LABEL="ci-test-failure"
-          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on CI test failure" --color "d73a4a" 2>/dev/null || true
-          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
-          if [ -n "$EXISTING" ]; then
-            gh issue comment "$EXISTING" \
-              --repo "${{ github.repository }}" \
-              --body "$(printf '## CI test failed again\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
-          else
-            gh issue create \
-              --repo "${{ github.repository }}" \
-              --label "$LABEL" \
-              --title "CI test failed" \
-              --body "$(printf '## CI test failed\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
-          fi
+        run: python .github/scripts/create_ci_issue.py --label "ci-test-failure" --title "CI test failed"
 
   format:
     name: Format Check
@@ -117,21 +89,7 @@ jobs:
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          LABEL="ci-format-failure"
-          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on CI format check failure" --color "d73a4a" 2>/dev/null || true
-          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
-          if [ -n "$EXISTING" ]; then
-            gh issue comment "$EXISTING" \
-              --repo "${{ github.repository }}" \
-              --body "$(printf '## CI format check failed again\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
-          else
-            gh issue create \
-              --repo "${{ github.repository }}" \
-              --label "$LABEL" \
-              --title "CI format check failed" \
-              --body "$(printf '## CI format check failed\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
-          fi
+        run: python .github/scripts/create_ci_issue.py --label "ci-format-failure" --title "CI format check failed"
 
   clippy:
     name: Clippy
@@ -163,18 +121,4 @@ jobs:
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          LABEL="ci-clippy-failure"
-          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on CI clippy failure" --color "d73a4a" 2>/dev/null || true
-          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
-          if [ -n "$EXISTING" ]; then
-            gh issue comment "$EXISTING" \
-              --repo "${{ github.repository }}" \
-              --body "$(printf '## CI clippy failed again\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
-          else
-            gh issue create \
-              --repo "${{ github.repository }}" \
-              --label "$LABEL" \
-              --title "CI clippy failed" \
-              --body "$(printf '## CI clippy failed\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
-          fi
+        run: python .github/scripts/create_ci_issue.py --label "ci-clippy-failure" --title "CI clippy failed"
