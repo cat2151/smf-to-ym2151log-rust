@@ -46,3 +46,7 @@ demo-library/pkg
 # GitHub Pages deployment
 _site/
 
+# Python bytecode cache
+__pycache__/
+*.pyc
+

@@ -9,6 +9,7 @@ env:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   build:
@@ -37,6 +38,11 @@ jobs:
         run: cargo build --verbose
       - name: Build release
         run: cargo build --release --verbose
+      - name: Create issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/create_ci_issue.py --label "ci-build-failure" --title "CI build failed"
 
   test:
     name: Test
@@ -62,6 +68,11 @@ jobs:
           key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
       - name: Run tests
         run: cargo test --verbose
+      - name: Create issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/create_ci_issue.py --label "ci-test-failure" --title "CI test failed"
 
   format:
     name: Format Check
@@ -74,6 +85,11 @@ jobs:
           components: rustfmt
       - name: Check formatting
         run: cargo fmt -- --check
+      - name: Create issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/create_ci_issue.py --label "ci-format-failure" --title "CI format check failed"
 
   clippy:
     name: Clippy
@@ -101,3 +117,8 @@ jobs:
           key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
       - name: Run clippy
         run: cargo clippy -- -D warnings
+      - name: Create issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/create_ci_issue.py --label "ci-clippy-failure" --title "CI clippy failed"
