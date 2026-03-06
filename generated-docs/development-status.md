@@ -1,53 +1,50 @@
-Last updated: 2026-03-04
+Last updated: 2026-03-07
 
 # Development Status
 
 ## 現在のIssues
-- コード品質向上として、`tests/integration_tests.rs` をはじめとする4つのファイルが500行を超過しており、リファクタリングが推奨されています ([Issue #134](../issue-notes/134.md))。
-- `copilot-instructions.md` の日本語化、最新状況への更新、デプロイ構造の明示が課題として挙げられています ([Issue #133](../issue-notes/133.md), [Issue #122](../issue-notes/122.md))。
-- デモ関連では、MMLコマンド「l」「t」の不動作 ([Issue #131](../issue-notes/131.md))、YM2151ビジュアライザの機能改善 ([Issue #128](../issue-notes/128.md))、ディレイビブラート/LFOの音質問題 ([Issue #127](../issue-notes/127.md))、添付JSONが反映されない問題 ([Issue #126](../issue-notes/126.md))、添付JSONフォーマットの変更 ([Issue #123](../issue-notes/123.md)) など、多岐にわたる改善が進行中です。
+- CIジョブ失敗時に自動でIssueを起票する機能（[Issue #137](../issue-notes/137.md), [Issue #125](../issue-notes/125.md)）と`copilot-instructions.md`の最新化（[Issue #122](../issue-notes/122.md)）が進められています。
+- YM2151レジスタビジュアライザの改善（[Issue #128](../issue-notes/128.md)）と、ディレイビブラート/LFOのクリックノイズ問題調査およびWAVエクスポートによる分析（[Issue #127](../issue-notes/127.md)）が課題です。
+- 添付JSONフォーマットの変更による音色情報の自己記述性向上（[Issue #123](../issue-notes/123.md)）や、線形補間音色変化機能の実装（[Issue #115](../issue-notes/115.md)）、さらに音色データの整備（[Issue #83](../issue-notes/83.md), [Issue #33](../issue-notes/33.md), [Issue #22](../issue-notes/22.md)）に関するタスクが残っています。
 
 ## 次の一手候補
-1. `copilot-instructions.md` の日本語化と最新状況反映 ([Issue #133](../issue-notes/133.md), [Issue #122](../issue-notes/122.md))
-   - 最初の小さな一歩: `copilot-instructions.md` の「Project Overview」セクションを日本語に翻訳し、現在のプロジェクトの目的、アーキテクチャ、主要モジュールを正確に反映するように更新する。
+1. CIジョブ失敗時の自動Issue起票機能の最終確認とデプロイ [Issue #137](../issue-notes/137.md), [Issue #125](../issue-notes/125.md)
+   - 最初の小さな一歩: `ci.yml`の現在の実装が[Issue #137](../issue-notes/137.md)で述べられている変更を完全に含んでおり、意図通りにCI失敗時にIssueが起票されることを確認するためのテスト計画を立てる。
    - Agent実行プロンプ:
      ```
-     対象ファイル: `.github/copilot-instructions.md`
+     対象ファイル: .github/workflows/ci.yml, issue-notes/137.md, issue-notes/125.md
 
-     実行内容: 対象ファイルを読み込み、「Project Overview」セクションの内容を日本語に翻訳し、最新のプロジェクト概要と一致するように更新してください。特に、「Main Purpose」「Architecture」「Key Modules」の記述を、現在の実装状況に合わせて修正してください。
+     実行内容: `.github/workflows/ci.yml`の現状を分析し、[Issue #137](../issue-notes/137.md)の変更内容（`issues: write`権限追加と`Create issue on failure`ステップ）が完全に反映されているか確認してください。また、この実装が[Issue #125](../issue-notes/125.md)の要件（clippy等のCI失敗時自動起票）を満たしているか評価し、今後のテスト計画（擬似的なCI失敗を発生させる方法など）を提案するmarkdown形式のドキュメントを作成してください。
 
-     確認事項: 翻訳の正確性、プロジェクトの現在の状態との整合性、および[Issue #122](../issue-notes/122.md) で言及されているdeploy構造の明示が必要かどうかの検討。
+     確認事項: 既存の`.github/workflows`ディレクトリ内の他のワークフロー（特に`issue-note.yml`など、Issue作成に関わるもの）との競合や既存の権限設定の確認。GitHub Actionsのイベントトリガーとパーミッションの制約。
 
-     期待する出力: 更新された`.github/copilot-instructions.md` のファイル内容。
+     期待する出力: `ci.yml`の現状と[Issue #137](../issue-notes/137.md)の変更の整合性評価、[Issue #125](../issue-notes/125.md)の解決状況、および自動Issue起票機能をテストするための具体的な計画を記載したmarkdownドキュメント。
      ```
 
-2. ディレイビブラートデモにおけるMMLの「l」「t」コマンド不動作の調査 ([Issue #131](../issue-notes/131.md))
-   - 最初の小さな一歩: `demo-library/delay-vibrato-demo.ts` を開き、MML入力からSMFへの変換がどのように行われているか、特にMMLコマンド (`l`, `t`) の処理に関連する箇所を特定して分析する。
-   - Agent実行プロンプ:
+2. 添付JSONフォーマットの変更によるProgramChangeの自己記述性向上 [Issue #123](../issue-notes/123.md)
+   - 最初の小さな一歩: 現在の添付JSONの構造（`tones/000.json`など）と、`src/ym2151/tone.rs`における音色関連のデータ構造を分析し、提案されているフォーマット変更のRustコードへの影響を特定する。
+   - Agent実行プロンプト:
      ```
-     対象ファイル: `demo-library/delay-vibrato-demo.ts`, `demo-library/mml-support.ts`, `demo-library/tone-json-mml.ts`
+     対象ファイル: tones/000.json, src/ym2151/tone.rs, src/ym2151/converter.rs, demo-library/tone-json-demo.ts, demo-library/tone-json-attachment.ts, issue-notes/123.md
 
-     実行内容: `demo-library/delay-vibrato-demo.ts` のMML入力処理と、`mml-support.ts` および `demo-library/tone-json-mml.ts` で提供されるMMLランタイムの利用状況を分析してください。特に、MMLの「l」（音長）と「t」（テンポ）コマンドがどのように解析され、MIDIデータに変換されているか、または変換されていないかを調査し、その処理フローをmarkdown形式で説明してください。
+     実行内容: `issue-notes/123.md`で提案されている添付JSONフォーマット変更（ProgramChangeの自己記述性向上、LFO/Portamento/DelayVibratoのProgramChangeとのセット扱い）について、現在の`src/ym2151/tone.rs`のデータ構造と`src/ym2151/converter.rs`の変換ロジック、および`demo-library`内のJSON関連ファイル（`tone-json-demo.ts`, `tone-json-attachment.ts`）に与える影響を分析してください。変更が必要なRustの構造体、enum、メソッド、TypeScriptのインターフェース、型の箇所を具体的に特定し、それらの変更が他の部分にどのように波及するかをmarkdown形式で出力してください。
 
-     確認事項: [Issue #132](../issue-notes/132.md) での `mml-support.ts` の修正が、本Issueにどのような影響を与えているかを確認すること。MMLパーサー (`mmlabc-to-smf-rust`) 側の仕様や制約も考慮してください。
+     確認事項: 既存のYM2151レジスタ変換ロジックへの影響、JSONパースロジックの変更点、既存の音色データとの後方互換性（一時的な共存の可能性）、およびTypeScript側のデモコードへの影響。
 
-     期待する出力: `delay-vibrato-demo.ts` におけるMMLコマンド処理の分析結果をMarkdown形式で出力し、なぜ「l」「t」コマンドが動作しないのかの仮説を含めてください。
+     期待する出力: 提案されたJSONフォーマット変更に対応するために必要なRustとTypeScriptのコード変更点の詳細なリスト、およびその変更による影響範囲を説明したmarkdownドキュメント。
      ```
 
-3. `tests/integration_tests.rs` の大規模テストファイルのリファクタリングに着手 ([Issue #134](../issue-notes/134.md))
-   - 最初の小さな一歩: `tests/integration_tests.rs` 内で、類似のテストをグループ化する関数やモジュールを特定し、将来の分割に向けてテストの役割を明確化するコメントを追加する。
-   - Agent実行プロンプ:
+3. ディレイビブラート/LFOクリックノイズ問題の調査とWAVエクスポート実装 [Issue #127](../issue-notes/127.md)
+   - 最初の小さな一歩: 既存の`demo-library/delay-vibrato-demo.ts`を分析し、現在のデモでクリックノイズが発生する再現条件を特定するとともに、`demo-library`に簡単なWAVエクスポート機能を追加するための調査を行う。
+   - Agent実行プロンプト:
      ```
-     対象ファイル: `tests/integration_tests.rs`
+     対象ファイル: demo-library/delay-vibrato-demo.ts, demo-library/portamento-soft-lfo-demo.ts, demo-library/library-demo.ts, demo-library/vite.config.ts, issue-notes/127.md
 
-     実行内容: `tests/integration_tests.rs` ファイルを分析し、以下の観点から改善点を特定してください:
-     1) 論理的に関連性の高いテストグループ（例: MIDIパース関連、YM2151変換関連、エンドツーエンドフローなど）をリストアップしてください。
-     2) 各グループについて、既存のテスト関数がそのグループ内でどのような役割を持っているかを簡潔に説明し、テストの重複や冗長性を指摘してください。
-     3) 将来的なファイル分割やモジュール化を考慮した、テストグループごとのリファクタリングの方向性を提案するコメントを、コード内に直接追加する計画を立ててください。
+     実行内容: `issue-notes/127.md`に記載されているディレイビブラートとLFOの低品質（クリックノイズ）問題について、現在の`delay-vibrato-demo.ts`や`portamento-soft-lfo-demo.ts`の実装を分析し、問題の原因となりうる箇所を推測してください。また、問題分析を支援するためのWAVエクスポート機能を`demo-library`に追加するための実現可能性と、そのための最小限の実装方針（Web Audio APIの`AudioBuffer`を操作して`WAV`形式でダウンロードさせる方法など）をmarkdown形式で提案してください。
 
-     確認事項: テストの意図や依存関係を正確に理解すること。既存のテストが壊れないよう、分析は慎重に行うこと。
+     確認事項: `demo-library`の既存のビルドシステム（Vite）と`Web Audio API`との互換性、WAVエクスポートライブラリ（または自作）の選定、パフォーマンスへの影響、および既存デモへの組み込みの容易さ。
 
-     期待する出力: `tests/integration_tests.rs` の分析結果をMarkdown形式で出力し、リファクタリングの計画と、具体的なコードへのコメント追加内容を説明してください。
+     期待する出力: クリックノイズの原因に関する仮説、WAVエクスポート機能の設計方針、実装に必要な主要なAPIやコード例、およびデモへの統合方法を記述したmarkdownドキュメント。
 
 ---
-Generated at: 2026-03-04 07:11:26 JST
+Generated at: 2026-03-07 07:10:54 JST

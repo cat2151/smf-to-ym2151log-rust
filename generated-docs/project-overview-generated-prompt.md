@@ -1,4 +1,4 @@
-Last updated: 2026-03-04
+Last updated: 2026-03-07
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -384,6 +384,7 @@ cargo audit
     📄 mod.rs
     📄 parser.rs
     📄 utils.rs
+    📄 utils_tests.rs
   📄 wasm.rs
   📁 ym2151/
     📄 channel_allocation.rs
@@ -392,8 +393,14 @@ cargo audit
       📄 register_effects.rs
       📄 waveform.rs
     📄 converter.rs
+    📁 converter_tests/
+      📄 basic.rs
+      📄 channels.rs
+      📄 effects.rs
+      📄 programs.rs
     📄 converter_tests.rs
     📄 event_processor.rs
+    📄 event_processor_tests.rs
     📄 events.rs
     📄 init.rs
     📄 mod.rs
@@ -402,7 +409,11 @@ cargo audit
     📄 tone.rs
 📁 tests/
   📄 create_test_midi.py
-  📄 integration_tests.rs
+  📄 integration_conversion.rs
+  📄 integration_midi.rs
+  📄 integration_multichannel.rs
+  📄 integration_program_change.rs
+  📄 integration_wasm.rs
   📁 test_data/
     📄 multi_channel.mid
     📄 multi_track.mid
@@ -438,8 +449,8 @@ cargo audit
   - 関数: parseHexByte, detectChannel, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, if, for
   - インポート: なし
 
-**demo-library/mml-support.ts** (177行, 4622バイト)
-  - 関数: treeToJson, ensureMmlRuntime, setupMmlToSmf, if, for, catch
+**demo-library/mml-support.ts** (100行, 2258バイト)
+  - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
 **demo-library/pop-noise-demo.ts** (277行, 6747バイト)
@@ -530,10 +541,10 @@ cargo audit
       - computeTrackWidth ()
       - renderEmpty ()
       - ensureGlobalLane ()
-  - treeToJson (demo-library/mml-support.ts)
-    - ensureMmlRuntime ()
-      - getMmlParser ()
-      - getParseTreeJsonToSmf ()
+  - getMmlParser ()
+    - getParseTreeJsonToSmf ()
+      - treeToJson ()
+      - ensureMmlRuntime ()
   - clearAudioCache ()
   - clearWebYmAudioCache ()
     - cleanup ()
@@ -586,4 +597,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-03-04 07:10:58 JST
+Generated at: 2026-03-07 07:10:29 JST
