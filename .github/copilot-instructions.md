@@ -59,7 +59,7 @@ cargo test <テスト名>
 
 **テスト構成**:
 - ユニットテスト: コードと同じファイル内の `#[cfg(test)]` モジュール
-- 統合テスト: `tests/integration_tests.rs`
+- 統合テスト: `tests/integration_*.rs`（例: `tests/integration_midi.rs`, `tests/integration_conversion.rs`）
 - テストデータ: `tests/test_data/`
 
 ### コード品質
@@ -159,7 +159,7 @@ cat2151のリポジトリからclone、`npm install`、`cargo install` する際
   ]
 }
 ```
-- `time`: 55930Hzサンプルレートでのサンプル時刻
+- `time`: イベント発生時刻（秒単位の `f64`）
 - `addr`: YM2151レジスタアドレス（16進数文字列）
 - `data`: 書き込むデータ（16進数文字列）
 
@@ -175,7 +175,7 @@ cat2151のリポジトリからclone、`npm install`、`cargo install` する際
 1. `src/midi/events.rs` にイベント型を追加
 2. `src/midi/parser.rs` のパーサーを更新
 3. `src/ym2151/converter.rs` に変換ロジックを追加
-4. `tests/integration_tests.rs` にテストを追加
+4. 必要に応じて `tests/integration_*.rs` のいずれか、または新規の `tests/integration_...rs` ファイルに統合テストを追加
 
 ### YM2151レジスタロジックの変更
 1. YM2151データシートでレジスタ仕様を確認
