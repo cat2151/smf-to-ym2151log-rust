@@ -49,27 +49,13 @@ jobs:
           if [ -n "$EXISTING" ]; then
             gh issue comment "$EXISTING" \
               --repo "${{ github.repository }}" \
-              --body "## CI build failed again
-
-          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Branch:** ${{ github.ref_name }}
-          **Commit:** ${{ github.sha }}
-          **Triggered by:** ${{ github.event_name }}
-
-          Please investigate the workflow logs for details."
+              --body "$(printf '## CI build failed again\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
           else
             gh issue create \
               --repo "${{ github.repository }}" \
               --label "$LABEL" \
               --title "CI build failed" \
-              --body "## CI build failed
-
-          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Branch:** ${{ github.ref_name }}
-          **Commit:** ${{ github.sha }}
-          **Triggered by:** ${{ github.event_name }}
-
-          Please investigate the workflow logs for details."
+              --body "$(printf '## CI build failed\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
           fi
 
   test:
@@ -107,27 +93,13 @@ jobs:
           if [ -n "$EXISTING" ]; then
             gh issue comment "$EXISTING" \
               --repo "${{ github.repository }}" \
-              --body "## CI test failed again
-
-          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Branch:** ${{ github.ref_name }}
-          **Commit:** ${{ github.sha }}
-          **Triggered by:** ${{ github.event_name }}
-
-          Please investigate the workflow logs for details."
+              --body "$(printf '## CI test failed again\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
           else
             gh issue create \
               --repo "${{ github.repository }}" \
               --label "$LABEL" \
               --title "CI test failed" \
-              --body "## CI test failed
-
-          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Branch:** ${{ github.ref_name }}
-          **Commit:** ${{ github.sha }}
-          **Triggered by:** ${{ github.event_name }}
-
-          Please investigate the workflow logs for details."
+              --body "$(printf '## CI test failed\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
           fi
 
   format:
@@ -152,27 +124,13 @@ jobs:
           if [ -n "$EXISTING" ]; then
             gh issue comment "$EXISTING" \
               --repo "${{ github.repository }}" \
-              --body "## CI format check failed again
-
-          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Branch:** ${{ github.ref_name }}
-          **Commit:** ${{ github.sha }}
-          **Triggered by:** ${{ github.event_name }}
-
-          Please investigate the workflow logs for details."
+              --body "$(printf '## CI format check failed again\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
           else
             gh issue create \
               --repo "${{ github.repository }}" \
               --label "$LABEL" \
               --title "CI format check failed" \
-              --body "## CI format check failed
-
-          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Branch:** ${{ github.ref_name }}
-          **Commit:** ${{ github.sha }}
-          **Triggered by:** ${{ github.event_name }}
-
-          Please investigate the workflow logs for details."
+              --body "$(printf '## CI format check failed\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
           fi
 
   clippy:
@@ -212,25 +170,11 @@ jobs:
           if [ -n "$EXISTING" ]; then
             gh issue comment "$EXISTING" \
               --repo "${{ github.repository }}" \
-              --body "## CI clippy failed again
-
-          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Branch:** ${{ github.ref_name }}
-          **Commit:** ${{ github.sha }}
-          **Triggered by:** ${{ github.event_name }}
-
-          Please investigate the workflow logs for details."
+              --body "$(printf '## CI clippy failed again\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
           else
             gh issue create \
               --repo "${{ github.repository }}" \
               --label "$LABEL" \
               --title "CI clippy failed" \
-              --body "## CI clippy failed
-
-          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          **Branch:** ${{ github.ref_name }}
-          **Commit:** ${{ github.sha }}
-          **Triggered by:** ${{ github.event_name }}
-
-          Please investigate the workflow logs for details."
+              --body "$(printf '## CI clippy failed\n\n**Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n**Branch:** ${{ github.ref_name }}\n**Commit:** ${{ github.sha }}\n**Triggered by:** ${{ github.event_name }}\n\nPlease investigate the workflow logs for details.')"
           fi
