@@ -9,6 +9,7 @@ env:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   build:
@@ -37,6 +38,39 @@ jobs:
         run: cargo build --verbose
       - name: Build release
         run: cargo build --release --verbose
+      - name: Create issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LABEL="ci-build-failure"
+          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on CI build failure" --color "d73a4a" 2>/dev/null || true
+          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" \
+              --repo "${{ github.repository }}" \
+              --body "## CI build failed again
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          else
+            gh issue create \
+              --repo "${{ github.repository }}" \
+              --label "$LABEL" \
+              --title "CI build failed" \
+              --body "## CI build failed
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          fi
 
   test:
     name: Test
@@ -62,6 +96,39 @@ jobs:
           key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
       - name: Run tests
         run: cargo test --verbose
+      - name: Create issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LABEL="ci-test-failure"
+          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on CI test failure" --color "d73a4a" 2>/dev/null || true
+          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" \
+              --repo "${{ github.repository }}" \
+              --body "## CI test failed again
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          else
+            gh issue create \
+              --repo "${{ github.repository }}" \
+              --label "$LABEL" \
+              --title "CI test failed" \
+              --body "## CI test failed
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          fi
 
   format:
     name: Format Check
@@ -74,6 +141,39 @@ jobs:
           components: rustfmt
       - name: Check formatting
         run: cargo fmt -- --check
+      - name: Create issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LABEL="ci-format-failure"
+          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on CI format check failure" --color "d73a4a" 2>/dev/null || true
+          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" \
+              --repo "${{ github.repository }}" \
+              --body "## CI format check failed again
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          else
+            gh issue create \
+              --repo "${{ github.repository }}" \
+              --label "$LABEL" \
+              --title "CI format check failed" \
+              --body "## CI format check failed
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          fi
 
   clippy:
     name: Clippy
@@ -101,3 +201,36 @@ jobs:
           key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
       - name: Run clippy
         run: cargo clippy -- -D warnings
+      - name: Create issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LABEL="ci-clippy-failure"
+          gh label create "$LABEL" --repo "${{ github.repository }}" --description "Auto-created on CI clippy failure" --color "d73a4a" 2>/dev/null || true
+          EXISTING=$(gh issue list --repo "${{ github.repository }}" --label "$LABEL" --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" \
+              --repo "${{ github.repository }}" \
+              --body "## CI clippy failed again
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          else
+            gh issue create \
+              --repo "${{ github.repository }}" \
+              --label "$LABEL" \
+              --title "CI clippy failed" \
+              --body "## CI clippy failed
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Branch:** ${{ github.ref_name }}
+          **Commit:** ${{ github.sha }}
+          **Triggered by:** ${{ github.event_name }}
+
+          Please investigate the workflow logs for details."
+          fi
