@@ -1,134 +1,134 @@
-# GitHub Copilot Instructions for smf-to-ym2151log-rust
+# smf-to-ym2151log-rust GitHub Copilot 指示書
 
-## Project Overview
+## プロジェクト概要
 
-This is a Rust implementation that converts Standard MIDI Files (SMF) to YM2151 FM synthesizer chip register write logs in JSON format. It's a Rust port of the Python version [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log).
+Rustで実装された、Standard MIDI File（SMF）をYM2151 FMシンセサイザーチップのレジスタ書き込みログ（JSON形式）に変換するツールです。Pythonバージョン [smf-to-ym2151log](https://github.com/cat2151/smf-to-ym2151log) のRust移植版です。
 
-**Main Purpose**: Convert MIDI files (.mid) → YM2151 register logs (JSON) compatible with [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc)
+**主な目的**: MIDIファイル（.mid）→ [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) 互換のYM2151レジスタログ（JSON）への変換
 
-## Architecture
+## アーキテクチャ
 
-### 2-Pass Processing System
+### 2パス処理システム
 
-The project uses a two-pass architecture:
+本プロジェクトは2パス構成を採用しています：
 
-1. **Pass A (MIDI Parser)**: MIDI File → Intermediate Events JSON (for debugging)
-   - Parses SMF Format 0 and Format 1
-   - Outputs `<filename>_events.json` with normalized MIDI events
+1. **パスA（MIDIパーサー）**: MIDIファイル → 中間イベントJSON（デバッグ用）
+   - SMF Format 0 および Format 1 を解析
+   - 正規化されたMIDIイベントを `<ファイル名>_events.json` として出力
    
-2. **Pass B (YM2151 Converter)**: Intermediate Events → YM2151 Register Log JSON (final output)
-   - Converts MIDI events to YM2151 register writes
-   - Outputs `<filename>_ym2151.json` compatible with ym2151-zig-cc
+2. **パスB（YM2151コンバーター）**: 中間イベント → YM2151レジスタログJSON（最終出力）
+   - MIDIイベントをYM2151レジスタ書き込みに変換
+   - ym2151-zig-cc互換の `<ファイル名>_ym2151.json` を出力
 
-### Key Modules
+### 主要モジュール
 
-- `src/midi/` - MIDI file parsing and event processing
-  - `parser.rs` - SMF parsing logic
-  - `events.rs` - MIDI event types
-  - `utils.rs` - Utility functions (tempo conversion, note mapping)
+- `src/midi/` - MIDIファイルの解析とイベント処理
+  - `parser.rs` - SMF解析ロジック
+  - `events.rs` - MIDIイベント型定義
+  - `utils.rs` - ユーティリティ関数（テンポ変換、ノートマッピング）
   
-- `src/ym2151/` - YM2151 conversion logic
-  - `converter.rs` - Main conversion logic
-  - `events.rs` - YM2151 event types
-  - `init.rs` - YM2151 initialization sequences
-  - `note_table.rs` - MIDI note to YM2151 KC/KF conversion
+- `src/ym2151/` - YM2151変換ロジック
+  - `converter.rs` - メイン変換ロジック
+  - `events.rs` - YM2151イベント型定義
+  - `init.rs` - YM2151初期化シーケンス
+  - `note_table.rs` - MIDIノートからYM2151 KC/KF への変換
 
-- `src/error.rs` - Error types using thiserror
-- `src/lib.rs` - Library root
-- `src/main.rs` - CLI entry point
+- `src/error.rs` - thiserrorを使用したエラー型定義
+- `src/lib.rs` - ライブラリルート
+- `src/main.rs` - CLIエントリーポイント
 
-## Build and Test
+## ビルドとテスト
 
-### Building
+### ビルド
 ```bash
-# Debug build
+# デバッグビルド
 cargo build
 
-# Release build
+# リリースビルド
 cargo build --release
 ```
 
-### Testing
+### テスト
 ```bash
-# Run all tests
+# 全テスト実行
 cargo test
 
-# Run specific test
-cargo test <test_name>
+# 特定のテストを実行
+cargo test <テスト名>
 ```
 
-**Test Structure**:
-- Unit tests: Located in the same file as the code (`#[cfg(test)]` modules)
-- Integration tests: `tests/integration_tests.rs`
-- Test data: `tests/test_data/`
+**テスト構成**:
+- ユニットテスト: コードと同じファイル内の `#[cfg(test)]` モジュール
+- 統合テスト: `tests/integration_tests.rs`
+- テストデータ: `tests/test_data/`
 
-### Code Quality
+### コード品質
 ```bash
-# Format check (must pass before commit)
+# フォーマットチェック（コミット前に必須）
 cargo fmt --check
 
-# Lint check (must pass before commit)
+# Lintチェック（コミット前に必須）
 cargo clippy -- -D warnings
 
-# Security audit
+# セキュリティ監査
 cargo audit
 ```
 
-## Dependencies
+## 依存関係
 
-### Version Pinning Policy for cat2151 Repositories
+### cat2151リポジトリのバージョン固定方針
 
-**Do NOT pin versions** when cloning, `npm install`-ing from GitHub, or `cargo install`-ing from any `cat2151` repository. This includes:
-- `git clone` (do not checkout a specific commit/tag — always use the default branch HEAD)
-- `npm install github:cat2151/...` (do not pin to a specific commit or version)
-- `cargo install --git https://github.com/cat2151/...` (do not pin to a specific rev/tag)
+cat2151のリポジトリからclone、`npm install`、`cargo install` する際は**バージョンを固定しないこと**。具体的には：
+- `git clone`（特定のコミット/タグをチェックアウトしない — 常にデフォルトブランチのHEADを使用）
+- `npm install github:cat2151/...`（特定のコミットやバージョンに固定しない）
+- `cargo install --git https://github.com/cat2151/...`（rev/tagを指定しない）
 
-**Reason**: cat2151's repositories receive daily important bug fixes that must always be incorporated. Pinning to an older version would prevent critical fixes from being picked up.
+**理由**: cat2151のリポジトリには毎日重要なバグ修正が入るため、常に最新版を取り込む必要があります。バージョンを固定すると重要な修正が取り込まれなくなります。
 
-### Production Dependencies
-- `midly` (0.5) - SMF parsing library
-- `serde` + `serde_json` - JSON serialization/deserialization
-- `anyhow` - Error handling for application code
-- `thiserror` - Error type definitions
+### 本番依存関係
+- `midly` (0.5) - SMF解析ライブラリ
+- `serde` + `serde_json` - JSONシリアライズ/デシリアライズ
+- `anyhow` - アプリケーションレベルのエラーハンドリング
+- `thiserror` - カスタムエラー型定義
 
-### Development
-- Standard Rust test framework (no additional test dependencies yet)
+### 開発
+- 標準Rustテストフレームワーク（追加のテスト依存関係なし）
 
-## Coding Conventions
+## コーディング規約
 
-### Language
+### 言語
 - **Rust Edition 2021**
-- Minimum Rust version: 1.70.0
+- 最低Rustバージョン: 1.70.0
 
-### Style
-- Follow standard Rust formatting (`cargo fmt`)
-- Use `clippy` for linting (no warnings allowed in CI)
-- Prefer explicit types over inference when it improves readability
-- Use descriptive variable names
-- **Comments**: English preferred for code comments and documentation to support international collaboration; Japanese is acceptable for domain-specific terms or in bilingual documentation files
+### スタイル
+- 標準Rustフォーマット（`cargo fmt`）に従うこと
+- `clippy` によるLint（CI では警告ゼロが必須）
+- 可読性が向上する場合は型推論よりも明示的な型指定を優先すること
+- 説明的な変数名を使用すること
+- **コメント**: コードコメントやドキュメントは国際的な協力を支援するために英語を推奨。ドメイン固有の用語やバイリンガルドキュメントでは日本語も可
 
-### Error Handling
-- Use `anyhow::Result` for application-level errors in binaries
-- Use `thiserror` to define custom error types in libraries
-- Propagate errors with `?` operator
-- Avoid unwrap/expect in production code (ok in tests)
+### エラーハンドリング
+- バイナリのアプリケーションレベルエラーには `anyhow::Result` を使用
+- ライブラリのカスタムエラー型定義には `thiserror` を使用
+- `?` 演算子でエラーを伝播させること
+- 本番コードでは unwrap/expect を避けること（テストでは可）
 
-### Testing Guidelines
-- Write unit tests for pure functions and algorithms
-- Write integration tests for end-to-end workflows
-- Use descriptive test names (e.g., `test_parse_simple_melody`)
-- Test both success and error cases
-- Keep test data files small and focused
+### テストガイドライン
+- 純粋関数やアルゴリズムにはユニットテストを書くこと
+- エンドツーエンドのワークフローには統合テストを書くこと
+- 説明的なテスト名を使用すること（例: `test_parse_simple_melody`）
+- 成功ケースとエラーケースの両方をテストすること
+- テストデータファイルは小さくフォーカスされた内容に保つこと
 
-### Documentation
-- Document public APIs with doc comments (`///`)
-- Include examples in doc comments where helpful
-- Keep README.md and IMPLEMENTATION.md in sync with code changes
+### ドキュメント
+- 公開APIにはdocコメント（`///`）でドキュメントを記載すること
+- 必要に応じてdocコメントにサンプルを含めること
+- コード変更に合わせてREADME.mdとIMPLEMENTATION.mdを同期させること
 
-## JSON Output Formats
+## JSON出力フォーマット
 
-### Events JSON (_events.json)
-Intermediate debug format:
+### イベントJSON (_events.json)
+中間デバッグフォーマット:
 ```json
 {
   "ticks_per_beat": 480,
@@ -145,8 +145,8 @@ Intermediate debug format:
 }
 ```
 
-### YM2151 Log JSON (_ym2151.json)
-Final output format (must be compatible with ym2151-zig-cc):
+### YM2151ログJSON (_ym2151.json)
+最終出力フォーマット（ym2151-zig-cc互換が必須）:
 ```json
 {
   "event_count": 50,
@@ -159,58 +159,58 @@ Final output format (must be compatible with ym2151-zig-cc):
   ]
 }
 ```
-- `time`: Sample time at 55930Hz sample rate
-- `addr`: YM2151 register address (hex string)
-- `data`: Data to write (hex string)
+- `time`: 55930Hzサンプルレートでのサンプル時刻
+- `addr`: YM2151レジスタアドレス（16進数文字列）
+- `data`: 書き込むデータ（16進数文字列）
 
-## Important References
+## 重要な参考資料
 
-- [YM2151 Datasheet](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf) - Official chip specification (Note: HTTP link, no HTTPS version available)
-- [Python version](https://github.com/cat2151/smf-to-ym2151log) - Reference implementation
-- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) - Output format specification
+- [YM2151データシート](http://www.appleoldies.ca/ymdatasheet/ym2151.pdf) - 公式チップ仕様（注: HTTPリンク、HTTPSバージョンなし）
+- [Pythonバージョン](https://github.com/cat2151/smf-to-ym2151log) - リファレンス実装
+- [ym2151-zig-cc](https://github.com/cat2151/ym2151-zig-cc) - 出力フォーマット仕様
 
-## Common Tasks
+## 一般的な作業
 
-### Adding New MIDI Event Support
-1. Add event type to `src/midi/events.rs`
-2. Update parser in `src/midi/parser.rs`
-3. Add conversion logic in `src/ym2151/converter.rs`
-4. Add tests in `tests/integration_tests.rs`
+### 新しいMIDIイベントサポートの追加
+1. `src/midi/events.rs` にイベント型を追加
+2. `src/midi/parser.rs` のパーサーを更新
+3. `src/ym2151/converter.rs` に変換ロジックを追加
+4. `tests/integration_tests.rs` にテストを追加
 
-### Modifying YM2151 Register Logic
-1. Check YM2151 datasheet for register specifications
-2. Update conversion logic in `src/ym2151/converter.rs`
-3. If needed, update note table in `src/ym2151/note_table.rs`
-4. Add tests to verify register values
+### YM2151レジスタロジックの変更
+1. YM2151データシートでレジスタ仕様を確認
+2. `src/ym2151/converter.rs` の変換ロジックを更新
+3. 必要に応じて `src/ym2151/note_table.rs` のノートテーブルを更新
+4. レジスタ値を検証するテストを追加
 
-### Adding CLI Options
-1. Update `src/main.rs` argument parsing
-2. Update README.md usage section
-3. Add integration tests for new options
+### CLIオプションの追加
+1. `src/main.rs` の引数解析を更新
+2. README.mdの使用方法セクションを更新
+3. 新しいオプションの統合テストを追加
 
 ## CI/CD
 
-The project uses GitHub Actions (`.github/workflows/ci.yml`):
-- Runs on push and pull requests
-- Executes: build, test, clippy, and fmt checks
-- All checks must pass before merging
+本プロジェクトはGitHub Actions（`.github/workflows/ci.yml`）を使用：
+- プッシュとプルリクエスト時に実行
+- build、test、clippy、fmtチェックを実施
+- マージ前に全チェックの通過が必須
 
-### Demo Deployment
+### デモのデプロイ
 
-The project deploys a single demo to GitHub Pages via `.github/workflows/deploy-pages.yml`:
-- **Library Demo** (`/`) - Demonstrates library usage with MIDI file conversion
+本プロジェクトは `.github/workflows/deploy-pages.yml` を通じてGitHub Pagesに単一のデモをデプロイ：
+- **ライブラリデモ** (`/`) - MIDIファイル変換によるライブラリ使用のデモ
 
-**Demo Verification**
+**デモの検証**
 
-When making changes to the demo or deployment:
-1. Verify the demo works after deployment
-2. Check for JavaScript errors in browser console
-3. Test demo functionality - file uploads, conversions, UI interactions
-4. Validate deployment procedures - ensure build steps, file copies, and deployment workflow are correct
+デモやデプロイに変更を加えた場合：
+1. デプロイ後にデモが動作することを確認
+2. ブラウザコンソールのJavaScriptエラーを確認
+3. デモ機能をテスト - ファイルアップロード、変換、UIインタラクション
+4. デプロイ手順を検証 - ビルドステップ、ファイルコピー、デプロイワークフローが正しいことを確認
 
-## Project Status
+## プロジェクトの状態
 
-This project is in active development. The implementation is functional but may not support all MIDI features yet. Check IMPLEMENTATION.md for detailed implementation progress and planned features.
+本プロジェクトは積極的に開発中です。実装は機能していますが、すべてのMIDI機能をサポートしていない場合があります。詳細な実装進捗と計画している機能については IMPLEMENTATION.md を確認してください。
 
 # ソース行数
 - 単一責任の原則に従ってソース分割すること。特に500行を超えたときはソース分割の優先度を高めること
