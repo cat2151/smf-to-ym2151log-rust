@@ -326,16 +326,30 @@ fn test_convert_drum_and_regular_channels_together() {
         .expect("MIDI ch 1 should use YM2151 channel 2");
     assert!(ch1_kc.data.starts_with("0x"));
 
-    // Verify KEY ON events are in the correct order (drum first)
+    // Verify KEY ON events at this time correspond to the expected channels,
+    // without relying on their relative ordering in the event list.
     let key_on_events: Vec<&Ym2151Event> = result
         .events
         .iter()
         .filter(|e| e.addr == "0x08" && e.time < 0.001 && e.data.starts_with("0x7"))
         .collect();
 
-    // Should have 3 KEY ON events
+    // Should have 3 KEY ON events (drum + 2 regular channels)
     assert_eq!(key_on_events.len(), 3);
 
-    // First KEY ON should be channel 0 (drum)
-    assert_eq!(key_on_events[0].data, "0x78"); // Channel 0
+    // Collect the KEY ON data bytes and verify they include the expected channels.
+    let key_on_data: Vec<&str> = key_on_events.iter().map(|e| e.data.as_str()).collect();
+
+    assert!(
+        key_on_data.contains(&"0x78"),
+        "Expected a KEY ON for YM2151 channel 0 (drum)"
+    );
+    assert!(
+        key_on_data.contains(&"0x79"),
+        "Expected a KEY ON for YM2151 channel 1 (MIDI ch 0)"
+    );
+    assert!(
+        key_on_data.contains(&"0x7A"),
+        "Expected a KEY ON for YM2151 channel 2 (MIDI ch 1)"
+    );
 }

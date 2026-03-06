@@ -120,24 +120,25 @@ fn test_end_to_end_multi_channel() {
     // Verify Pass B output has events for all channels
     assert!(ym2151_log.event_count > 0);
 
-    // Check that we have register writes for all 3 channels (allocation may vary based on polyphony)
-    // Just verify that notes from different MIDI channels are present
-    let has_ch0_notes = ym2151_log
-        .events
-        .iter()
-        .any(|e| e.addr.starts_with("0x2") && e.addr.len() == 4);
-    let has_ch1_notes = ym2151_log
-        .events
-        .iter()
-        .any(|e| e.addr.starts_with("0x2") && e.addr.len() == 4);
-    let has_ch2_notes = ym2151_log
-        .events
-        .iter()
-        .any(|e| e.addr.starts_with("0x2") && e.addr.len() == 4);
+    // Check that we have register writes for at least 3 distinct YM2151 channels.
+    // We infer chip channels from KC register writes (0x28..0x2F -> channels 0..7).
+    let mut ym_channels_with_kc: HashSet<u8> = HashSet::new();
+    for e in &ym2151_log.events {
+        if e.addr.starts_with("0x2") && e.addr.len() == 4 {
+            if let Ok(reg_val) = u8::from_str_radix(&e.addr[2..], 16) {
+                if (0x28..=0x2F).contains(&reg_val) {
+                    let ch = reg_val - 0x28;
+                    ym_channels_with_kc.insert(ch);
+                }
+            }
+        }
+    }
 
-    assert!(has_ch0_notes, "Should have register writes for channels");
-    assert!(has_ch1_notes, "Should have register writes for channels");
-    assert!(has_ch2_notes, "Should have register writes for channels");
+    assert!(
+        ym_channels_with_kc.len() >= 3,
+        "Expected at least 3 distinct YM2151 channels with KC writes, got channels: {:?}",
+        ym_channels_with_kc
+    );
 
     // Save YM2151 log JSON
     save_ym2151_log(&ym2151_log, ym2151_json_path.to_str().unwrap())

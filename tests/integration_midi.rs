@@ -228,7 +228,3 @@ fn test_parse_nonexistent_file() {
     assert!(result.is_err(), "Should fail for nonexistent file");
 }
 
-// ============================================================================
-// Phase 5: End-to-End Integration Tests
-// ============================================================================
-

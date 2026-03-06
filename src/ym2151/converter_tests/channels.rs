@@ -154,16 +154,22 @@ fn test_convert_multi_channel_sequential() {
     );
 
     // Verify notes play on different YM2151 channels
-    let note_channels: Vec<_> = result
+    // Extract YM2151 channel numbers from KEY ON events (data byte & 0x07 = channel)
+    let ym_channels_with_notes: std::collections::HashSet<u8> = result
         .events
         .iter()
-        .filter(|e| e.addr.starts_with("0x2") && (e.time < 0.001 || e.time >= 0.001))
-        .map(|e| &e.addr)
+        .filter(|e| e.addr == "0x08" && e.data.starts_with("0x7"))
+        .filter_map(|e| {
+            u8::from_str_radix(&e.data[2..], 16)
+                .ok()
+                .map(|v| v & 0x07)
+        })
         .collect();
 
     assert!(
-        note_channels.len() >= 2,
-        "Both MIDI channels should have notes"
+        ym_channels_with_notes.len() >= 2,
+        "Both MIDI channels should use distinct YM2151 channels, got: {:?}",
+        ym_channels_with_notes
     );
 }
 
