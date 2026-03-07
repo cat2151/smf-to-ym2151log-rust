@@ -278,4 +278,3 @@ fn test_tempo_change_timing_accuracy() {
         time_at_960
     );
 }
-

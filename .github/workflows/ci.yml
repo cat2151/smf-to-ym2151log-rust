@@ -75,7 +75,7 @@ jobs:
         run: python .github/scripts/create_ci_issue.py --label "ci-test-failure" --title "CI test failed"
 
   format:
-    name: Format Check
+    name: Auto Format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -83,13 +83,20 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - name: Check formatting
-        run: cargo fmt -- --check
+      - name: Run cargo fmt
+        run: cargo fmt
+      - name: Commit formatted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet || (git add -A && git commit -m "style: auto-format with cargo fmt")
+      - name: Push changes
+        run: git push
       - name: Create issue on failure
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python .github/scripts/create_ci_issue.py --label "ci-format-failure" --title "CI format check failed"
+        run: python .github/scripts/create_ci_issue.py --label "ci-format-failure" --title "CI auto-format failed"
 
   clippy:
     name: Clippy

@@ -1,7 +1,6 @@
 //! Effects tests for YM2151 converter (delay vibrato, portamento, LFO, pop noise, attack)
 use super::*;
 
-
 #[test]
 fn test_delay_vibrato_generates_additional_pitch_events() {
     let midi_data = MidiData {
@@ -344,4 +343,3 @@ fn test_attack_continuation_fix_forces_release_before_note_on() {
         "Release rate should return to the base value before key on"
     );
 }
-
