@@ -60,7 +60,7 @@ export function ensureWebYm2151(): Promise<WebYmApi> {
 		const moduleRef: any = (window as any).Module ?? {};
 		(window as any).Module = moduleRef;
 
-		const WEB_YM_SRC = "https://cat2151.github.io/web-ym2151/sine_test.js";
+		const WEB_YM_SRC = "https://cat2151.github.io/web-ym2151/ym2151.js";
 		const WEB_YM_TIMEOUT_MS = 12000;
 		let isActive = true;
 		let timeoutId: number | null = null;
