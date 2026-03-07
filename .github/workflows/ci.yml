@@ -7,10 +7,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-permissions:
-  contents: read
-  issues: write
-
 jobs:
   build:
     name: Build
@@ -77,9 +73,6 @@ jobs:
   format:
     name: Auto Format
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
     steps:
       - uses: actions/checkout@v4
       - name: Setup Rust
