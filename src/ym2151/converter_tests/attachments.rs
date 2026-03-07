@@ -82,9 +82,10 @@ fn test_program_attachment_delay_vibrato_applies_only_to_matching_program() {
 }
 
 #[test]
-fn test_program_attachment_tone_only_entry_skipped_without_panic() {
-    // An attachment entry with only a Tone and no effects should be silently skipped
-    // without applying any vibrato/portamento/LFO/etc events.
+fn test_program_attachment_no_effects_entry_produces_no_extra_events() {
+    // A ProgramAttachment with all effect flags at their defaults (no delay_vibrato,
+    // portamento, software_lfo, pop_noise_envelope, or attack_continuation_fix) must
+    // not crash and must not generate any vibrato/LFO/etc events.
     let midi_data = MidiData {
         ticks_per_beat: 480,
         tempo_bpm: 120.0,
@@ -108,11 +109,10 @@ fn test_program_attachment_tone_only_entry_skipped_without_panic() {
         ],
     };
 
-    // Attachment with a tone-only entry (no effects flags set)
+    // Attachment entry with no effects enabled (all flags remain at default)
     let options = ConversionOptions {
         program_attachments: vec![ProgramAttachment {
             program_change: 5,
-            // All effect flags remain false / None (default)
             ..ProgramAttachment::default()
         }],
         ..ConversionOptions::default()
@@ -130,7 +130,7 @@ fn test_program_attachment_tone_only_entry_skipped_without_panic() {
         .collect();
     assert!(
         vibrato_kc.is_empty(),
-        "Tone-only attachment must not produce vibrato events"
+        "No-effects attachment must not produce vibrato events"
     );
 }
 
