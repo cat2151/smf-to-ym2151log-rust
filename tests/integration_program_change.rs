@@ -187,4 +187,3 @@ fn test_end_to_end_program_change_with_file() {
         "Should have tone settings from init and both program changes"
     );
 }
-

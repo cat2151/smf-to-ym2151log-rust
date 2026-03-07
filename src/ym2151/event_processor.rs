@@ -280,7 +280,6 @@ pub fn process_event(event: &MidiEvent, ctx: &mut EventProcessorContext) -> Vec<
     }
 }
 
-
 #[cfg(test)]
 #[path = "event_processor_tests.rs"]
 mod tests;

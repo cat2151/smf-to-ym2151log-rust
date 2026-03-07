@@ -342,4 +342,3 @@ fn test_convert_smf_to_ym2151_log_convenience_function() {
         "events length should match event_count"
     );
 }
-

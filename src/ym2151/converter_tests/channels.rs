@@ -159,11 +159,7 @@ fn test_convert_multi_channel_sequential() {
         .events
         .iter()
         .filter(|e| e.addr == "0x08" && e.data.starts_with("0x7"))
-        .filter_map(|e| {
-            u8::from_str_radix(&e.data[2..], 16)
-                .ok()
-                .map(|v| v & 0x07)
-        })
+        .filter_map(|e| u8::from_str_radix(&e.data[2..], 16).ok().map(|v| v & 0x07))
         .collect();
 
     assert!(
@@ -172,4 +168,3 @@ fn test_convert_multi_channel_sequential() {
         ym_channels_with_notes
     );
 }
-

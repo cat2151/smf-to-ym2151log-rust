@@ -227,4 +227,3 @@ fn test_parse_nonexistent_file() {
     let result = parse_midi_file("nonexistent_file.mid");
     assert!(result.is_err(), "Should fail for nonexistent file");
 }
-
