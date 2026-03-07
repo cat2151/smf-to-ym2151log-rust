@@ -12,21 +12,26 @@ export type AttachmentPreset = {
 	value: string;
 };
 
-export const YM_LOG_STYLE_PRESET = `{
-  "event_count": 4,
-  "events": [
-    { "time": 0, "addr": "0x20", "data": "0xC7" },
-    { "time": 0, "addr": "0x60", "data": "0x10" },
-    { "time": 0, "addr": "0x80", "data": "0x1F" },
-    { "time": 0, "addr": "0xE0", "data": "0x0F" }
-  ]
-}`;
-
-export const COMPACT_NIBBLE_PRESET = `{
-  "CompactTones": {
-    "0": "20C76010801FE00F"
+export const YM_LOG_STYLE_PRESET = `[
+  {
+    "ProgramChange": 0,
+    "Tone": {
+      "events": [
+        { "time": 0, "addr": "0x20", "data": "0xC7" },
+        { "time": 0, "addr": "0x60", "data": "0x10" },
+        { "time": 0, "addr": "0x80", "data": "0x1F" },
+        { "time": 0, "addr": "0xE0", "data": "0x0F" }
+      ]
+    }
   }
-}`;
+]`;
+
+export const COMPACT_NIBBLE_PRESET = `[
+  {
+    "ProgramChange": 0,
+    "CompactTone": "20C76010801FE00F"
+  }
+]`;
 
 export const ATTACHMENT_PRESETS: AttachmentPreset[] = [
 	{
@@ -65,6 +70,17 @@ export function buildEventsFromCompact(compact: string): Ym2151Event[] {
 	return events;
 }
 
+function serializeWithStatus(
+	value: unknown,
+	statusEl: HTMLElement | null,
+	mutated: boolean,
+	mutatedMessage: string,
+): string {
+	const output = JSON.stringify(value, null, 2);
+	setStatus(statusEl, mutated ? mutatedMessage : "音色 JSON を適用します");
+	return output;
+}
+
 export function normalizeAttachmentText(
 	raw: string,
 	statusEl: HTMLElement | null,
@@ -77,8 +93,34 @@ export function normalizeAttachmentText(
 
 	try {
 		const parsed = JSON.parse(trimmed);
-		const normalized = { ...parsed } as Record<string, unknown>;
 		let mutated = false;
+
+		// New array format: normalize per-entry CompactTone fields
+		if (Array.isArray(parsed)) {
+			const normalized = (parsed as Array<Record<string, unknown>>).map(
+				(entry) => {
+					if (
+						typeof entry.CompactTone === "string" &&
+						entry.CompactTone.length > 0
+					) {
+						const events = buildEventsFromCompact(entry.CompactTone);
+						const { CompactTone: _compactTone, ...rest } = entry;
+						mutated = true;
+						return { ...rest, Tone: { events } };
+					}
+					return entry;
+				},
+			);
+			return serializeWithStatus(
+				normalized,
+				statusEl,
+				mutated,
+				"CompactTone を YM2151 音色 JSON に正規化しました",
+			);
+		}
+
+		// Legacy flat object format
+		const normalized = { ...parsed } as Record<string, unknown>;
 
 		if (Array.isArray(parsed.events)) {
 			normalized.Tones = normalized.Tones ?? {};
@@ -105,14 +147,12 @@ export function normalizeAttachmentText(
 			mutated = true;
 		}
 
-		const output = JSON.stringify(normalized, null, 2);
-		setStatus(
+		return serializeWithStatus(
+			normalized,
 			statusEl,
-			mutated
-				? "プリセットを YM2151 音色 JSON に正規化しました"
-				: "音色 JSON を適用します",
+			mutated,
+			"プリセットを YM2151 音色 JSON に正規化しました",
 		);
-		return output;
 	} catch (error) {
 		setStatus(statusEl, `JSON が不正です: ${(error as Error).message}`, true);
 		return null;
