@@ -69,6 +69,8 @@ function buildNoteSegments(
 	events: YmLogEvent[],
 	channelCount: number,
 ): NoteSegment[] {
+	// YM2151 has exactly 8 channels; KC registers are always 0x28-0x2F.
+	const kcChannelCount = Math.min(channelCount, DEFAULT_CHANNELS);
 	const channelKC: number[] = Array(channelCount).fill(0);
 	const channelNoteOn: Array<NoteOnState | null> =
 		Array(channelCount).fill(null);
@@ -79,8 +81,22 @@ function buildNoteSegments(
 		const data = parseHexByte(event.data);
 		if (addr === null || data === null) continue;
 
-		if (addr >= KC_REGISTER_BASE && addr < KC_REGISTER_BASE + channelCount) {
-			channelKC[addr - KC_REGISTER_BASE] = data;
+		if (addr >= KC_REGISTER_BASE && addr < KC_REGISTER_BASE + kcChannelCount) {
+			const ch = addr - KC_REGISTER_BASE;
+			const newKC = data;
+			// If KC changes while a note is held, close the current segment and
+			// open a new one with the updated pitch (handles portamento/vibrato).
+			if (channelNoteOn[ch] && channelKC[ch] !== newKC) {
+				const noteOn = channelNoteOn[ch] as NoteOnState;
+				segments.push({
+					startTime: noteOn.time,
+					endTime: event.time,
+					kc: noteOn.kc,
+					ch,
+				});
+				channelNoteOn[ch] = { time: event.time, kc: newKC };
+			}
+			channelKC[ch] = newKC;
 		}
 
 		if (addr === 0x08) {
@@ -268,7 +284,31 @@ export function createLogVisualizer(
 			return globalLane;
 		};
 
-		// Render note bars (piano-roll style: keyon/off + KC pitch)
+		// Render other events as small background dots (rendered first so note bars appear on top)
+		events.forEach((event, index) => {
+			const addr = parseHexByte(event.addr);
+			// Suppress KC (0x28-0x2F, always 8 channels on YM2151) and KEY ON/OFF (0x08)
+			const isKcOrKeyOn =
+				addr !== null &&
+				((addr >= KC_REGISTER_BASE &&
+					addr < KC_REGISTER_BASE + DEFAULT_CHANNELS) ||
+					addr === 0x08);
+			if (isKcOrKeyOn) return;
+
+			const channel = detectChannel(event.addr, event.data, channelCount);
+			const lane =
+				channel !== null && channel >= 0 && channel < channelCount
+					? lanes[channel.toString()]
+					: ensureGlobalLane();
+			const marker = document.createElement("div");
+			marker.className = "log-visualizer-event";
+			marker.style.left = `${Math.max(0, Math.min(trackWidth - EVENT_WIDTH, event.time * PIXELS_PER_SECOND))}px`;
+			marker.style.backgroundColor = laneColor(channel);
+			marker.title = `t=${event.time.toFixed(3)}s addr=${event.addr} data=${event.data} (#${index})`;
+			lane.track.appendChild(marker);
+		});
+
+		// Render note bars on top (piano-roll style: keyon/off + KC pitch)
 		for (const seg of segments) {
 			const lane = lanes[seg.ch.toString()];
 			if (!lane) continue;
@@ -293,28 +333,6 @@ export function createLogVisualizer(
 			bar.title = `CH${seg.ch} KC=0x${seg.kc.toString(16).padStart(2, "0")} t=${seg.startTime.toFixed(3)}-${seg.endTime.toFixed(3)}s`;
 			lane.track.appendChild(bar);
 		}
-
-		// Render other events as small background dots
-		events.forEach((event, index) => {
-			const addr = parseHexByte(event.addr);
-			const isKcOrKeyOn =
-				addr !== null &&
-				((addr >= KC_REGISTER_BASE && addr < KC_REGISTER_BASE + channelCount) ||
-					addr === 0x08);
-			if (isKcOrKeyOn) return;
-
-			const channel = detectChannel(event.addr, event.data, channelCount);
-			const lane =
-				channel !== null && channel >= 0 && channel < channelCount
-					? lanes[channel.toString()]
-					: ensureGlobalLane();
-			const marker = document.createElement("div");
-			marker.className = "log-visualizer-event";
-			marker.style.left = `${Math.max(0, Math.min(trackWidth - EVENT_WIDTH, event.time * PIXELS_PER_SECOND))}px`;
-			marker.style.backgroundColor = laneColor(channel);
-			marker.title = `t=${event.time.toFixed(3)}s addr=${event.addr} data=${event.data} (#${index})`;
-			lane.track.appendChild(marker);
-		});
 	};
 
 	renderEmpty("YM2151 ログを変換するとここに描画します。");
