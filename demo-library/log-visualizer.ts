@@ -9,6 +9,15 @@ type LaneElements = {
 	track: HTMLElement;
 };
 
+type NoteOnState = { time: number; kc: number };
+
+type NoteSegment = {
+	startTime: number;
+	endTime: number;
+	kc: number;
+	ch: number;
+};
+
 export type LogVisualizer = {
 	renderFromJson: (jsonText: string | null | undefined) => void;
 	clear: () => void;
@@ -18,7 +27,13 @@ const DEFAULT_CHANNELS = 8;
 const MIN_TRACK_WIDTH = 640;
 const MAX_TRACK_WIDTH = 6400;
 const PIXELS_PER_SECOND = 180;
-const EVENT_WIDTH = 8;
+const EVENT_WIDTH = 4;
+const KC_REGISTER_BASE = 0x28;
+const TRACK_HEIGHT = 80;
+const NOTE_BAR_HEIGHT = 8;
+const MIN_NOTE_WIDTH = 2;
+const NOTE_WIDTH_GAP = 1;
+const UNCLOSED_NOTE_EXTENSION_S = 0.1;
 
 function parseHexByte(value: string): number | null {
 	const match = /^0x([0-9a-fA-F]{1,2})$/.exec(value.trim());
@@ -48,6 +63,84 @@ function detectChannel(
 	}
 
 	return null;
+}
+
+function buildNoteSegments(
+	events: YmLogEvent[],
+	channelCount: number,
+): NoteSegment[] {
+	const channelKC: number[] = Array(channelCount).fill(0);
+	const channelNoteOn: Array<NoteOnState | null> =
+		Array(channelCount).fill(null);
+	const segments: NoteSegment[] = [];
+
+	for (const event of events) {
+		const addr = parseHexByte(event.addr);
+		const data = parseHexByte(event.data);
+		if (addr === null || data === null) continue;
+
+		if (addr >= KC_REGISTER_BASE && addr < KC_REGISTER_BASE + channelCount) {
+			channelKC[addr - KC_REGISTER_BASE] = data;
+		}
+
+		if (addr === 0x08) {
+			const ch = data & 0x07;
+			const operators = (data >> 3) & 0x0f;
+			if (ch >= 0 && ch < channelCount) {
+				if (operators !== 0) {
+					if (!channelNoteOn[ch]) {
+						channelNoteOn[ch] = { time: event.time, kc: channelKC[ch] };
+					}
+				} else {
+					const noteOn = channelNoteOn[ch];
+					if (noteOn) {
+						segments.push({
+							startTime: noteOn.time,
+							endTime: event.time,
+							kc: noteOn.kc,
+							ch,
+						});
+						channelNoteOn[ch] = null;
+					}
+				}
+			}
+		}
+	}
+
+	const lastTime =
+		events.length > 0
+			? events[events.length - 1].time + UNCLOSED_NOTE_EXTENSION_S
+			: 0;
+	for (let ch = 0; ch < channelCount; ch++) {
+		const noteOn = channelNoteOn[ch];
+		if (noteOn) {
+			segments.push({
+				startTime: noteOn.time,
+				endTime: lastTime,
+				kc: noteOn.kc,
+				ch,
+			});
+		}
+	}
+
+	return segments;
+}
+
+function computeKcRange(segments: NoteSegment[]): { min: number; max: number } {
+	if (segments.length === 0) return { min: 0, max: 0 };
+	let min = segments[0].kc;
+	let max = segments[0].kc;
+	for (const seg of segments) {
+		if (seg.kc < min) min = seg.kc;
+		if (seg.kc > max) max = seg.kc;
+	}
+	return { min, max };
+}
+
+function noteYPosition(kc: number, minKC: number, maxKC: number): number {
+	const range = maxKC - minKC;
+	if (range === 0) return (TRACK_HEIGHT - NOTE_BAR_HEIGHT) / 2;
+	return ((maxKC - kc) / range) * (TRACK_HEIGHT - NOTE_BAR_HEIGHT);
 }
 
 function normalizeEvents(parsed: unknown): YmLogEvent[] {
@@ -152,6 +245,9 @@ export function createLogVisualizer(
 		}
 
 		const trackWidth = computeTrackWidth(events);
+		const segments = buildNoteSegments(events, channelCount);
+		const { min: minKC, max: maxKC } = computeKcRange(segments);
+
 		container.classList.add("log-visualizer");
 		container.classList.remove("log-visualizer--empty");
 		container.innerHTML = "";
@@ -172,7 +268,41 @@ export function createLogVisualizer(
 			return globalLane;
 		};
 
+		// Render note bars (piano-roll style: keyon/off + KC pitch)
+		for (const seg of segments) {
+			const lane = lanes[seg.ch.toString()];
+			if (!lane) continue;
+			const bar = document.createElement("div");
+			bar.className = "log-visualizer-note";
+			const x = Math.max(
+				0,
+				Math.min(
+					trackWidth - MIN_NOTE_WIDTH,
+					seg.startTime * PIXELS_PER_SECOND,
+				),
+			);
+			const w = Math.max(
+				MIN_NOTE_WIDTH,
+				(seg.endTime - seg.startTime) * PIXELS_PER_SECOND - NOTE_WIDTH_GAP,
+			);
+			const y = noteYPosition(seg.kc, minKC, maxKC);
+			bar.style.left = `${x}px`;
+			bar.style.width = `${w}px`;
+			bar.style.top = `${y}px`;
+			bar.style.backgroundColor = laneColor(seg.ch);
+			bar.title = `CH${seg.ch} KC=0x${seg.kc.toString(16).padStart(2, "0")} t=${seg.startTime.toFixed(3)}-${seg.endTime.toFixed(3)}s`;
+			lane.track.appendChild(bar);
+		}
+
+		// Render other events as small background dots
 		events.forEach((event, index) => {
+			const addr = parseHexByte(event.addr);
+			const isKcOrKeyOn =
+				addr !== null &&
+				((addr >= KC_REGISTER_BASE && addr < KC_REGISTER_BASE + channelCount) ||
+					addr === 0x08);
+			if (isKcOrKeyOn) return;
+
 			const channel = detectChannel(event.addr, event.data, channelCount);
 			const lane =
 				channel !== null && channel >= 0 && channel < channelCount
