@@ -198,14 +198,14 @@ cat2151のリポジトリからclone、`npm install`、`cargo install` する際
 **ワークフローA: `deploy-wasm.yml`（WASMデプロイ）**
 - mainブランチへのプッシュで自動実行
 - RustコードをWASMにビルド（`wasm-pack build --target web --features wasm`）
-- `pkg/` ディレクトリのみをGitHub Pagesにデプロイ
+- `_site/` 配下のうち、`pkg/` を含む最小セットをGitHub Pagesにデプロイ（この段階ではデモHTMLは未配置）
 - デプロイ後、ワークフローBが自動的にトリガーされる
 
 **ワークフローB: `deploy-demo.yml`（デモデプロイ）**
 - ワークフローAの完了後に自動実行（または手動実行可能）
-- GitHub PagesからWASMの `pkg/` をダウンロード（リトライ付き、最大5回）
-- `demo-library/` をビルドしてデモを生成
-- デモ全体をGitHub Pagesに再デプロイ（WASMのpkgも含む）
+- `demo-library/` をビルドしてデモを生成（このときの `npm install` の `postinstall` で GitHub Pages 上の WASM `pkg/` を参照）
+- 追加で GitHub Pages から WASM の `pkg/` を `curl` でダウンロード（リトライ付き、最大5回）し、デプロイ物に含める
+- デモ全体を GitHub Pages に再デプロイ（WASM の `pkg/` も含む）
 
 **デプロイされるページ構造** (`https://cat2151.github.io/smf-to-ym2151log-rust/`):
 - `/` (`index.html`) - メインデモ（ライブラリ利用デモ）
@@ -229,7 +229,7 @@ cat2151のリポジトリからclone、`npm install`、`cargo install` する際
 3. デモ機能をテスト - ファイルアップロード、変換、UIインタラクション
 4. デプロイ手順を検証 - ビルドステップ、ファイルコピー、デプロイワークフローが正しいことを確認
 
-**注意**: `deploy-pages.yml` は無効化済み（参考用に残存）。実際のデプロイは `deploy-wasm.yml` → `deploy-demo.yml` の順で行われる。
+**注意**: `deploy-pages.yml` は廃止/非推奨で通常は使用しない（`workflow_dispatch` による手動起動のみ可能で、参考用に残存）。実際のデプロイは `deploy-wasm.yml` → `deploy-demo.yml` の順で行われる。
 
 # ソース行数
 - 単一責任の原則に従ってソース分割すること。特に500行を超えたときはソース分割の優先度を高めること
