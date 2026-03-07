@@ -12,15 +12,15 @@ pub use crate::{
     RegisterLfoDefinition, RegisterOverride,
 };
 
+#[path = "converter_tests/attachments.rs"]
+mod attachments;
 #[path = "converter_tests/basic.rs"]
 mod basic;
 #[path = "converter_tests/channels.rs"]
 mod channels;
+#[path = "converter_tests/drums.rs"]
+mod drums;
 #[path = "converter_tests/effects.rs"]
 mod effects;
 #[path = "converter_tests/programs.rs"]
 mod programs;
-#[path = "converter_tests/drums.rs"]
-mod drums;
-#[path = "converter_tests/attachments.rs"]
-mod attachments;
