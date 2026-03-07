@@ -1,50 +1,55 @@
-Last updated: 2026-03-07
+Last updated: 2026-03-08
 
 # Development Status
 
 ## 現在のIssues
-- CIジョブ失敗時に自動でIssueを起票する機能（[Issue #137](../issue-notes/137.md), [Issue #125](../issue-notes/125.md)）と`copilot-instructions.md`の最新化（[Issue #122](../issue-notes/122.md)）が進められています。
-- YM2151レジスタビジュアライザの改善（[Issue #128](../issue-notes/128.md)）と、ディレイビブラート/LFOのクリックノイズ問題調査およびWAVエクスポートによる分析（[Issue #127](../issue-notes/127.md)）が課題です。
-- 添付JSONフォーマットの変更による音色情報の自己記述性向上（[Issue #123](../issue-notes/123.md)）や、線形補間音色変化機能の実装（[Issue #115](../issue-notes/115.md)）、さらに音色データの整備（[Issue #83](../issue-notes/83.md), [Issue #33](../issue-notes/33.md), [Issue #22](../issue-notes/22.md)）に関するタスクが残っています。
+- CIのオートフォーマットが権限エラーで失敗しており ([Issue #148](../issue-notes/148.md), [Issue #147](../issue-notes/147.md))、`ci.yml`のpermissionsブロックの修正が必要です。
+- `src/ym2151/converter_tests/programs.rs` ([Issue #149](../issue-notes/149.md)) が500行を超えているため、コード品質向上のためのリファクタリングが推奨されています。
+- ディレイビブラートのクリックノイズ ([Issue #127](../issue-notes/127.md)) や、ポップノイズデモで添付JSONの変更が反映されない ([Issue #126](../issue-notes/126.md)) など、音源関連の品質およびデモの不具合が残っています。
 
 ## 次の一手候補
-1. CIジョブ失敗時の自動Issue起票機能の最終確認とデプロイ [Issue #137](../issue-notes/137.md), [Issue #125](../issue-notes/125.md)
-   - 最初の小さな一歩: `ci.yml`の現在の実装が[Issue #137](../issue-notes/137.md)で述べられている変更を完全に含んでおり、意図通りにCI失敗時にIssueが起票されることを確認するためのテスト計画を立てる。
+1. CIオートフォーマットの権限エラー修正 [Issue #148](../issue-notes/148.md), [Issue #147](../issue-notes/147.md)
+   - 最初の小さな一歩: `ci.yml`のトップレベル`permissions`ブロックを削除し、`format`ジョブに適切な`permissions: contents: write`を追加する。
    - Agent実行プロンプ:
      ```
-     対象ファイル: .github/workflows/ci.yml, issue-notes/137.md, issue-notes/125.md
+     対象ファイル: `.github/workflows/ci.yml`
 
-     実行内容: `.github/workflows/ci.yml`の現状を分析し、[Issue #137](../issue-notes/137.md)の変更内容（`issues: write`権限追加と`Create issue on failure`ステップ）が完全に反映されているか確認してください。また、この実装が[Issue #125](../issue-notes/125.md)の要件（clippy等のCI失敗時自動起票）を満たしているか評価し、今後のテスト計画（擬似的なCI失敗を発生させる方法など）を提案するmarkdown形式のドキュメントを作成してください。
+     実行内容: `.github/workflows/ci.yml`内のCIオートフォーマットジョブが403エラーで失敗する問題を修正してください。具体的には、workflow-levelの`permissions: contents: read`を削除し、`format`ジョブに`permissions: contents: write`を追加してください。これにより、`cargo fmt`によるフォーマット後のプッシュが可能になるはずです。
 
-     確認事項: 既存の`.github/workflows`ディレクトリ内の他のワークフロー（特に`issue-note.yml`など、Issue作成に関わるもの）との競合や既存の権限設定の確認。GitHub Actionsのイベントトリガーとパーミッションの制約。
+     確認事項: 既存のCIジョブ（build, test, clippy）に影響がないこと、および `format` ジョブがファイル変更をプッシュできる権限を持つことを確認してください。
 
-     期待する出力: `ci.yml`の現状と[Issue #137](../issue-notes/137.md)の変更の整合性評価、[Issue #125](../issue-notes/125.md)の解決状況、および自動Issue起票機能をテストするための具体的な計画を記載したmarkdownドキュメント。
+     期待する出力: 修正された`.github/workflows/ci.yml`の内容。
      ```
 
-2. 添付JSONフォーマットの変更によるProgramChangeの自己記述性向上 [Issue #123](../issue-notes/123.md)
-   - 最初の小さな一歩: 現在の添付JSONの構造（`tones/000.json`など）と、`src/ym2151/tone.rs`における音色関連のデータ構造を分析し、提案されているフォーマット変更のRustコードへの影響を特定する。
+2. `programs.rs`のテストファイル分割によるリファクタリング計画 [Issue #149](../issue-notes/149.md)
+   - 最初の小さな一歩: `src/ym2151/converter_tests/programs.rs`の内容を分析し、独立した論理ブロックやテストケースを特定して、別のテストファイルに分割する具体的な計画を立てる。
    - Agent実行プロンプト:
      ```
-     対象ファイル: tones/000.json, src/ym2151/tone.rs, src/ym2151/converter.rs, demo-library/tone-json-demo.ts, demo-library/tone-json-attachment.ts, issue-notes/123.md
+     対象ファイル: `src/ym2151/converter_tests/programs.rs`
 
-     実行内容: `issue-notes/123.md`で提案されている添付JSONフォーマット変更（ProgramChangeの自己記述性向上、LFO/Portamento/DelayVibratoのProgramChangeとのセット扱い）について、現在の`src/ym2151/tone.rs`のデータ構造と`src/ym2151/converter.rs`の変換ロジック、および`demo-library`内のJSON関連ファイル（`tone-json-demo.ts`, `tone-json-attachment.ts`）に与える影響を分析してください。変更が必要なRustの構造体、enum、メソッド、TypeScriptのインターフェース、型の箇所を具体的に特定し、それらの変更が他の部分にどのように波及するかをmarkdown形式で出力してください。
+     実行内容: `src/ym2151/converter_tests/programs.rs`の内容を分析し、500行を超えている原因となっている部分を特定してください。特に、プログラム変更とドラムチャンネルに関連するテストを論理的なグループに分け、ファイル分割の可能性を検討してください。そして、分割するとした場合の新しいファイル名（例: `src/ym2151/converter_tests/program_changes.rs`, `src/ym2151/converter_tests/drum_channels.rs`など）と、それぞれのファイルに移動させるテスト関数を提案するplanをmarkdown形式で出力してください。
 
-     確認事項: 既存のYM2151レジスタ変換ロジックへの影響、JSONパースロジックの変更点、既存の音色データとの後方互換性（一時的な共存の可能性）、およびTypeScript側のデモコードへの影響。
+     確認事項: テストの論理的なまとまりを崩さないこと、およびリファクタリング後に既存のテストが全て引き続き動作すること。
 
-     期待する出力: 提案されたJSONフォーマット変更に対応するために必要なRustとTypeScriptのコード変更点の詳細なリスト、およびその変更による影響範囲を説明したmarkdownドキュメント。
+     期待する出力: `programs.rs`のリファクタリング計画を記載したmarkdown。計画には、分割後の新しいファイル名、各ファイルに移動するテスト関数の一覧、そして元のファイルから削除されるテスト関数を明記してください。
      ```
 
-3. ディレイビブラート/LFOクリックノイズ問題の調査とWAVエクスポート実装 [Issue #127](../issue-notes/127.md)
-   - 最初の小さな一歩: 既存の`demo-library/delay-vibrato-demo.ts`を分析し、現在のデモでクリックノイズが発生する再現条件を特定するとともに、`demo-library`に簡単なWAVエクスポート機能を追加するための調査を行う。
+3. ポップノイズdemoで添付JSONが反映されない問題の調査 [Issue #126](../issue-notes/126.md)
+   - 最初の小さな一歩: ポップノイズデモ (`demo-library/pop-noise-demo.ts`, `demo-library/pop-noise.html`) と添付JSONの処理 (`demo-library/tone-json-attachment.ts`, `src/ym2151/converter.rs`) を含む関連コードを調査し、JSONの変更が反映されない具体的な原因を特定する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: demo-library/delay-vibrato-demo.ts, demo-library/portamento-soft-lfo-demo.ts, demo-library/library-demo.ts, demo-library/vite.config.ts, issue-notes/127.md
+     対象ファイル: `demo-library/pop-noise-demo.ts`, `demo-library/tone-json-attachment.ts`, `src/ym2151/converter.rs`, `src/lib.rs`
 
-     実行内容: `issue-notes/127.md`に記載されているディレイビブラートとLFOの低品質（クリックノイズ）問題について、現在の`delay-vibrato-demo.ts`や`portamento-soft-lfo-demo.ts`の実装を分析し、問題の原因となりうる箇所を推測してください。また、問題分析を支援するためのWAVエクスポート機能を`demo-library`に追加するための実現可能性と、そのための最小限の実装方針（Web Audio APIの`AudioBuffer`を操作して`WAV`形式でダウンロードさせる方法など）をmarkdown形式で提案してください。
+     実行内容: [Issue #126](../issue-notes/126.md)「ポップノイズdemoで、添付JSONを変更しても、最終log JSONに反映されていない」の原因を特定するため、以下の点を中心にコードを分析してください。
+     1. `demo-library/pop-noise-demo.ts` がどのように添付JSONを読み込み、WASMモジュールに渡しているか。
+     2. `demo-library/tone-json-attachment.ts` が添付JSONデータをどのように処理しているか。
+     3. `src/ym2151/converter.rs` と `src/lib.rs` で、添付JSONデータが`convert_to_ym2151_log_with_options`関数に正しく渡され、処理されているか。
+     4. JSON変更が反映されない具体的なコード上のボトルネックや誤りがある場合はそれを指摘してください。
 
-     確認事項: `demo-library`の既存のビルドシステム（Vite）と`Web Audio API`との互換性、WAVエクスポートライブラリ（または自作）の選定、パフォーマンスへの影響、および既存デモへの組み込みの容易さ。
+     確認事項: 分析結果が具体的で、問題の根本原因に焦点を当てていること。ハルシネーションを避け、既存のコードに基づいた分析であること。
 
-     期待する出力: クリックノイズの原因に関する仮説、WAVエクスポート機能の設計方針、実装に必要な主要なAPIやコード例、およびデモへの統合方法を記述したmarkdownドキュメント。
+     期待する出力: 問題の根本原因と、考えられる修正方針をmarkdown形式で記述してください。
+     ```
 
 ---
-Generated at: 2026-03-07 07:10:54 JST
+Generated at: 2026-03-08 07:08:09 JST

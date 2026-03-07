@@ -1,4 +1,4 @@
-Last updated: 2026-03-07
+Last updated: 2026-03-08
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -356,13 +356,9 @@ cargo audit
   📖 111.md
   📖 112.md
   📖 115.md
-  📖 122.md
   📖 123.md
-  📖 125.md
   📖 126.md
-  📖 128.md
-  📖 131.md
-  📖 133.md
+  📖 145.md
   📖 22.md
   📖 33.md
   📖 45.md
@@ -425,7 +421,7 @@ cargo audit
   📖 README.md
 
 ## ファイル詳細分析
-**demo-library/delay-vibrato-demo.ts** (282行, 6852バイト)
+**demo-library/delay-vibrato-demo.ts** (285行, 6886バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -445,15 +441,15 @@ cargo audit
   - 関数: initWasm, displayResult, showError, readAttachmentBytes, setupFileInput, catch, if
   - インポート: ./log-visualizer
 
-**demo-library/log-visualizer.ts** (197行, 5246バイト)
-  - 関数: parseHexByte, detectChannel, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, if, for
+**demo-library/log-visualizer.ts** (345行, 9527バイト)
+  - 関数: parseHexByte, detectChannel, buildNoteSegments, computeKcRange, noteYPosition, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, if, for
   - インポート: なし
 
 **demo-library/mml-support.ts** (100行, 2258バイト)
   - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (277行, 6747バイト)
+**demo-library/pop-noise-demo.ts** (280行, 6807バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, bootstrap, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -461,7 +457,7 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/portamento-soft-lfo-demo.ts** (292行, 7040バイト)
+**demo-library/portamento-soft-lfo-demo.ts** (295行, 7094バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -469,16 +465,16 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/shared-demo.ts** (197行, 4586バイト)
+**demo-library/shared-demo.ts** (197行, 4583バイト)
   - 関数: ensureWasmInitialized, setStatus, setEventCountDisplay, ensureWebYm2151, clearWebYmAudioCache, updateOutput, parseAttachmentField, cleanup, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js
 
-**demo-library/style.css** (248行, 3621バイト)
+**demo-library/style.css** (255行, 3717バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/tone-json-attachment.ts** (121行, 2972バイト)
-  - 関数: buildEventsFromCompact, normalizeAttachmentText, if, for, catch
+**demo-library/tone-json-attachment.ts** (161行, 3922バイト)
+  - 関数: buildEventsFromCompact, serializeWithStatus, normalizeAttachmentText, if, for, catch
   - インポート: ./shared-demo
 
 **demo-library/tone-json-demo.ts** (365行, 9422バイト)
@@ -535,6 +531,9 @@ cargo audit
       - setupFileInput ()
   - parseHexByte (demo-library/log-visualizer.ts)
     - detectChannel ()
+      - buildNoteSegments ()
+      - computeKcRange ()
+      - noteYPosition ()
       - normalizeEvents ()
       - laneColor ()
       - createLane ()
@@ -549,7 +548,8 @@ cargo audit
   - clearWebYmAudioCache ()
     - cleanup ()
   - buildEventsFromCompact (demo-library/tone-json-attachment.ts)
-    - normalizeAttachmentText ()
+    - serializeWithStatus ()
+      - normalizeAttachmentText ()
   - convertMmlToSmf ()
 - for (demo-library/log-visualizer.ts)
 
@@ -597,4 +597,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-03-07 07:10:29 JST
+Generated at: 2026-03-08 07:07:51 JST
