@@ -15,6 +15,8 @@ use std::collections::{HashMap, HashSet};
 pub struct NoteOnInfo {
     pub start_tick: u32,
     pub start_time: f64,
+    /// MIDI program number active on the channel when this note started
+    pub program: u8,
 }
 
 /// Captures a full note span on a specific YM2151 channel
@@ -26,6 +28,8 @@ pub struct NoteSegment {
     pub end_tick: u32,
     pub start_time: f64,
     pub end_time: f64,
+    /// MIDI program number that was active when this note started
+    pub program: u8,
 }
 
 /// Context for processing MIDI events
@@ -115,11 +119,13 @@ pub fn process_note_on(
 
     ctx.active_notes.insert((ym2151_channel, note));
     if let Some(active_map) = ctx.vibrato_active_notes.as_deref_mut() {
+        let program = *ctx.channel_programs.get(&ym2151_channel).unwrap_or(&0);
         active_map.insert(
             (ym2151_channel, note),
             NoteOnInfo {
                 start_tick: ticks,
                 start_time: time_seconds,
+                program,
             },
         );
     }
@@ -177,6 +183,7 @@ pub fn process_note_off(
                         end_tick: ticks,
                         start_time: note_on.start_time,
                         end_time: time_seconds,
+                        program: note_on.program,
                     });
                 }
             }

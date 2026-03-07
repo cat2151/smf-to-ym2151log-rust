@@ -118,7 +118,14 @@ pub fn convert_to_ym2151_log_with_options(
         || options.portamento
         || !options.software_lfo.is_empty()
         || options.pop_noise_envelope.is_some()
-        || options.attack_continuation_fix.is_some();
+        || options.attack_continuation_fix.is_some()
+        || options.program_attachments.iter().any(|pa| {
+            pa.delay_vibrato
+                || pa.portamento
+                || !pa.software_lfo.is_empty()
+                || pa.pop_noise_envelope.is_some()
+                || pa.attack_continuation_fix.is_some()
+        });
     let mut vibrato_active_notes = if need_note_segments {
         Some(HashMap::new())
     } else {
@@ -164,6 +171,7 @@ pub fn convert_to_ym2151_log_with_options(
                     end_tick: last_tick,
                     start_time: note_on.start_time,
                     end_time,
+                    program: note_on.program,
                 });
             }
         }
@@ -204,6 +212,89 @@ pub fn convert_to_ym2151_log_with_options(
     if let (Some(config), Some(cache)) = (&options.attack_continuation_fix, register_cache.as_ref())
     {
         append_attack_continuation_fix_events(config, &vibrato_segments, cache, &mut ym2151_events);
+    }
+
+    // Apply per-program effects from new array format.
+    // Pre-group note segments by program once to avoid O(attachments × segments) scanning.
+    let needs_per_program_effects = options.program_attachments.iter().any(|pa| {
+        pa.delay_vibrato
+            || pa.portamento
+            || !pa.software_lfo.is_empty()
+            || pa.pop_noise_envelope.is_some()
+            || pa.attack_continuation_fix.is_some()
+    });
+    let segments_by_program: HashMap<u8, Vec<NoteSegment>> = if needs_per_program_effects {
+        let mut map: HashMap<u8, Vec<NoteSegment>> = HashMap::new();
+        for seg in &vibrato_segments {
+            map.entry(seg.program).or_default().push(seg.clone());
+        }
+        map
+    } else {
+        HashMap::new()
+    };
+
+    // Build the register state cache once (from events before per-program effects)
+    // so that all program attachments share the same baseline register state.
+    let need_per_program_cache = options.program_attachments.iter().any(|pa| {
+        !pa.software_lfo.is_empty()
+            || pa.pop_noise_envelope.is_some()
+            || pa.attack_continuation_fix.is_some()
+    });
+    let per_program_cache = if need_per_program_cache {
+        Some(build_register_state_cache(&ym2151_events))
+    } else {
+        None
+    };
+
+    for pa in &options.program_attachments {
+        // Skip attachments that have no effects enabled (e.g., tone-only entries)
+        let has_effects = pa.delay_vibrato
+            || pa.portamento
+            || !pa.software_lfo.is_empty()
+            || pa.pop_noise_envelope.is_some()
+            || pa.attack_continuation_fix.is_some();
+        if !has_effects {
+            continue;
+        }
+
+        let program_segments = match segments_by_program.get(&pa.program_change) {
+            Some(segs) if !segs.is_empty() => segs,
+            _ => continue,
+        };
+
+        if pa.delay_vibrato {
+            append_delay_vibrato_events(program_segments, &mut ym2151_events);
+        }
+
+        if pa.portamento {
+            append_portamento_events(program_segments, &mut ym2151_events);
+        }
+
+        if !pa.software_lfo.is_empty() {
+            if let Some(cache) = per_program_cache.as_ref() {
+                append_register_lfo_events(
+                    &pa.software_lfo,
+                    program_segments,
+                    cache,
+                    &mut ym2151_events,
+                );
+            }
+        }
+
+        if let (Some(config), Some(cache)) = (&pa.pop_noise_envelope, per_program_cache.as_ref()) {
+            append_pop_noise_envelope_events(config, program_segments, cache, &mut ym2151_events);
+        }
+
+        if let (Some(config), Some(cache)) =
+            (&pa.attack_continuation_fix, per_program_cache.as_ref())
+        {
+            append_attack_continuation_fix_events(
+                config,
+                program_segments,
+                cache,
+                &mut ym2151_events,
+            );
+        }
     }
 
     ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));

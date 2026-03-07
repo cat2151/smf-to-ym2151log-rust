@@ -48,6 +48,46 @@ pub use error::{Error, Result};
 use serde::Deserialize;
 use std::collections::HashMap;
 
+/// Per-program attachment entry used in the new array format.
+///
+/// Each entry in an attachment JSON array identifies the program it configures
+/// via `ProgramChange` and bundles all per-program settings together.
+///
+/// # Example (new array format)
+/// ```json
+/// [
+///   {
+///     "ProgramChange": 0,
+///     "DelayVibrato": true,
+///     "Tone": { "events": [{ "time": 0, "addr": "0x20", "data": "0xC7" }] }
+///   }
+/// ]
+/// ```
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct ProgramAttachment {
+    /// Program number (0-127) this entry applies to
+    #[serde(rename = "ProgramChange")]
+    pub program_change: u8,
+    /// Enable delayed vibrato for this program
+    #[serde(rename = "DelayVibrato", default)]
+    pub delay_vibrato: bool,
+    /// Enable portamento glides between consecutive notes for this program
+    #[serde(rename = "Portamento", default)]
+    pub portamento: bool,
+    /// Optional pre-note envelope overrides to reduce pop noise for this program
+    #[serde(rename = "PopNoiseEnvelope", default)]
+    pub pop_noise_envelope: Option<PopNoiseEnvelope>,
+    /// Optional release-rate reset to avoid attack continuation for this program
+    #[serde(rename = "AttackContinuationFix", default)]
+    pub attack_continuation_fix: Option<AttackContinuationFix>,
+    /// Optional software LFO definitions for this program
+    #[serde(rename = "SoftwareLfo", default)]
+    pub software_lfo: Vec<RegisterLfoDefinition>,
+    /// Optional inline tone definition for this program
+    #[serde(rename = "Tone", default)]
+    pub tone: Option<ToneDefinition>,
+}
+
 /// Optional conversion options supplied via attachment JSON
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct ConversionOptions {
@@ -69,6 +109,10 @@ pub struct ConversionOptions {
     /// Optional YM2151 tone definitions keyed by MIDI program number
     #[serde(rename = "Tones", default)]
     pub tones: HashMap<u8, ToneDefinition>,
+    /// Per-program attachment entries (new array format).
+    /// Populated when the attachment JSON is an array of `ProgramAttachment` objects.
+    #[serde(skip)]
+    pub program_attachments: Vec<ProgramAttachment>,
 }
 
 /// Defines a software LFO targeting a YM2151 tone register (per channel/operator)
@@ -174,12 +218,36 @@ where
 impl ConversionOptions {
     /// Build conversion options from an optional attachment JSON payload.
     ///
+    /// Accepts two formats:
+    /// - **New array format**: an array of [`ProgramAttachment`] objects, each with a
+    ///   `ProgramChange` field identifying which program the settings apply to.
+    /// - **Legacy object format**: a flat JSON object with top-level fields such as
+    ///   `DelayVibrato`, `Portamento`, `Tones`, etc. (still supported for backward compatibility).
+    ///
     /// If no payload is provided, or the payload is empty, defaults are used.
     pub fn from_attachment_bytes(attachment_json: Option<&[u8]>) -> Result<Self> {
         match attachment_json {
             Some(bytes) if !bytes.is_empty() => {
-                let options: ConversionOptions = serde_json::from_slice(bytes)?;
-                Ok(options)
+                let value: serde_json::Value = serde_json::from_slice(bytes)?;
+                if value.is_array() {
+                    // New array format: each element is a ProgramAttachment
+                    let attachments: Vec<ProgramAttachment> = serde_json::from_value(value)?;
+                    let mut options = ConversionOptions::default();
+                    // Collect inline tone definitions into the tones map
+                    for attachment in &attachments {
+                        if let Some(tone) = &attachment.tone {
+                            options
+                                .tones
+                                .insert(attachment.program_change, tone.clone());
+                        }
+                    }
+                    options.program_attachments = attachments;
+                    Ok(options)
+                } else {
+                    // Legacy flat object format
+                    let options: ConversionOptions = serde_json::from_value(value)?;
+                    Ok(options)
+                }
             }
             _ => Ok(ConversionOptions::default()),
         }
@@ -242,4 +310,73 @@ pub fn convert_smf_to_ym2151_log_with_options(
     let json = serde_json::to_string_pretty(&ym2151_log)?;
 
     Ok(json)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_attachment_bytes_empty() {
+        let opts = ConversionOptions::from_attachment_bytes(None).unwrap();
+        assert!(!opts.delay_vibrato);
+        assert!(opts.program_attachments.is_empty());
+    }
+
+    #[test]
+    fn test_from_attachment_bytes_legacy_flat_object() {
+        let json = br#"{"DelayVibrato": true, "Portamento": false}"#;
+        let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
+        assert!(opts.delay_vibrato);
+        assert!(!opts.portamento);
+        assert!(opts.program_attachments.is_empty());
+    }
+
+    #[test]
+    fn test_from_attachment_bytes_new_array_format() {
+        let json = br#"[
+          { "ProgramChange": 0, "DelayVibrato": true },
+          { "ProgramChange": 1, "Portamento": true }
+        ]"#;
+        let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
+        // Global flags not set; per-program attachments populated
+        assert!(!opts.delay_vibrato);
+        assert!(!opts.portamento);
+        assert_eq!(opts.program_attachments.len(), 2);
+        assert_eq!(opts.program_attachments[0].program_change, 0);
+        assert!(opts.program_attachments[0].delay_vibrato);
+        assert_eq!(opts.program_attachments[1].program_change, 1);
+        assert!(opts.program_attachments[1].portamento);
+    }
+
+    #[test]
+    fn test_from_attachment_bytes_array_with_inline_tone() {
+        let json = br#"[
+          {
+            "ProgramChange": 5,
+            "Tone": {
+              "events": [
+                { "time": 0, "addr": "0x20", "data": "0xC7" }
+              ]
+            }
+          }
+        ]"#;
+        let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
+        assert_eq!(opts.program_attachments.len(), 1);
+        assert_eq!(opts.program_attachments[0].program_change, 5);
+        // Inline tone should be merged into the tones HashMap
+        assert!(
+            opts.tones.contains_key(&5),
+            "Tone for program 5 should be in tones map"
+        );
+        assert_eq!(opts.tones[&5].events.len(), 1);
+        assert_eq!(opts.tones[&5].events[0].addr, "0x20");
+    }
+
+    #[test]
+    fn test_from_attachment_bytes_array_empty() {
+        let json = b"[]";
+        let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
+        assert!(opts.program_attachments.is_empty());
+    }
 }
