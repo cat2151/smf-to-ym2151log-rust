@@ -20,3 +20,7 @@ mod channels;
 mod effects;
 #[path = "converter_tests/programs.rs"]
 mod programs;
+#[path = "converter_tests/drums.rs"]
+mod drums;
+#[path = "converter_tests/attachments.rs"]
+mod attachments;
