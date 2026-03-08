@@ -36,6 +36,34 @@ const NOTE_BAR_HEIGHT = 8;
 const MIN_NOTE_WIDTH = 2;
 const NOTE_WIDTH_GAP = 1;
 const UNCLOSED_NOTE_EXTENSION_S = 0.1;
+// Minimum segment duration to keep DOM node count manageable.
+// Segments shorter than one pixel at the current scale are coalesced into their successor.
+const MIN_SEGMENT_SECONDS = MIN_NOTE_WIDTH / PIXELS_PER_SECOND;
+
+/**
+ * Maps YM2151 note code (low nibble of KC byte) to a linear semitone index (0–11).
+ * YM2151 note codes start at C# (code 0) and end at C (code 14).
+ * Codes 3, 7, 11, and 15 are unused by the note table and are mapped to the
+ * nearest lower valid semitone so that the resulting pitch is still monotonic.
+ */
+const NOTE_CODE_TO_SEMITONE: readonly number[] = [
+	0, // 0  = C#
+	1, // 1  = D
+	2, // 2  = D#
+	2, // 3  = (unused, treated as D#)
+	3, // 4  = E
+	4, // 5  = F
+	5, // 6  = F#
+	5, // 7  = (unused, treated as F#)
+	6, // 8  = G
+	7, // 9  = G#
+	8, // 10 = A
+	8, // 11 = (unused, treated as A)
+	9, // 12 = A#
+	10, // 13 = B
+	11, // 14 = C
+	11, // 15 = (unused, treated as C)
+];
 
 function parseHexByte(value: string): number | null {
 	const match = /^0x([0-9a-fA-F]{1,2})$/.exec(value.trim());
@@ -91,14 +119,24 @@ function buildNoteSegments(
 			// open a new one with the updated pitch (handles portamento/vibrato).
 			if (channelNoteOn[ch] && channelKC[ch] !== newKC) {
 				const noteOn = channelNoteOn[ch] as NoteOnState;
-				segments.push({
-					startTime: noteOn.time,
-					endTime: event.time,
-					kc: noteOn.kc,
-					kf: noteOn.kf,
-					ch,
-				});
-				channelNoteOn[ch] = { time: event.time, kc: newKC, kf: channelKF[ch] };
+				const duration = event.time - noteOn.time;
+				if (duration >= MIN_SEGMENT_SECONDS) {
+					segments.push({
+						startTime: noteOn.time,
+						endTime: event.time,
+						kc: noteOn.kc,
+						kf: noteOn.kf,
+						ch,
+					});
+					channelNoteOn[ch] = {
+						time: event.time,
+						kc: newKC,
+						kf: channelKF[ch],
+					};
+				} else {
+					// Too short to be individually visible; update pitch without splitting.
+					channelNoteOn[ch] = { ...noteOn, kc: newKC, kf: channelKF[ch] };
+				}
 			}
 			channelKC[ch] = newKC;
 		}
@@ -110,14 +148,29 @@ function buildNoteSegments(
 			const newKF = data;
 			if (channelNoteOn[ch] && channelKF[ch] !== newKF) {
 				const noteOn = channelNoteOn[ch] as NoteOnState;
-				segments.push({
-					startTime: noteOn.time,
-					endTime: event.time,
-					kc: noteOn.kc,
-					kf: noteOn.kf,
-					ch,
-				});
-				channelNoteOn[ch] = { time: event.time, kc: channelKC[ch], kf: newKF };
+				// Avoid creating a zero-duration segment when KC and KF updates
+				// occur at the same timestamp (the converter emits them as a pair).
+				// Also skip splitting when the accumulated segment is too short to render.
+				if (
+					noteOn.time !== event.time &&
+					event.time - noteOn.time >= MIN_SEGMENT_SECONDS
+				) {
+					segments.push({
+						startTime: noteOn.time,
+						endTime: event.time,
+						kc: noteOn.kc,
+						kf: noteOn.kf,
+						ch,
+					});
+					channelNoteOn[ch] = {
+						time: event.time,
+						kc: channelKC[ch],
+						kf: newKF,
+					};
+				} else {
+					// Coalesce into the current segment (same-timestamp or sub-pixel).
+					channelNoteOn[ch] = { ...noteOn, kf: newKF };
+				}
 			}
 			channelKF[ch] = newKF;
 		}
@@ -171,9 +224,24 @@ function buildNoteSegments(
 	return segments;
 }
 
-/** Combined pitch value: KC (coarse, semitone steps) * 64 + KF (fine, 1/64 semitone per step). */
+/**
+ * Combined pitch value for visualization.
+ *
+ * YM2151 KC layout:
+ *   - high nibble: YM2151 octave (0–7); each octave starts at C#
+ *   - low nibble: note code (from NOTE_TABLE), decoded via NOTE_CODE_TO_SEMITONE
+ *
+ * We decode KC into a linear semitone index and then add KF (fine pitch,
+ * 1/64 semitone per step) so that the result is monotonic with actual pitch
+ * and suitable for Y-axis placement.
+ */
 function notePitch(kc: number, kf: number): number {
-	return kc * 64 + kf;
+	const octave = (kc >> 4) & 0x07;
+	const noteCode = kc & 0x0f;
+	const semitone = NOTE_CODE_TO_SEMITONE[noteCode] ?? noteCode;
+	const linearSemitone = octave * 12 + semitone;
+	const fine = kf & 0x3f; // KF is 6-bit, 0-63
+	return linearSemitone * 64 + fine;
 }
 
 function computePitchRange(segments: NoteSegment[]): {
