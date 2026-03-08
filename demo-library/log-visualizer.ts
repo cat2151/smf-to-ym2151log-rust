@@ -9,12 +9,13 @@ type LaneElements = {
 	track: HTMLElement;
 };
 
-type NoteOnState = { time: number; kc: number };
+type NoteOnState = { time: number; kc: number; kf: number };
 
 type NoteSegment = {
 	startTime: number;
 	endTime: number;
 	kc: number;
+	kf: number;
 	ch: number;
 };
 
@@ -29,11 +30,40 @@ const MAX_TRACK_WIDTH = 6400;
 const PIXELS_PER_SECOND = 180;
 const EVENT_WIDTH = 4;
 const KC_REGISTER_BASE = 0x28;
+const KF_REGISTER_BASE = 0x30;
 const TRACK_HEIGHT = 80;
 const NOTE_BAR_HEIGHT = 8;
 const MIN_NOTE_WIDTH = 2;
 const NOTE_WIDTH_GAP = 1;
 const UNCLOSED_NOTE_EXTENSION_S = 0.1;
+// Minimum segment duration to keep DOM node count manageable.
+// Segments shorter than one pixel at the current scale are coalesced into their successor.
+const MIN_SEGMENT_SECONDS = MIN_NOTE_WIDTH / PIXELS_PER_SECOND;
+
+/**
+ * Maps YM2151 note code (low nibble of KC byte) to a linear semitone index (0–11).
+ * YM2151 note codes start at C# (code 0) and end at C (code 14).
+ * Codes 3, 7, 11, and 15 are unused by the note table and are mapped to the
+ * nearest lower valid semitone so that the resulting pitch is still monotonic.
+ */
+const NOTE_CODE_TO_SEMITONE: readonly number[] = [
+	0, // 0  = C#
+	1, // 1  = D
+	2, // 2  = D#
+	2, // 3  = (unused, treated as D#)
+	3, // 4  = E
+	4, // 5  = F
+	5, // 6  = F#
+	5, // 7  = (unused, treated as F#)
+	6, // 8  = G
+	7, // 9  = G#
+	8, // 10 = A
+	8, // 11 = (unused, treated as A)
+	9, // 12 = A#
+	10, // 13 = B
+	11, // 14 = C
+	11, // 15 = (unused, treated as C)
+];
 
 function parseHexByte(value: string): number | null {
 	const match = /^0x([0-9a-fA-F]{1,2})$/.exec(value.trim());
@@ -69,9 +99,10 @@ function buildNoteSegments(
 	events: YmLogEvent[],
 	channelCount: number,
 ): NoteSegment[] {
-	// YM2151 has exactly 8 channels; KC registers are always 0x28-0x2F.
-	const kcChannelCount = Math.min(channelCount, DEFAULT_CHANNELS);
+	// YM2151 has exactly 8 channels; KC and KF registers are always 0x28-0x2F and 0x30-0x37.
+	const ymChannelCount = Math.min(channelCount, DEFAULT_CHANNELS);
 	const channelKC: number[] = Array(channelCount).fill(0);
+	const channelKF: number[] = Array(channelCount).fill(0);
 	const channelNoteOn: Array<NoteOnState | null> =
 		Array(channelCount).fill(null);
 	const segments: NoteSegment[] = [];
@@ -81,22 +112,67 @@ function buildNoteSegments(
 		const data = parseHexByte(event.data);
 		if (addr === null || data === null) continue;
 
-		if (addr >= KC_REGISTER_BASE && addr < KC_REGISTER_BASE + kcChannelCount) {
+		if (addr >= KC_REGISTER_BASE && addr < KC_REGISTER_BASE + ymChannelCount) {
 			const ch = addr - KC_REGISTER_BASE;
 			const newKC = data;
 			// If KC changes while a note is held, close the current segment and
 			// open a new one with the updated pitch (handles portamento/vibrato).
 			if (channelNoteOn[ch] && channelKC[ch] !== newKC) {
 				const noteOn = channelNoteOn[ch] as NoteOnState;
-				segments.push({
-					startTime: noteOn.time,
-					endTime: event.time,
-					kc: noteOn.kc,
-					ch,
-				});
-				channelNoteOn[ch] = { time: event.time, kc: newKC };
+				const duration = event.time - noteOn.time;
+				if (duration >= MIN_SEGMENT_SECONDS) {
+					segments.push({
+						startTime: noteOn.time,
+						endTime: event.time,
+						kc: noteOn.kc,
+						kf: noteOn.kf,
+						ch,
+					});
+					channelNoteOn[ch] = {
+						time: event.time,
+						kc: newKC,
+						kf: channelKF[ch],
+					};
+				} else {
+					// Too short to be individually visible; update pitch without splitting.
+					channelNoteOn[ch] = { ...noteOn, kc: newKC, kf: channelKF[ch] };
+				}
 			}
 			channelKC[ch] = newKC;
+		}
+
+		// KF register (0x30-0x37): fine pitch in 1/64 semitone steps.
+		// Track changes alongside KC to show continuous vibrato motion.
+		if (addr >= KF_REGISTER_BASE && addr < KF_REGISTER_BASE + ymChannelCount) {
+			const ch = addr - KF_REGISTER_BASE;
+			const newKF = data;
+			if (channelNoteOn[ch] && channelKF[ch] !== newKF) {
+				const noteOn = channelNoteOn[ch] as NoteOnState;
+				// Avoid creating a zero-duration segment when KC and KF updates
+				// occur at the same timestamp (the converter emits them as a pair).
+				// Also skip splitting when the accumulated segment is too short to render.
+				if (
+					noteOn.time !== event.time &&
+					event.time - noteOn.time >= MIN_SEGMENT_SECONDS
+				) {
+					segments.push({
+						startTime: noteOn.time,
+						endTime: event.time,
+						kc: noteOn.kc,
+						kf: noteOn.kf,
+						ch,
+					});
+					channelNoteOn[ch] = {
+						time: event.time,
+						kc: channelKC[ch],
+						kf: newKF,
+					};
+				} else {
+					// Coalesce into the current segment (same-timestamp or sub-pixel).
+					channelNoteOn[ch] = { ...noteOn, kf: newKF };
+				}
+			}
+			channelKF[ch] = newKF;
 		}
 
 		if (addr === 0x08) {
@@ -105,7 +181,11 @@ function buildNoteSegments(
 			if (ch >= 0 && ch < channelCount) {
 				if (operators !== 0) {
 					if (!channelNoteOn[ch]) {
-						channelNoteOn[ch] = { time: event.time, kc: channelKC[ch] };
+						channelNoteOn[ch] = {
+							time: event.time,
+							kc: channelKC[ch],
+							kf: channelKF[ch],
+						};
 					}
 				} else {
 					const noteOn = channelNoteOn[ch];
@@ -114,6 +194,7 @@ function buildNoteSegments(
 							startTime: noteOn.time,
 							endTime: event.time,
 							kc: noteOn.kc,
+							kf: noteOn.kf,
 							ch,
 						});
 						channelNoteOn[ch] = null;
@@ -134,6 +215,7 @@ function buildNoteSegments(
 				startTime: noteOn.time,
 				endTime: lastTime,
 				kc: noteOn.kc,
+				kf: noteOn.kf,
 				ch,
 			});
 		}
@@ -142,21 +224,51 @@ function buildNoteSegments(
 	return segments;
 }
 
-function computeKcRange(segments: NoteSegment[]): { min: number; max: number } {
+/**
+ * Combined pitch value for visualization.
+ *
+ * YM2151 KC layout:
+ *   - high nibble: YM2151 octave (0–7); each octave starts at C#
+ *   - low nibble: note code (from NOTE_TABLE), decoded via NOTE_CODE_TO_SEMITONE
+ *
+ * We decode KC into a linear semitone index and then add KF (fine pitch,
+ * 1/64 semitone per step) so that the result is monotonic with actual pitch
+ * and suitable for Y-axis placement.
+ */
+function notePitch(kc: number, kf: number): number {
+	const octave = (kc >> 4) & 0x07;
+	const noteCode = kc & 0x0f;
+	const semitone = NOTE_CODE_TO_SEMITONE[noteCode] ?? noteCode;
+	const linearSemitone = octave * 12 + semitone;
+	const fine = kf & 0x3f; // KF is 6-bit, 0-63
+	return linearSemitone * 64 + fine;
+}
+
+function computePitchRange(segments: NoteSegment[]): {
+	min: number;
+	max: number;
+} {
 	if (segments.length === 0) return { min: 0, max: 0 };
-	let min = segments[0].kc;
-	let max = segments[0].kc;
+	let min = notePitch(segments[0].kc, segments[0].kf);
+	let max = min;
 	for (const seg of segments) {
-		if (seg.kc < min) min = seg.kc;
-		if (seg.kc > max) max = seg.kc;
+		const pitch = notePitch(seg.kc, seg.kf);
+		if (pitch < min) min = pitch;
+		if (pitch > max) max = pitch;
 	}
 	return { min, max };
 }
 
-function noteYPosition(kc: number, minKC: number, maxKC: number): number {
-	const range = maxKC - minKC;
+function noteYPosition(
+	kc: number,
+	kf: number,
+	minPitch: number,
+	maxPitch: number,
+): number {
+	const pitch = notePitch(kc, kf);
+	const range = maxPitch - minPitch;
 	if (range === 0) return (TRACK_HEIGHT - NOTE_BAR_HEIGHT) / 2;
-	return ((maxKC - kc) / range) * (TRACK_HEIGHT - NOTE_BAR_HEIGHT);
+	return ((maxPitch - pitch) / range) * (TRACK_HEIGHT - NOTE_BAR_HEIGHT);
 }
 
 function normalizeEvents(parsed: unknown): YmLogEvent[] {
@@ -262,7 +374,7 @@ export function createLogVisualizer(
 
 		const trackWidth = computeTrackWidth(events);
 		const segments = buildNoteSegments(events, channelCount);
-		const { min: minKC, max: maxKC } = computeKcRange(segments);
+		const { min: minPitch, max: maxPitch } = computePitchRange(segments);
 
 		container.classList.add("log-visualizer");
 		container.classList.remove("log-visualizer--empty");
@@ -287,13 +399,15 @@ export function createLogVisualizer(
 		// Render other events as small background dots (rendered first so note bars appear on top)
 		events.forEach((event, index) => {
 			const addr = parseHexByte(event.addr);
-			// Suppress KC (0x28-0x2F, always 8 channels on YM2151) and KEY ON/OFF (0x08)
-			const isKcOrKeyOn =
+			// Suppress KC (0x28-0x2F), KF (0x30-0x37), and KEY ON/OFF (0x08) — these are shown via note bars
+			const isKcKfOrKeyOn =
 				addr !== null &&
 				((addr >= KC_REGISTER_BASE &&
 					addr < KC_REGISTER_BASE + DEFAULT_CHANNELS) ||
+					(addr >= KF_REGISTER_BASE &&
+						addr < KF_REGISTER_BASE + DEFAULT_CHANNELS) ||
 					addr === 0x08);
-			if (isKcOrKeyOn) return;
+			if (isKcKfOrKeyOn) return;
 
 			const channel = detectChannel(event.addr, event.data, channelCount);
 			const lane =
@@ -325,12 +439,12 @@ export function createLogVisualizer(
 				MIN_NOTE_WIDTH,
 				(seg.endTime - seg.startTime) * PIXELS_PER_SECOND - NOTE_WIDTH_GAP,
 			);
-			const y = noteYPosition(seg.kc, minKC, maxKC);
+			const y = noteYPosition(seg.kc, seg.kf, minPitch, maxPitch);
 			bar.style.left = `${x}px`;
 			bar.style.width = `${w}px`;
 			bar.style.top = `${y}px`;
 			bar.style.backgroundColor = laneColor(seg.ch);
-			bar.title = `CH${seg.ch} KC=0x${seg.kc.toString(16).padStart(2, "0")} t=${seg.startTime.toFixed(3)}-${seg.endTime.toFixed(3)}s`;
+			bar.title = `CH${seg.ch} KC=0x${seg.kc.toString(16).padStart(2, "0")} KF=0x${seg.kf.toString(16).padStart(2, "0")} t=${seg.startTime.toFixed(3)}-${seg.endTime.toFixed(3)}s`;
 			lane.track.appendChild(bar);
 		}
 	};
