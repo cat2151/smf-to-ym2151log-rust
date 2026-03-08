@@ -522,9 +522,20 @@ export function createLogVisualizer(
 		};
 
 		// Render other events as small background dots (rendered first so note bars appear on top)
+		// Build a set of all LFO-resolved addresses so they can be suppressed in channel lanes
+		const lfoAddrSet = new Set<number>();
+		for (const lfoDef of lfoRegisters) {
+			const base = parseHexByte(lfoDef.baseRegister);
+			if (base === null) continue;
+			for (let ch = 0; ch < channelCount; ch++) {
+				lfoAddrSet.add(resolveRegisterForChannel(base, ch));
+			}
+		}
+
 		events.forEach((event, index) => {
 			const addr = parseHexByte(event.addr);
-			// Suppress KC (0x28-0x2F), KF (0x30-0x37), and KEY ON/OFF (0x08) — these are shown via note bars
+			// Suppress KC (0x28-0x2F), KF (0x30-0x37), KEY ON/OFF (0x08), and LFO registers —
+			// these are shown via note bars or dedicated LFO lanes.
 			const isKcKfOrKeyOn =
 				addr !== null &&
 				((addr >= KC_REGISTER_BASE &&
@@ -533,6 +544,7 @@ export function createLogVisualizer(
 						addr < KF_REGISTER_BASE + DEFAULT_CHANNELS) ||
 					addr === 0x08);
 			if (isKcKfOrKeyOn) return;
+			if (addr !== null && lfoAddrSet.has(addr)) return;
 
 			const channel = detectChannel(event.addr, event.data, channelCount);
 			const lane =
@@ -587,7 +599,7 @@ export function createLogVisualizer(
 	const setLfoRegisters = (registers: LfoRegisterConfig[]) => {
 		lfoRegisters = registers;
 		// Re-render with the new LFO config if we already have data
-		if (lastJsonText !== null) {
+		if (lastJsonText != null) {
 			renderFromJson(lastJsonText);
 		}
 	};
