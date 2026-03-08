@@ -295,7 +295,9 @@ pub(super) fn append_change_to_next_tone_events(
             continue;
         }
 
-        let next_program = attachment.program_change.wrapping_add(1);
+        let Some(next_program) = attachment.program_change.checked_add(1) else {
+            continue;
+        };
         let Some(tone_from) = tones.get(&attachment.program_change) else {
             continue;
         };
