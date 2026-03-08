@@ -52,14 +52,18 @@ export function buildEventsFromCompact(compact: string): Ym2151Event[] {
 		return [];
 	}
 	if (cleaned.length % 4 !== 0) {
-		throw new Error("CompactTones の長さは4の倍数である必要があります");
+		throw new Error(
+			"コンパクト nibble 文字列の長さは4の倍数である必要があります",
+		);
 	}
 	const events: Ym2151Event[] = [];
 	for (let i = 0; i < cleaned.length; i += 4) {
 		const addr = cleaned.slice(i, i + 2);
 		const data = cleaned.slice(i + 2, i + 4);
 		if (!/^[0-9a-fA-F]{4}$/.test(`${addr}${data}`)) {
-			throw new Error("CompactTones に16進以外の文字が含まれています");
+			throw new Error(
+				"コンパクト nibble 文字列に16進以外の文字が含まれています",
+			);
 		}
 		events.push({
 			time: 0,
@@ -123,7 +127,7 @@ export function normalizeAttachmentText(
 				normalized,
 				statusEl,
 				mutated,
-				"registers を YM2151 音色 JSON に正規化しました",
+				"コンパクト nibble を YM2151 音色 JSON に正規化しました",
 			);
 		}
 
