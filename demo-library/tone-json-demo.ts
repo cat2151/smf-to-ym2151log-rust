@@ -140,7 +140,7 @@ function readAttachmentBytes(): Uint8Array | null {
 	}
 
 	const isPresetActive =
-		attachmentPresetSelect && attachmentPresetSelect.value !== "";
+		attachmentPresetSelect != null && attachmentPresetSelect.value !== "";
 	if (!isPresetActive) {
 		toneJsonField.value = normalized;
 	}
