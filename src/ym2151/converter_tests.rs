@@ -22,5 +22,9 @@ mod channels;
 mod drums;
 #[path = "converter_tests/effects.rs"]
 mod effects;
+#[path = "converter_tests/lfo.rs"]
+mod lfo;
+#[path = "converter_tests/portamento.rs"]
+mod portamento;
 #[path = "converter_tests/programs.rs"]
 mod programs;
