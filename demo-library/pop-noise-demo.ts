@@ -11,6 +11,7 @@ import {
 } from "./shared-demo";
 import { setupMmlToSmf } from "./mml-support";
 import { createLogVisualizer } from "./log-visualizer";
+import { createWaveformViewer } from "./waveform-viewer";
 
 const DEFAULT_ATTACHMENT = `[
   {
@@ -63,6 +64,23 @@ const mmlInput = document.getElementById(
 const logVisualizer = createLogVisualizer(
 	document.getElementById("log-visualizer"),
 );
+const waveformViewer = createWaveformViewer(
+	document.getElementById("waveform-canvas") as HTMLCanvasElement | null,
+	{
+		zoomSlider: document.getElementById("wv-zoom") as HTMLInputElement | null,
+		zoomLabel: document.getElementById("wv-zoom-label"),
+		prevNoteBtn: document.getElementById(
+			"wv-prev-note",
+		) as HTMLButtonElement | null,
+		nextNoteBtn: document.getElementById(
+			"wv-next-note",
+		) as HTMLButtonElement | null,
+		channelSelect: document.getElementById(
+			"wv-channel",
+		) as HTMLSelectElement | null,
+		positionLabel: document.getElementById("wv-position"),
+	},
+);
 
 function nextRequestId(): number {
 	latestMidiRequestId += 1;
@@ -77,6 +95,7 @@ function updateOutputWithState(text: string): void {
 	currentOutput = text;
 	updateOutput(text, conversionOutput, jsonEditor, () => {
 		logVisualizer.renderFromJson(text);
+		waveformViewer.renderFromJson(text);
 		updatePlayButtonState();
 	});
 }
