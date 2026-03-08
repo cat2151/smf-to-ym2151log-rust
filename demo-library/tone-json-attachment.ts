@@ -29,7 +29,7 @@ export const YM_LOG_STYLE_PRESET = `[
 export const COMPACT_NIBBLE_PRESET = `[
   {
     "ProgramChange": 0,
-    "CompactTone": "20C76010801FE00F"
+    "registers": "20C76010801FE00F"
   }
 ]`;
 
@@ -95,16 +95,24 @@ export function normalizeAttachmentText(
 		const parsed = JSON.parse(trimmed);
 		let mutated = false;
 
-		// New array format: normalize per-entry CompactTone fields
+		// New array format: normalize per-entry registers (or legacy CompactTone) fields
 		if (Array.isArray(parsed)) {
 			const normalized = (parsed as Array<Record<string, unknown>>).map(
 				(entry) => {
-					if (
-						typeof entry.CompactTone === "string" &&
-						entry.CompactTone.length > 0
-					) {
-						const events = buildEventsFromCompact(entry.CompactTone);
-						const { CompactTone: _compactTone, ...rest } = entry;
+					const compactValue =
+						typeof entry.registers === "string" && entry.registers.length > 0
+							? entry.registers
+							: typeof entry.CompactTone === "string" &&
+									entry.CompactTone.length > 0
+								? entry.CompactTone
+								: null;
+					if (compactValue !== null) {
+						const events = buildEventsFromCompact(compactValue);
+						const {
+							registers: _registers,
+							CompactTone: _compactTone,
+							...rest
+						} = entry;
 						mutated = true;
 						return { ...rest, Tone: { events } };
 					}
@@ -115,7 +123,7 @@ export function normalizeAttachmentText(
 				normalized,
 				statusEl,
 				mutated,
-				"CompactTone を YM2151 音色 JSON に正規化しました",
+				"registers を YM2151 音色 JSON に正規化しました",
 			);
 		}
 
