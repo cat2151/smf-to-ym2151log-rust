@@ -130,10 +130,20 @@ async function runConversion(trigger: string): Promise<void> {
 			midiBytes,
 			attachmentBytes,
 		);
-		void computeHash(result).then((hash) => {
-			console.log("[delay-vibrato] YM2151 JSON:", result);
-			console.log("[delay-vibrato] YM2151 JSON hash:", hash);
-		});
+		void computeHash(result)
+			.then((hash) => {
+				console.log(
+					"[delay-vibrato] YM2151 JSON hash:",
+					hash,
+					`(${result.length} chars)`,
+				);
+			})
+			.catch((error) => {
+				console.error(
+					"[delay-vibrato] Failed to compute YM2151 JSON hash:",
+					error,
+				);
+			});
 		const parsed = JSON.parse(result);
 		const formatted = JSON.stringify(parsed, null, 2);
 		setEventCountDisplay(
@@ -199,10 +209,21 @@ function setupMmlInput(): void {
 		onMidiReady: (bytes) => {
 			midiBytes = bytes;
 			lastMidiSource = "mml";
-			void computeHash(bytes).then((hash) => {
-				console.log("[delay-vibrato] SMF bytes:", bytes);
-				console.log("[delay-vibrato] SMF hash:", hash);
-			});
+			void computeHash(bytes)
+				.then((hash) => {
+					console.log(
+						"[delay-vibrato] SMF bytes:",
+						bytes,
+						`(${bytes.byteLength} bytes)`,
+					);
+					console.log("[delay-vibrato] SMF hash:", hash);
+				})
+				.catch((error) => {
+					console.error(
+						"[delay-vibrato] Failed to compute SMF hash for source=mml:",
+						error,
+					);
+				});
 		},
 		onClear: () => {
 			if (lastMidiSource === "mml") {
