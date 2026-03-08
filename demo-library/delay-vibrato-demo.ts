@@ -28,7 +28,7 @@ let latestMidiRequestId = 0;
 let latestAutoPlayId = 0;
 
 async function computeHash(data: Uint8Array | string): Promise<string> {
-	const bytes: Uint8Array<ArrayBuffer> =
+	const bytes =
 		typeof data === "string"
 			? new TextEncoder().encode(data)
 			: new Uint8Array(data);
