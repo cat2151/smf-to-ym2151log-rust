@@ -187,3 +187,65 @@ fn test_end_to_end_program_change_with_file() {
         "Should have tone settings from init and both program changes"
     );
 }
+
+/// Regression test: attachment tone for program 0 must be applied even when
+/// the MIDI file contains no explicit Program Change event.
+#[test]
+fn test_attachment_tone_applied_without_program_change_event() {
+    use smf_to_ym2151log::midi::{MidiData, MidiEvent};
+    use smf_to_ym2151log::ConversionOptions;
+    use smf_to_ym2151log::ym2151::convert_to_ym2151_log_with_options;
+
+    // Build attachment options with a tone for program 0 containing a distinctive register
+    let attachment_json = br#"[
+      {
+        "ProgramChange": 0,
+        "Tone": {
+          "events": [
+            { "time": 0, "addr": "0x20", "data": "0xAB" }
+          ]
+        }
+      }
+    ]"#;
+    let options = ConversionOptions::from_attachment_bytes(Some(attachment_json)).unwrap();
+    // Verify tone was parsed into the options
+    assert!(
+        options.tones.contains_key(&0),
+        "Tone for program 0 should be in tones map"
+    );
+
+    // MIDI data without any Program Change event
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 60,
+            },
+        ],
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options);
+    assert!(result.is_ok(), "Conversion should succeed");
+
+    let log = result.unwrap();
+
+    // The distinctive register value 0xAB must appear in the output log
+    let has_distinctive_value = log
+        .events
+        .iter()
+        .any(|e| e.addr == "0x20" && e.data == "0xAB");
+    assert!(
+        has_distinctive_value,
+        "Attachment tone register write (addr=0x20, data=0xAB) must appear in the log \
+         even without an explicit Program Change event"
+    );
+}
