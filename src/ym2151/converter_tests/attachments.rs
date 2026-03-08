@@ -25,14 +25,14 @@ fn test_change_to_next_tone_generates_interpolation_events() {
     };
 
     // Program 0 tone: TL operator 0 = 0x10; Program 1 tone: TL = 0x30 (delta = 32)
-    let tone0 = ToneDefinition {
+    let tone_program0 = ToneDefinition {
         events: vec![Ym2151Event {
             time: 0.0,
             addr: "0x60".to_string(), // TL op0, ch0
             data: "0x10".to_string(),
         }],
     };
-    let tone1 = ToneDefinition {
+    let tone_program1 = ToneDefinition {
         events: vec![Ym2151Event {
             time: 0.0,
             addr: "0x60".to_string(),
@@ -55,8 +55,8 @@ fn test_change_to_next_tone_generates_interpolation_events() {
         ],
         tones: {
             let mut m = std::collections::HashMap::new();
-            m.insert(0, tone0);
-            m.insert(1, tone1);
+            m.insert(0, tone_program0);
+            m.insert(1, tone_program1);
             m
         },
         ..ConversionOptions::default()

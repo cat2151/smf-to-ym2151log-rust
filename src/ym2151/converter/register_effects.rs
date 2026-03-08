@@ -11,6 +11,8 @@ use crate::{AttackContinuationFix, PopNoiseEnvelope, ProgramAttachment, Register
 use super::waveform::lfo_waveform_value;
 
 pub(super) const RESTORE_BEFORE_NOTE_EPSILON: f64 = 1e-6;
+/// Small tolerance for time-loop termination conditions to absorb accumulated f64 rounding errors.
+const TIME_LOOP_EPSILON: f64 = 1e-9;
 
 pub(super) fn append_register_lfo_events(
     lfo_defs: &[RegisterLfoDefinition],
@@ -349,7 +351,7 @@ pub(super) fn append_change_to_next_tone_events(
                 let mut last_value: Option<u8> = None;
                 let mut time = 0.0_f64;
 
-                while time <= song_end_time + f64::EPSILON {
+                while time <= song_end_time + TIME_LOOP_EPSILON {
                     let cycle_pos = time % cycle;
                     // Forward ramp [0, period]: t goes 0→1; backward [period, 2*period]: t goes 1→0
                     let t = if cycle_pos <= period {
