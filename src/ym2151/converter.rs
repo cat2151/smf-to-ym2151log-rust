@@ -9,8 +9,9 @@ mod waveform;
 use crate::error::Result;
 use crate::midi::{ticks_to_seconds_with_tempo_map, MidiData};
 use crate::ym2151::{
-    allocate_channels, analyze_polyphony, build_tempo_map, initialize_channel_events,
-    process_event, EventProcessorContext, NoteSegment, Ym2151Event, Ym2151Log,
+    allocate_channels, analyze_polyphony, apply_tone_to_channel, build_tempo_map,
+    initialize_channel_events, process_event, EventProcessorContext, NoteSegment, Ym2151Event,
+    Ym2151Log,
 };
 use crate::ConversionOptions;
 use pitch_effects::{append_delay_vibrato_events, append_portamento_events};
@@ -90,17 +91,31 @@ pub fn convert_to_ym2151_log_with_options(
     // Allocate YM2151 channels based on polyphony with drum channel priority
     let mut allocation = allocate_channels(&polyphony);
 
-    // Collect all allocated YM2151 channels for initialization
-    let mut used_ym2151_channels = HashSet::new();
-    for ym_channels in allocation.midi_to_ym2151.values() {
-        for &ym_ch in ym_channels {
-            used_ym2151_channels.insert(ym_ch);
+    // Collect all allocated YM2151 channels for initialization, sorted for deterministic output
+    let used_ym2151_channels: Vec<u8> = {
+        let mut set = HashSet::new();
+        for ym_channels in allocation.midi_to_ym2151.values() {
+            for &ym_ch in ym_channels {
+                set.insert(ym_ch);
+            }
         }
-    }
+        let mut v: Vec<u8> = set.into_iter().collect();
+        v.sort_unstable();
+        v
+    };
 
     // Initialize all used YM2151 channels with default parameters
     for &ch in &used_ym2151_channels {
         ym2151_events.extend(initialize_channel_events(ch, 0.0));
+    }
+
+    // Apply initial tone (program 0) from attachment if available.
+    // This ensures the attachment tone takes effect even when the MIDI file
+    // does not contain an explicit Program Change event.
+    if let Some(initial_tone) = options.tones.get(&0) {
+        for &ch in &used_ym2151_channels {
+            ym2151_events.extend(apply_tone_to_channel(initial_tone, ch, 0.0));
+        }
     }
 
     // Track the current program (tone) for each YM2151 channel
