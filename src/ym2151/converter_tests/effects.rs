@@ -103,32 +103,96 @@ fn test_portamento_generates_pitch_glide_events() {
         .expect("First note should set KC at time 0");
     assert_eq!(first_kc, format!("0x{:02X}", kc_first));
 
-    // Collect KC events starting at the second note-on time (0.5 seconds)
-    let kc_events_after_second_on: Vec<_> = result
+    // Collect KC events emitted during the portamento glide window (0.5 to 0.6 seconds).
+    // Exclude the initial note-on KC write at exactly 0.5 that the main converter emits
+    // before the portamento overrides it, so we only see portamento-driven KC updates.
+    let portamento_end = 0.5 + 0.1; // start_time + PORTAMENTO_TIME_SECONDS
+    let kc_events_in_glide: Vec<_> = result
         .events
         .iter()
-        .filter(|e| e.addr == "0x28" && e.time >= 0.5)
+        .filter(|e| e.addr == "0x28" && e.time >= 0.5 && e.time <= portamento_end)
         .collect();
     assert!(
-        kc_events_after_second_on.len() >= 2,
+        kc_events_in_glide.len() >= 2,
         "Portamento should emit multiple KC steps during the glide"
     );
 
     let (kc_second, _) = midi_to_kc_kf(67);
 
-    // Glide should include the previous pitch before reaching the target
+    // Glide should include the previous pitch at the start
     assert!(
-        kc_events_after_second_on
+        kc_events_in_glide
             .iter()
             .any(|e| e.data == format!("0x{:02X}", kc_first)),
         "Glide should include the starting KC from the previous note"
     );
-    // Glide should reach the target KC
-    assert!(
-        kc_events_after_second_on
-            .iter()
-            .any(|e| e.data == format!("0x{:02X}", kc_second)),
-        "Glide should arrive at the target KC"
+    // Glide must end at the target KC. Verify the LAST KC event in the glide window
+    // equals the target, confirming the portamento fully reaches the destination note.
+    let last_kc_in_glide = kc_events_in_glide
+        .iter()
+        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap());
+    assert_eq!(
+        last_kc_in_glide.map(|e| e.data.as_str()),
+        Some(format!("0x{:02X}", kc_second).as_str()),
+        "Portamento glide must reach the target KC at the end of the glide"
+    );
+}
+
+#[test]
+fn test_portamento_one_octave_reaches_target() {
+    // Verify that a 1-octave portamento (C4 -> C5) always writes the target KC at stop_time.
+    // Previously, the loop's time_step didn't align with stop_time, leaving the portamento
+    // stuck just below the target note.
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60, // C4
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::NoteOn {
+                ticks: 480,
+                channel: 0,
+                note: 72, // C5 (one octave up)
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 960,
+                channel: 0,
+                note: 72,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        portamento: true,
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    let (kc_target, _) = midi_to_kc_kf(72); // C5
+    let portamento_end = 0.5 + 0.1; // start_time + PORTAMENTO_TIME_SECONDS
+
+    // The last KC event written during the portamento window must be the target (C5).
+    let last_portamento_kc = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time >= 0.5 && e.time <= portamento_end)
+        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap());
+
+    assert_eq!(
+        last_portamento_kc.map(|e| e.data.as_str()),
+        Some(format!("0x{:02X}", kc_target).as_str()),
+        "1-octave portamento must reach the target KC (C5) at the end of the glide"
     );
 }
 

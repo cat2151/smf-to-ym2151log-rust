@@ -131,6 +131,23 @@ fn append_portamento_glide(
 
         time += time_step;
     }
+
+    // Always emit the target pitch at stop_time to ensure the portamento reaches the target note.
+    // The loop above may stop just before stop_time when time_step doesn't evenly divide the
+    // portamento duration, leaving the pitch slightly short of the target.
+    let (kc_end, kf_end) = midi_note_with_offset_to_kc_kf(prev_note, delta_cents);
+    if Some((kc_end, kf_end)) != last_values {
+        events.push(Ym2151Event {
+            time: stop_time,
+            addr: format!("0x{:02X}", 0x28 + ym2151_channel),
+            data: format!("0x{:02X}", kc_end),
+        });
+        events.push(Ym2151Event {
+            time: stop_time,
+            addr: format!("0x{:02X}", 0x30 + ym2151_channel),
+            data: format!("0x{:02X}", kf_end),
+        });
+    }
 }
 
 fn append_vibrato_for_segment(
