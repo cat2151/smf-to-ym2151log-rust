@@ -40,9 +40,11 @@ export function treeToJson(
 	node: TreeSitterNode,
 	source: string,
 ): Record<string, unknown> {
-	const result: Record<string, unknown> = { type: node.type };
+	const result: Record<string, unknown> = {
+		type: node.type,
+		text: source.substring(node.startIndex, node.endIndex),
+	};
 	if (node.childCount === 0) {
-		result.text = source.substring(node.startIndex, node.endIndex);
 		return result;
 	}
 
