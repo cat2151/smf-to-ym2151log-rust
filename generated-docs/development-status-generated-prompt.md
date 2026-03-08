@@ -1,4 +1,4 @@
-Last updated: 2026-03-08
+Last updated: 2026-03-09
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -226,6 +226,7 @@ Last updated: 2026-03-08
 - demo-library/biome.json
 - demo-library/delay-vibrato-demo.ts
 - demo-library/delay-vibrato.html
+- demo-library/envelope-generator.ts
 - demo-library/globals.d.ts
 - demo-library/index.html
 - demo-library/library-demo.ts
@@ -239,12 +240,18 @@ Last updated: 2026-03-08
 - demo-library/portamento-soft-lfo.html
 - demo-library/shared-demo.ts
 - demo-library/style.css
+- demo-library/tone-interpolation-demo.ts
+- demo-library/tone-interpolation.html
 - demo-library/tone-json-attachment.ts
 - demo-library/tone-json-demo.ts
 - demo-library/tone-json-mml.ts
 - demo-library/tone-json.html
 - demo-library/tsconfig.json
 - demo-library/vite.config.ts
+- demo-library/waveform-canvas.ts
+- demo-library/waveform-simulator.ts
+- demo-library/waveform-viewer.ts
+- demo-library/ym2151-utils.ts
 - generated-docs/project-overview-generated-prompt.md
 - googled947dc864c270e07.html
 - issue-notes/105.md
@@ -252,8 +259,10 @@ Last updated: 2026-03-08
 - issue-notes/112.md
 - issue-notes/115.md
 - issue-notes/123.md
-- issue-notes/126.md
-- issue-notes/145.md
+- issue-notes/157.md
+- issue-notes/166.md
+- issue-notes/171.md
+- issue-notes/172.md
 - issue-notes/22.md
 - issue-notes/33.md
 - issue-notes/45.md
@@ -280,8 +289,10 @@ Last updated: 2026-03-08
 - src/ym2151/converter/register_effects.rs
 - src/ym2151/converter/waveform.rs
 - src/ym2151/converter.rs
+- src/ym2151/converter_tests/attachments.rs
 - src/ym2151/converter_tests/basic.rs
 - src/ym2151/converter_tests/channels.rs
+- src/ym2151/converter_tests/drums.rs
 - src/ym2151/converter_tests/effects.rs
 - src/ym2151/converter_tests/programs.rs
 - src/ym2151/converter_tests.rs
@@ -308,106 +319,68 @@ Last updated: 2026-03-08
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #149](../issue-notes/149.md): 大きなファイルの検出: 1個のファイルが500行を超えています
+## [Issue #174](../issue-notes/174.md): 大きなファイルの検出: 2個のファイルが500行を超えています
 以下のファイルが500行を超えています。リファクタリングを検討してください。
 
 ## 検出されたファイル
 
 | ファイル | 行数 | 超過行数 |
 |---------|------|----------|
-| `src/ym2151/converter_tests/programs.rs` | 534 | +34 |
+| `demo-library/log-visualizer.ts` | 583 | +83 |
+| `src/ym2151/converter_tests/effects.rs` | 524 | +24 |
 
 ## テスト実施のお願い
 
 - リファクタリング前後にテストを実行し、それぞれのテスト失敗件数を報告してください
-- リファクタリング前後のどちらかでテストがredの場合、まず別issueでtest greenにしてからリファクタリングしてください
-
-## 推奨事項
-
-1....
+- リファクタリング前後のどちらかでテストがredの場合、まず別...
 ラベル: refactoring, code-quality, automated
---- issue-notes/149.md の内容 ---
+--- issue-notes/174.md の内容 ---
 
 ```markdown
 
 ```
 
-## [Issue #148](../issue-notes/148.md): fix: remove permissions block from ci.yml to fix CI auto-format 403 error
-Fixes the CI `Auto Format` job's 403 error when pushing formatted code.
+## [Issue #173](../issue-notes/173.md): Fix compact nibble preset being overwritten by normalized ym2151log form on MML input
+- [x] Fix `readAttachmentBytes` in `tone-json-demo.ts` to not overwrite textarea or reset preset dropdown when a preset is active
+- [x] Fix `isPresetActive` to use explicit `!= null` check so type is `boolean` (not nullable union)
+- [x] Biome format/lint pass
+- [x] Code review and CodeQL passed
 
-## Root Cause
-
-`ci.yml` had an explicit workflow-level `permissions` block with `contents: read`, which completely overrides the repository's Settings → Actions → Workflow permissions (read and write). Once a `permissions` bloc...
+<!-...
 ラベル: 
---- issue-notes/148.md の内容 ---
+--- issue-notes/173.md の内容 ---
 
 ```markdown
 
 ```
 
-## [Issue #147](../issue-notes/147.md): CI auto-format failed
-## CI auto-format failed
-
-**Workflow run:** https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/22800045695
-**Branch:** main
-**Commit:** 7cbd1d27b4b83f5bcebd95e88ccd198d5c9cdcf3
-**Triggered by:** push
-
-Please investigate the workflow logs for details....
-ラベル: ci-format-failure
---- issue-notes/147.md の内容 ---
-
-```markdown
-
-```
-
-## [Issue #127](../issue-notes/127.md): ディレイビブラートとLFOが低品質。ずっとクリックノイズが乗っている。wav exportをdemoに実装して分析せよ。ポルタメントは大丈夫のようだ
-
-ラベル: 
---- issue-notes/127.md の内容 ---
-
-```markdown
-
-```
-
-## [Issue #126](../issue-notes/126.md): ポップノイズdemoで、添付JSONを変更しても、最終log JSONに反映されていない
-[issue-notes/126.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/126.md)
+## [Issue #172](../issue-notes/172.md): 添付音色JSONについて、コンパクトnibble形式の項目名は、"CompactTone"をやめて"registers"にする（web-ym2151に寄せる）
+[issue-notes/172.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/172.md)
 
 ...
 ラベル: 
---- issue-notes/126.md の内容 ---
+--- issue-notes/172.md の内容 ---
 
 ```markdown
-# issue ポップノイズdemoで、添付JSONを変更しても、最終log JSONに反映されていない #126
-[issues #126](https://github.com/cat2151/smf-to-ym2151log-rust/issues/126)
+# issue 添付音色JSONについて、コンパクトnibble形式の項目名は、CompactToneをやめてregistersにする（web-ym2151に寄せる） #172
+[issues #172](https://github.com/cat2151/smf-to-ym2151log-rust/issues/172)
 
 
 
 ```
 
-## [Issue #115](../issue-notes/115.md): 添付JSONについて、隣接する（後続の番号への）線形補間音色変化のon/offを実装し、demo pageも新規追加する
-[issue-notes/115.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/115.md)
+## [Issue #171](../issue-notes/171.md): 添付音色JSONについて、プルダウンでコンパクトnibble形式を選んだあと、MMLでcを入力すると、nibbleが消えてym2151log形式になってしまいuserが混乱する
+[issue-notes/171.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/171.md)
 
 ...
 ラベル: 
---- issue-notes/115.md の内容 ---
+--- issue-notes/171.md の内容 ---
 
 ```markdown
-# issue 添付JSONについて、隣接する（後続の番号への）線形補間音色変化のon/offを実装し、demo pageも新規追加する #115
-[issues #115](https://github.com/cat2151/smf-to-ym2151log-rust/issues/115)
+# issue 添付音色JSONについて、プルダウンでコンパクトnibble形式を選んだあと、MMLでcを入力すると、nibbleが消えてym2151log形式になってしまいuserが混乱する #171
+[issues #171](https://github.com/cat2151/smf-to-ym2151log-rust/issues/171)
 
-- 要は、ProgramChange0と1を定義し、さらにProgramChange0側に、「changeToNextTone: true」「changeToNextToneTime: 5」を指定すれば、
-- 5秒で、ProgramChange1の音色に線形補間で変化する。
-- つまりレジスタbase値を、5秒の間、連続して変更し続けて、レジスタ書き込みeventを発生させる。
-- これにより、MULがProgramChange0において1で、ProgramChange1においてMUL6だった音色は、1秒ごとにMULの値が1ずつ変化して、音色変化をすることになる。
-- よりスタンダードな用途としては、モジュレータTLがProgramChange0と1とで、20違う音色があれば、5秒間でモジュレータTLが変わって音色の倍音成分が滑らかに変化していくことになる。
-- ProgramChange1の音色に変わったのち、5秒かけて、ProgramChange0の音色に戻る。これをループする。
-- これは仮formatである
-   -  UX検証後、検証データを元に、「隣接音色」という結合、を使わない、より使いやすいformatを検討する。
-   - 例えばNRPN定義を添付JSONで行い、そこで定義したNRPNがSMFにあればこれをon/offや、動的なパラメータ変更、あるいはProgramChangeがある場所をみて自動的に時間を決定、などである。
-   - 今やらないのは、データ不足、YAGNI、であるから。
 
-   
 
 ```
 
@@ -463,140 +436,6 @@ Please investigate the workflow logs for details....
 ```
 
 ## ドキュメントで言及されているファイルの内容
-### .github/actions-tmp/issue-notes/15.md
-```md
-{% raw %}
-# issue project_summary scripts cjs を分解し、できるだけ1ファイル200行未満にし、agentによるメンテをしやすくする #15
-[issues #15](https://github.com/cat2151/github-actions/issues/15)
-
-# 状況
-- agentに、最初の小さな一歩のAgent実行プロンプトを実行させた
-- 結果、以下を得た：
-    - project_summary_cjs_analysis.md
-- どうする？
-    - 次の一手をagentに生成させてみる（翌日の日次バッチで自動生成させる）
-- 結果
-    - 生成させたpromptをレビューした
-    - promptを修正した
-    - agentに投げた
-    - 結果、GitUtils.cjsを切り出しできた
-    - それをリファクタリングミスがないかチェックさせた
-    - agentによるチェック結果は合格だった
-- どうする？
-    - 次の一手をagentに生成させてみる（翌日の日次バッチで自動生成させる）
-- 結果
-    - 生成させたpromptをレビューした
-        - promptの対象ファイルから project_summary_cjs_analysis.md が漏れていることがわかったので修正した
-    - promptを修正した
-    - agentに投げた
-    - 結果、FileSystemUtils.cjsを切り出しできた
-    - それをリファクタリングミスがないかチェックさせた
-    - agentによるチェック結果は合格だった
-- どうする？
-    - 次の一手をagentに生成させてみる（翌日の日次バッチで自動生成させる）
-- 結果
-    - 生成させたpromptをレビューした
-    - 今回は低品質、NG、と判断した
-    - 判断基準は、project_summary_cjs_analysis.md と乖離してしまっている点。今回はハルシネーションを含んだplanである、と判断した
-    - 人力でpromptを書き、planさせ、plan結果をレビューし、agentに投げた
-    - 結果、CodeAnalyzer.cjsとProjectAnalyzer.cjsを切り出しできた
-- どうする？
-    - 次の一手をagentに生成させてみる（翌日の日次バッチで自動生成させる）
-    - 備考、課題、Geminiに生成させているdocumentは2つある。かなり位置づけが違うものである。
-        - projectのソースファイル分析。
-        - projectのissues分析。
-        - この2つについて、class, cjs, yml まで分割をするかを、あとで検討する。
-        - おそらく、class分割どまりとし、ソースファイル分析結果をissues分析の参考資料としてGeminiのcontextに与える改善をする、がよい、と想定しておく。
-- 課題、エラーで落ちた。昨日は落ちてない。
-    - 原因、昨日のagentのリファクタリング時に、ハルシネーションで、
-        - codeが破壊されていた
-        - run メソッドが削除されていた
-        - 一つ前のrevisionにはrun メソッドがあった
-        - ほかにもcode破壊があったのかは不明、調査省略、明日の日次バッチをtestと調査として利用するつもり
-- どうする？
-    - 単純に一つ前のrevisionからrun メソッドを復活させ、明日の日次バッチをtestと調査として利用する
-- 再発防止策は？
-    - ノーアイデア。昨日それなりにagentにチェックをさせたはずだが根本的な大きなミスが発生していた。
-    - 構文チェックは通っていたが、問題を検知できなかった。
-    - チェックが機能していない、あるいは機能として不足している。
-    - 分析。変更量が大きかったぶんミスのリスクが増えていた。
-    - 対策案。もっと小さく一歩ずつ変更させる。
-    - 対策案。リファクタリング時、いきなりメソッド削除をさせない。
-        - まず全cjsの全メソッドのlistをさせる。
-        - のち、削除対象の重複メソッドのlistをさせる。
-        - そして削除planをさせる。
-        - のち、削除させる。
-        - さらに削除後のメソッドlistをさせる。
-        - そして削除しすぎていないかを削除前後のlist比較でチェックさせる。
-        - これでrunまで削除してしまうのを防止できるかもしれない。
-        - これは人力からみると、おかしな話である。人力なら1つずつ移動をするだけであり、ミスのしようがない。
-        - LLMの典型的なハルシネーション問題の一つである、と認識する
-- 結果は？
-    - test green
-    - run メソッドの人力復活は成功した
-    - 日次バッチで生成した次の一手のpromptを投げた
-    - リファクタリング成功した。ProjectSummaryGenerator を切り出した
-- どうする？
-    - 次の一手をagentに生成させてみる（agentに投げるpromptを、翌日の日次バッチで自動生成させる）
-- 結果
-    - 先に、2つのdocument生成を、1つずつ生成できるよう疎結合にリファクタリング、をしたほうがよさそう
-    - agentにそれを投げた
-    - 成功した、と判断する
-    - 課題、`BaseSummaryGenerator.cjs` は、baseの機能と、`ProjectOverviewGenerator.cjs`専用の機能とが混ざっている。
-        - baseに集約すべきは、`ProjectSummaryCoordinator.cjs`と`ProjectOverviewGenerator.cjs`とが必ずどちらも使う機能、である、と考える。
-        - 対策、明日以降それをagentに投げる
-    - `project_summary_cjs_analysis.md` は削除とする。役目が完了した、と判断する。リファクタリング前のソース構造の分析documentであり、今は存在しているとわかりづらくなる。シンプル優先のため削除とする。
-- どうする？
-    - 次の一手をagentに生成させてみる（agentに投げるpromptを、翌日の日次バッチで自動生成させる）
-- 結果
-    - test green
-    - `BaseSummaryGenerator.cjs` を切り出したのは成功した、と判断する
-    - `BaseSummaryGenerator.cjs` を2分割するため、agentにplanさせた
-    - レビューした
-    - agentに2分割させた
-    - レビューした。OKと判断する
-- どうする？
-    - 次の一手をagentに生成させてみる（agentに投げるpromptを、翌日の日次バッチで自動生成させる）
-- 結果
-    - test green
-    - `BaseSummaryGenerator.cjs` を2分割は成功した、と判断する
-    - issue track機能構造をリファクタリングし、以下にする
-        - development status generator : baseを継承する
-        - issue tracker : 汎用関数群
-    - agentに実施させた
-    - レビューした。OKと判断する
-- どうする？
-    - 次の一手をagentに生成させてみる（agentに投げるpromptを、翌日の日次バッチで自動生成させる）
-- 結果
-    - test green
-    - DevelopmentStatusGeneratorとissue trackerのリファクタリングは成功した、と判断する
-    - ProjectOverview生成機能のリファクタリングをする
-    - agentに実施させた
-    - レビューした。OKと判断する
-- どうする？
-    - 次の一手をagentに生成させてみる（agentに投げるpromptを、翌日の日次バッチで自動生成させる）
-- 結果
-    - test green
-    - ProjectOverview生成機能のリファクタリングは成功した、と判断する
-    - 課題、overviewと、developmentStatusとが混在し、dirが読みづらい。
-    - 対策、shared/、overview/、development/、の3つのdirに切り分ける
-    - agentに分析、planさせ、レビューし、planさせ、実施させた
-    - レビューした。OKと判断する
-- どうする？
-    - 次の一手をagentに生成させてみる（agentに投げるpromptを、翌日の日次バッチで自動生成させる）
-- 結果
-    - test green
-    - shared/、overview/、development/、の3つのdirに切り分けるリファクタリングは成功した、と判断する
-    - agentに、agentがメンテしやすいか？の観点からレビューさせた
-    - 詳細は割愛
-        - `> 最優先で取り組むべきは 設定管理の一元化 と エラーハンドリングの統一 です。これにより、Agentにとって予測可能で理解しやすいコードベースになります。`
-        - それは別issueで、設定変更をマストでやるので、OKと判断する
-- これでagentによるメンテは十分しやすくなった、と判断する
-- closeとする
-
-{% endraw %}
-```
-
 ### .github/actions-tmp/issue-notes/2.md
 ```md
 {% raw %}
@@ -821,105 +660,6 @@ jobs:
 {% endraw %}
 ```
 
-### .github/actions-tmp/issue-notes/26.md
-```md
-{% raw %}
-# issue userによるcommitがなくなって24時間超経過しているのに、毎日ムダにproject summaryとcallgraphの自動生成が行われてしまっている #26
-[issues #26](https://github.com/cat2151/github-actions/issues/26)
-
-# どうする？
-- logを確認する。24時間チェックがバグっている想定。
-- もしlogから判別できない場合は、logを改善する。
-
-# log確認結果
-- botによるcommitなのに、user commitとして誤判別されている
-```
-Checking for user commits in the last 24 hours...
-User commits found: true
-Recent user commits:
-7654bf7 Update callgraph.html [auto]
-abd2f2d Update project summaries (overview & development status)
-```
-
-# ざっくり調査結果
-- #27 が判明した
-
-# どうする？
-- [x] #27 を修正する。これで自動的に #26 も修正される想定。
-    - 当該処理を修正する。
-    - もしデータ不足なら、より詳細なlog生成を実装する。
-- 別件として、このチェックはむしろworkflow ymlの先頭で行うのが適切と考える。なぜなら、以降のムダな処理をカットできるのでエコ。
-    - [x] #28 を起票したので、そちらで実施する。
-
-# close条件は？
-- 前提
-    - [x] 先行タスクである #27 と #28 が完了済みであること
-- 誤爆がなくなること。
-    - つまり、userによるcommitがなくなって24時間超経過後の日次バッチにて、
-        - ムダなdevelopment status生成、等がないこと
-        - jobのlogに「commitがないので処理しません」的なmessageが出ること
-- どうする？
-    - 日次バッチを本番を流して本番testする
-
-# 結果
-- github-actions logより：
-    - 直近24hのcommitはbotによる1件のみであった
-    - よって後続jobはskipとなった
-    - ことを確認した
-- close条件を満たした、と判断する
-```
-Run node .github_automation/check_recent_human_commit/scripts/check-recent-human-commit.cjs
-BOT: Commit 5897f0c6df6bc2489f9ce3579b4f351754ee0551 | Author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com> | Message: Update project summaries (overview & development status) [auto]
-has_recent_human_commit=false
-```
-
-# closeとする
-
-{% endraw %}
-```
-
-### .github/actions-tmp/issue-notes/27.md
-```md
-{% raw %}
-# issue LLMが生成したコードに、commit時のemailとnameについて公式推奨と公式非推奨の2つがブレて混在している。さらに判定処理が片方だけ対応になっている #27
-[issues #27](https://github.com/cat2151/github-actions/issues/27)
-
-# 補足
-- さらに、commit messageもブレている。auto があったりなかったりしている。
-    - auto があるほうが適切である、と判断する。
-- 公式推奨とは：
-    - name, emailが推奨、commit messageにautoが入っている
-```
-        git config user.name "github-actions[bot]"
-        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git commit -m "Update callgraph.html [auto]"
-```
-- 公式非推奨とは：
-    - name, emailが非推奨、commit messageにもautoが入っていない
-```
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git commit -m "Add issue note for #${{ inputs.issue_number }}"
-```
-
-# どうする？
-- 当該のworkflowとscriptで、github-actions@github.com 等をgrepし、公式推奨に統一する
-    - 影響範囲
-        - 24hチェック側もブレているので、しばらくは誤爆が続く
-        - #28 を修正して24h待てば、誤爆は解消する見込みである
-- 注意、24hチェックは変更しない。
-    - なぜなら #28 で全面的に修正するため、変更しても手戻りになる。
-- 過去commit messageはそのままとする
-
-# close条件は？
-- [x] name, email, commit comment のlogicが、公式推奨に統一されること
-- [x] #28 が修正されること
-- 以上を満たせば、test不要で、机上checkのみでcloseとする。
-- ほかは #26 のtestで担保する。
-
-{% endraw %}
-```
-
 ### .github/actions-tmp/issue-notes/3.md
 ```md
 {% raw %}
@@ -1001,280 +741,1129 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
-### .github/actions-tmp/issue-notes/7.md
+### .github/actions-tmp/issue-notes/4.md
 ```md
 {% raw %}
-# issue issue note生成できるかのtest用 #7
-[issues #7](https://github.com/cat2151/github-actions/issues/7)
+# issue GitHub Actions「project概要生成」を共通ワークフロー化する #4
+[issues #4](https://github.com/cat2151/github-actions/issues/4)
 
-- 生成できた
-- closeとする
-
-{% endraw %}
+# prompt
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+このymlファイルを、以下の2つのファイルに分割してください。
+1. 共通ワークフロー       cat2151/github-actions/.github/workflows/daily-project-summary.yml
+2. 呼び出し元ワークフロー cat2151/github-actions/.github/workflows/call-daily-project-summary.yml
+まずplanしてください
 ```
 
-### .github/actions-tmp/issue-notes/8.md
-```md
-{% raw %}
-# issue 関数コールグラフhtmlビジュアライズ生成の対象ソースファイルを、呼び出し元ymlで指定できるようにする #8
-[issues #8](https://github.com/cat2151/github-actions/issues/8)
+# 結果、あちこちハルシネーションのあるymlが生成された
+- agentの挙動があからさまにハルシネーション
+    - インデントが修正できない、「失敗した」という
+    - 構文誤りを認識できない
+- 人力で修正した
 
-# これまでの課題
-- 以下が決め打ちになっていた
+# このagentによるセルフレビューが信頼できないため、別のLLMによるセカンドオピニオンを試す
 ```
-  const allowedFiles = [
-    'src/main.js',
-    'src/mml2json.js',
-    'src/play.js'
-  ];
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+以下の2つのファイルをレビューしてください。最優先で、エラーが発生するかどうかだけレビューてください。エラー以外の改善事項のチェックをするかわりに、エラー発生有無チェックに最大限注力してください。
+
+--- 呼び出し元
+
+name: Call Daily Project Summary
+
+on:
+  schedule:
+    # 日本時間 07:00 (UTC 22:00 前日)
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+jobs:
+  call-daily-project-summary:
+    uses: cat2151/github-actions/.github/workflows/daily-project-summary.yml
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+--- 共通ワークフロー
+name: Daily Project Summary
+on:
+  workflow_call:
+
+jobs:
+  generate-summary:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # 履歴を取得するため
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          # 一時的なディレクトリで依存関係をインストール
+          mkdir -p /tmp/summary-deps
+          cd /tmp/summary-deps
+          npm init -y
+          npm install @google/generative-ai @octokit/rest
+          # generated-docsディレクトリを作成
+          mkdir -p $GITHUB_WORKSPACE/generated-docs
+
+      - name: Generate project summary
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          NODE_PATH: /tmp/summary-deps/node_modules
+        run: |
+          node .github/scripts/generate-project-summary.cjs
+
+      - name: Check for generated summaries
+        id: check_summaries
+        run: |
+          if [ -f "generated-docs/project-overview.md" ] && [ -f "generated-docs/development-status.md" ]; then
+            echo "summaries_generated=true" >> $GITHUB_OUTPUT
+          else
+            echo "summaries_generated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push summaries
+        if: steps.check_summaries.outputs.summaries_generated == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          # package.jsonの変更のみリセット（generated-docsは保持）
+          git restore package.json 2>/dev/null || true
+          # サマリーファイルのみを追加
+          git add generated-docs/project-overview.md
+          git add generated-docs/development-status.md
+          git commit -m "Update project summaries (overview & development status)"
+          git push
+
+      - name: Summary generation result
+        run: |
+          if [ "${{ steps.check_summaries.outputs.summaries_generated }}" == "true" ]; then
+            echo "✅ Project summaries updated successfully"
+            echo "📊 Generated: project-overview.md & development-status.md"
+          else
+            echo "ℹ️ No summaries generated (likely no user commits in the last 24 hours)"
+          fi
 ```
 
-# 対策
-- 呼び出し元ymlで指定できるようにする
+# 上記promptで、2つのLLMにレビューさせ、合格した
 
-# agent
-- agentにやらせることができれば楽なので、初手agentを試した
-- 失敗
-    - ハルシネーションしてscriptを大量破壊した
-- 分析
-    - 修正対象scriptはagentが生成したもの
-    - 低品質な生成結果でありソースが巨大
-    - ハルシネーションで破壊されやすいソース
-    - AIの生成したソースは、必ずしもAIフレンドリーではない
+# 細部を、先行する2つのymlを参照に手直しした
 
-# 人力リファクタリング
-- 低品質コードを、最低限agentが扱えて、ハルシネーションによる大量破壊を防止できる内容、にする
-- 手短にやる
-    - そもそもビジュアライズは、agentに雑に指示してやらせたもので、
-    - 今後別のビジュアライザを選ぶ可能性も高い
-    - 今ここで手間をかけすぎてコンコルド効果（サンクコストバイアス）を増やすのは、project群をトータルで俯瞰して見たとき、損
-- 対象
-    - allowedFiles のあるソース
-        - callgraph-utils.cjs
-            - たかだか300行未満のソースである
-            - この程度でハルシネーションされるのは予想外
-            - やむなし、リファクタリングでソース分割を進める
-
-# agentに修正させる
-## prompt
-```
-allowedFilesを引数で受け取るようにしたいです。
-ないならエラー。
-最終的に呼び出し元すべてに波及して修正したいです。
-
-呼び出し元をたどってエントリポイントも見つけて、
-エントリポイントにおいては、
-引数で受け取ったjsonファイル名 allowedFiles.js から
-jsonファイル allowedFiles.jsonの内容をreadして
-変数 allowedFilesに格納、
-後続処理に引き渡す、としたいです。
-
-まずplanしてください。
-planにおいては、修正対象のソースファイル名と関数名を、呼び出し元を遡ってすべて特定し、listしてください。
-```
-
-# 修正が順調にできた
-- コマンドライン引数から受け取る作りになっていなかったので、そこだけ指示して修正させた
-- yml側は人力で修正した
-
-# 他のリポジトリから呼び出した場合にバグらないよう修正する
-- 気付いた
-    - 共通ワークフローとして他のリポジトリから使った場合はバグるはず。
-        - ymlから、共通ワークフロー側リポジトリのcheckoutが漏れているので。
-- 他のyml同様に修正する
-- あわせて全体にymlをリファクタリングし、修正しやすくし、今後のyml読み書きの学びにしやすくする
-
-# local WSL + act : test green
-
-# closeとする
-- もし生成されたhtmlがNGの場合は、別issueとするつもり
-
-{% endraw %}
-```
-
-### .github/actions-tmp/issue-notes/9.md
-```md
-{% raw %}
-# issue 関数コールグラフhtmlビジュアライズが0件なので、原因を可視化する #9
-[issues #9](https://github.com/cat2151/github-actions/issues/9)
-
-# agentに修正させたり、人力で修正したりした
-- agentがハルシネーションし、いろいろ根の深いバグにつながる、エラー隠蔽などを仕込んでいたため、検知が遅れた
-- 詳しくはcommit logを参照のこと
-- WSL + actの環境を少し変更、act起動時のコマンドライン引数を変更し、generated-docsをmountする（ほかはデフォルト挙動であるcpだけにする）ことで、デバッグ情報をコンテナ外に出力できるようにし、デバッグを効率化した
+# ローカルtestをしてからcommitできるとよい。方法を検討する
+- ローカルtestのメリット
+    - 素早く修正のサイクルをまわせる
+    - ムダにgit historyを汚さない
+        - これまでの事例：「実装したつもり」「エラー。修正したつもり」「エラー。修正したつもり」...（以降エラー多数）
+- 方法
+    - ※検討、WSL + act を環境構築済みである。test可能であると判断する
+    - 呼び出し元のURLをコメントアウトし、相対パス記述にする
+    - ※備考、テスト成功すると結果がcommit pushされる。それでよしとする
+- 結果
+    - OK
+    - secretsを簡略化できるか試した、できなかった、現状のsecrets記述が今わかっている範囲でベストと判断する
+    - OK
 
 # test green
 
+# commit用に、yml 呼び出し元 uses をlocal用から本番用に書き換える
+
 # closeとする
 
 {% endraw %}
 ```
 
-### .github/workflows/ci.yml
-```yml
+### demo-library/log-visualizer.ts
+```ts
 {% raw %}
-name: CI
+import {
+	type YmLogEvent,
+	NOTE_CODE_TO_SEMITONE,
+	PIXELS_PER_SECOND,
+	parseHexByte,
+} from "./ym2151-utils";
 
-on:
-  push:
-    branches: [ main ]
+type LaneElements = {
+	root: HTMLElement;
+	track: HTMLElement;
+};
 
-env:
-  CARGO_TERM_COLOR: always
+type NoteOnState = { time: number; kc: number; kf: number };
 
-permissions:
-  contents: read
-  issues: write
+type NoteSegment = {
+	startTime: number;
+	endTime: number;
+	kc: number;
+	kf: number;
+	ch: number;
+};
 
-jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache target directory
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
-      - name: Build
-        run: cargo build --verbose
-      - name: Build release
-        run: cargo build --release --verbose
-      - name: Create issue on failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python .github/scripts/create_ci_issue.py --label "ci-build-failure" --title "CI build failed"
+/** Config for a single LFO-modulated register (base register in hex, e.g. "0x60"). */
+export type LfoRegisterConfig = {
+	baseRegister: string;
+	label?: string;
+};
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache target directory
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
-      - name: Run tests
-        run: cargo test --verbose
-      - name: Create issue on failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python .github/scripts/create_ci_issue.py --label "ci-test-failure" --title "CI test failed"
+export type LogVisualizer = {
+	renderFromJson: (jsonText: string | null | undefined) => void;
+	clear: () => void;
+	/** Provide LFO register config so the visualizer can draw waveform lanes. */
+	setLfoRegisters: (registers: LfoRegisterConfig[]) => void;
+};
 
-  format:
-    name: Auto Format
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-      - name: Run cargo fmt
-        run: cargo fmt
-      - name: Commit formatted files
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git diff --quiet || (git add -A && git commit -m "style: auto-format with cargo fmt")
-      - name: Push changes
-        run: git push
-      - name: Create issue on failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python .github/scripts/create_ci_issue.py --label "ci-format-failure" --title "CI auto-format failed"
+const DEFAULT_CHANNELS = 8;
+const MIN_TRACK_WIDTH = 640;
+const MAX_TRACK_WIDTH = 6400;
+const EVENT_WIDTH = 4;
+const KC_REGISTER_BASE = 0x28;
+const KF_REGISTER_BASE = 0x30;
+const TRACK_HEIGHT = 80;
+const NOTE_BAR_HEIGHT = 8;
+const MIN_NOTE_WIDTH = 2;
+const NOTE_WIDTH_GAP = 1;
+const UNCLOSED_NOTE_EXTENSION_S = 0.1;
+// Minimum segment duration to keep DOM node count manageable.
+// Segments shorter than one pixel at the current scale are coalesced into their successor.
+const MIN_SEGMENT_SECONDS = MIN_NOTE_WIDTH / PIXELS_PER_SECOND;
 
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo index
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/git
-          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache target directory
-        uses: actions/cache@v4
-        with:
-          path: target
-          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
-      - name: Run clippy
-        run: cargo clippy -- -D warnings
-      - name: Create issue on failure
-        if: failure()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python .github/scripts/create_ci_issue.py --label "ci-clippy-failure" --title "CI clippy failed"
+/**
+ * Mirrors the Rust `resolve_register_for_channel` function.
+ * Given a base register and YM2151 channel index, returns the per-channel address.
+ */
+function resolveRegisterForChannel(baseReg: number, channel: number): number {
+	if (baseReg >= 0x20 && baseReg <= 0x27) return 0x20 + channel;
+	if (baseReg >= 0x28 && baseReg <= 0x2f) return 0x28 + channel;
+	if (baseReg >= 0x30 && baseReg <= 0x37) return 0x30 + channel;
+	if (baseReg >= 0x38 && baseReg <= 0x3f) return 0x38 + channel;
+	if (baseReg >= 0x40) {
+		const base = baseReg & 0xe0;
+		const slot = baseReg & 0x1f;
+		const operator = Math.floor(slot / 8);
+		const newSlot = channel + operator * 8;
+		return base + newSlot;
+	}
+	return baseReg;
+}
+
+/**
+ * For each LFO base register, collect the set of resolved per-channel addresses
+ * (for the 8 YM2151 channels) that appear in the event list.
+ */
+function collectLfoEvents(
+	events: YmLogEvent[],
+	lfoRegisters: LfoRegisterConfig[],
+	channelCount: number,
+): Map<
+	string,
+	{ addr: number; label: string; events: { x: number; data: number }[] }
+> {
+	const result = new Map<
+		string,
+		{ addr: number; label: string; events: { x: number; data: number }[] }
+	>();
+
+	if (lfoRegisters.length === 0) return result;
+
+	// Build address → (baseKey, label) lookup for all channel-resolved addresses
+	const addrToKey = new Map<number, { key: string; label: string }>();
+	for (const lfoDef of lfoRegisters) {
+		const base = parseHexByte(lfoDef.baseRegister);
+		if (base === null) continue;
+		const key = lfoDef.baseRegister;
+		const label = lfoDef.label ?? `LFO ${lfoDef.baseRegister}`;
+		for (let ch = 0; ch < channelCount; ch++) {
+			const resolved = resolveRegisterForChannel(base, ch);
+			addrToKey.set(resolved, { key, label });
+		}
+	}
+
+	for (const event of events) {
+		const addr = parseHexByte(event.addr);
+		const data = parseHexByte(event.data);
+		if (addr === null || data === null) continue;
+		const entry = addrToKey.get(addr);
+		if (!entry) continue;
+		if (!result.has(entry.key)) {
+			result.set(entry.key, {
+				addr: parseHexByte(entry.key) ?? addr,
+				label: entry.label,
+				events: [],
+			});
+		}
+		result.get(entry.key)!.events.push({ x: event.time, data });
+	}
+
+	return result;
+}
+
+/**
+ * Render an LFO waveform lane below the channel lanes.
+ * Events are plotted as dots whose Y position is proportional to the data byte value,
+ * scaled between the observed minimum and maximum so the full lane height is used.
+ */
+function renderLfoLane(
+	container: HTMLElement,
+	label: string,
+	lfoEvts: { x: number; data: number }[],
+	trackWidth: number,
+): void {
+	if (lfoEvts.length === 0) return;
+
+	let minVal = Number.POSITIVE_INFINITY;
+	let maxVal = Number.NEGATIVE_INFINITY;
+	for (const e of lfoEvts) {
+		if (e.data < minVal) minVal = e.data;
+		if (e.data > maxVal) maxVal = e.data;
+	}
+
+	const lane = createLane(`${label} ${minVal}–${maxVal}`, trackWidth);
+	container.appendChild(lane.root);
+
+	const valueRange = maxVal - minVal;
+	const usableHeight = TRACK_HEIGHT - EVENT_WIDTH;
+
+	for (const e of lfoEvts) {
+		const ratio = valueRange > 0 ? (e.data - minVal) / valueRange : 0.5;
+		// High data value → low Y (top of track); low data value → high Y (bottom)
+		const top = Math.round((1 - ratio) * usableHeight);
+
+		const dot = document.createElement("div");
+		dot.className = "log-visualizer-event log-visualizer-event--lfo";
+		dot.style.left = `${Math.max(0, Math.min(trackWidth - EVENT_WIDTH, e.x * PIXELS_PER_SECOND))}px`;
+		dot.style.top = `${top}px`;
+		dot.title = `t=${e.x.toFixed(3)}s data=0x${e.data.toString(16).padStart(2, "0")}`;
+		lane.track.appendChild(dot);
+	}
+}
+
+function detectChannel(
+	addrHex: string,
+	dataHex: string,
+	channelCount: number,
+): number | null {
+	const addr = parseHexByte(addrHex);
+	if (addr === null) return null;
+
+	if (addr === 0x08) {
+		const data = parseHexByte(dataHex);
+		if (data !== null) {
+			return data & 0x07;
+		}
+	}
+
+	if (addr >= 0x20) {
+		const channel = addr & 0x07;
+		return channel < channelCount ? channel : null;
+	}
+
+	return null;
+}
+
+function buildNoteSegments(
+	events: YmLogEvent[],
+	channelCount: number,
+): NoteSegment[] {
+	// YM2151 has exactly 8 channels; KC and KF registers are always 0x28-0x2F and 0x30-0x37.
+	const ymChannelCount = Math.min(channelCount, DEFAULT_CHANNELS);
+	const channelKC: number[] = Array(channelCount).fill(0);
+	const channelKF: number[] = Array(channelCount).fill(0);
+	const channelNoteOn: Array<NoteOnState | null> =
+		Array(channelCount).fill(null);
+	const segments: NoteSegment[] = [];
+
+	for (const event of events) {
+		const addr = parseHexByte(event.addr);
+		const data = parseHexByte(event.data);
+		if (addr === null || data === null) continue;
+
+		if (addr >= KC_REGISTER_BASE && addr < KC_REGISTER_BASE + ymChannelCount) {
+			const ch = addr - KC_REGISTER_BASE;
+			const newKC = data;
+			// If KC changes while a note is held, close the current segment and
+			// open a new one with the updated pitch (handles portamento/vibrato).
+			if (channelNoteOn[ch] && channelKC[ch] !== newKC) {
+				const noteOn = channelNoteOn[ch] as NoteOnState;
+				const duration = event.time - noteOn.time;
+				if (duration >= MIN_SEGMENT_SECONDS) {
+					segments.push({
+						startTime: noteOn.time,
+						endTime: event.time,
+						kc: noteOn.kc,
+						kf: noteOn.kf,
+						ch,
+					});
+					channelNoteOn[ch] = {
+						time: event.time,
+						kc: newKC,
+						kf: channelKF[ch],
+					};
+				} else {
+					// Too short to be individually visible; update pitch without splitting.
+					channelNoteOn[ch] = { ...noteOn, kc: newKC, kf: channelKF[ch] };
+				}
+			}
+			channelKC[ch] = newKC;
+		}
+
+		// KF register (0x30-0x37): fine pitch in 1/64 semitone steps.
+		// Track changes alongside KC to show continuous vibrato motion.
+		if (addr >= KF_REGISTER_BASE && addr < KF_REGISTER_BASE + ymChannelCount) {
+			const ch = addr - KF_REGISTER_BASE;
+			const newKF = data;
+			if (channelNoteOn[ch] && channelKF[ch] !== newKF) {
+				const noteOn = channelNoteOn[ch] as NoteOnState;
+				// Avoid creating a zero-duration segment when KC and KF updates
+				// occur at the same timestamp (the converter emits them as a pair).
+				// Also skip splitting when the accumulated segment is too short to render.
+				if (
+					noteOn.time !== event.time &&
+					event.time - noteOn.time >= MIN_SEGMENT_SECONDS
+				) {
+					segments.push({
+						startTime: noteOn.time,
+						endTime: event.time,
+						kc: noteOn.kc,
+						kf: noteOn.kf,
+						ch,
+					});
+					channelNoteOn[ch] = {
+						time: event.time,
+						kc: channelKC[ch],
+						kf: newKF,
+					};
+				} else {
+					// Coalesce into the current segment (same-timestamp or sub-pixel).
+					channelNoteOn[ch] = { ...noteOn, kf: newKF };
+				}
+			}
+			channelKF[ch] = newKF;
+		}
+
+		if (addr === 0x08) {
+			const ch = data & 0x07;
+			const operators = (data >> 3) & 0x0f;
+			if (ch >= 0 && ch < channelCount) {
+				if (operators !== 0) {
+					if (!channelNoteOn[ch]) {
+						channelNoteOn[ch] = {
+							time: event.time,
+							kc: channelKC[ch],
+							kf: channelKF[ch],
+						};
+					}
+				} else {
+					const noteOn = channelNoteOn[ch];
+					if (noteOn) {
+						segments.push({
+							startTime: noteOn.time,
+							endTime: event.time,
+							kc: noteOn.kc,
+							kf: noteOn.kf,
+							ch,
+						});
+						channelNoteOn[ch] = null;
+					}
+				}
+			}
+		}
+	}
+
+	const lastTime =
+		events.length > 0
+			? events[events.length - 1].time + UNCLOSED_NOTE_EXTENSION_S
+			: 0;
+	for (let ch = 0; ch < channelCount; ch++) {
+		const noteOn = channelNoteOn[ch];
+		if (noteOn) {
+			segments.push({
+				startTime: noteOn.time,
+				endTime: lastTime,
+				kc: noteOn.kc,
+				kf: noteOn.kf,
+				ch,
+			});
+		}
+	}
+
+	return segments;
+}
+
+/**
+ * Combined pitch value for visualization.
+ *
+ * YM2151 KC layout:
+ *   - high nibble: YM2151 octave (0–7); each octave starts at C#
+ *   - low nibble: note code (from NOTE_TABLE), decoded via NOTE_CODE_TO_SEMITONE
+ *
+ * We decode KC into a linear semitone index and then add KF (fine pitch,
+ * 1/64 semitone per step) so that the result is monotonic with actual pitch
+ * and suitable for Y-axis placement.
+ */
+function notePitch(kc: number, kf: number): number {
+	const octave = (kc >> 4) & 0x07;
+	const noteCode = kc & 0x0f;
+	const semitone = NOTE_CODE_TO_SEMITONE[noteCode] ?? noteCode;
+	const linearSemitone = octave * 12 + semitone;
+	const fine = kf & 0x3f; // KF is 6-bit, 0-63
+	return linearSemitone * 64 + fine;
+}
+
+function computePitchRange(segments: NoteSegment[]): {
+	min: number;
+	max: number;
+} {
+	if (segments.length === 0) return { min: 0, max: 0 };
+	let min = notePitch(segments[0].kc, segments[0].kf);
+	let max = min;
+	for (const seg of segments) {
+		const pitch = notePitch(seg.kc, seg.kf);
+		if (pitch < min) min = pitch;
+		if (pitch > max) max = pitch;
+	}
+	return { min, max };
+}
+
+function noteYPosition(
+	kc: number,
+	kf: number,
+	minPitch: number,
+	maxPitch: number,
+): number {
+	const pitch = notePitch(kc, kf);
+	const range = maxPitch - minPitch;
+	if (range === 0) return (TRACK_HEIGHT - NOTE_BAR_HEIGHT) / 2;
+	return ((maxPitch - pitch) / range) * (TRACK_HEIGHT - NOTE_BAR_HEIGHT);
+}
+
+function normalizeEvents(parsed: unknown): YmLogEvent[] {
+	if (!parsed || typeof parsed !== "object") return [];
+	const rawEvents = (parsed as { events?: unknown }).events;
+	if (!Array.isArray(rawEvents)) return [];
+
+	return rawEvents
+		.map((event) => {
+			if (!event || typeof event !== "object") return null;
+			const e = event as { time?: unknown; addr?: unknown; data?: unknown };
+			const time =
+				typeof e.time === "number"
+					? e.time
+					: typeof e.time === "string"
+						? Number(e.time)
+						: Number.NaN;
+			const addr = typeof e.addr === "string" ? e.addr : "";
+			const data = typeof e.data === "string" ? e.data : "";
+			if (!Number.isFinite(time) || !addr || !data) return null;
+			return { time, addr, data };
+		})
+		.filter((e): e is YmLogEvent => Boolean(e));
+}
+
+function laneColor(index: number | null): string {
+	if (index === null) return "#8a8a8a";
+	const hue = (index * 37) % 360;
+	return `hsl(${hue}, 70%, 55%)`;
+}
+
+function createLane(label: string, trackWidth: number): LaneElements {
+	const root = document.createElement("div");
+	root.className = "log-visualizer-lane";
+
+	const labelEl = document.createElement("div");
+	labelEl.className = "log-visualizer-label";
+	labelEl.textContent = label;
+	root.appendChild(labelEl);
+
+	const track = document.createElement("div");
+	track.className = "log-visualizer-track";
+	track.style.width = `${trackWidth}px`;
+	root.appendChild(track);
+
+	return { root, track };
+}
+
+function computeTrackWidth(events: YmLogEvent[]): number {
+	const maxTime = events.reduce((max, e) => Math.max(max, e.time), 0);
+	const width = maxTime * PIXELS_PER_SECOND + 40;
+	return Math.min(MAX_TRACK_WIDTH, Math.max(MIN_TRACK_WIDTH, width));
+}
+
+export function createLogVisualizer(
+	container: HTMLElement | null,
+	options?: { channelCount?: number },
+): LogVisualizer {
+	if (!container) {
+		return {
+			renderFromJson: () => {
+				/* no-op */
+			},
+			clear: () => {
+				/* no-op */
+			},
+			setLfoRegisters: () => {
+				/* no-op */
+			},
+		};
+	}
+
+	const channelCount = Math.max(
+		1,
+		Math.min(16, options?.channelCount ?? DEFAULT_CHANNELS),
+	);
+
+	let lfoRegisters: LfoRegisterConfig[] = [];
+	let lastJsonText: string | null | undefined = null;
+
+	const renderEmpty = (message: string) => {
+		container.classList.add("log-visualizer", "log-visualizer--empty");
+		container.innerHTML = "";
+		const empty = document.createElement("div");
+		empty.className = "log-visualizer-empty";
+		empty.textContent = message;
+		container.appendChild(empty);
+	};
+
+	const renderFromJson = (jsonText: string | null | undefined) => {
+		lastJsonText = jsonText;
+		if (!jsonText || jsonText.trim().length === 0) {
+			renderEmpty("変換結果がまだありません。");
+			return;
+		}
+
+		let events: YmLogEvent[] = [];
+		try {
+			const parsed = JSON.parse(jsonText);
+			events = normalizeEvents(parsed);
+		} catch {
+			renderEmpty("ログ JSON を解釈できませんでした。");
+			return;
+		}
+
+		if (events.length === 0) {
+			renderEmpty("描画できるイベントがありません。");
+			return;
+		}
+
+		const trackWidth = computeTrackWidth(events);
+		const segments = buildNoteSegments(events, channelCount);
+		const { min: minPitch, max: maxPitch } = computePitchRange(segments);
+
+		container.classList.add("log-visualizer");
+		container.classList.remove("log-visualizer--empty");
+		container.innerHTML = "";
+
+		const lanes: Record<string, LaneElements> = {};
+
+		for (let ch = 0; ch < channelCount; ch += 1) {
+			const lane = createLane(`CH ${ch}`, trackWidth);
+			container.appendChild(lane.root);
+			lanes[ch.toString()] = lane;
+		}
+
+		let globalLane: LaneElements | null = null;
+		const ensureGlobalLane = () => {
+			if (globalLane) return globalLane;
+			globalLane = createLane("GLOBAL", trackWidth);
+			container.appendChild(globalLane.root);
+			return globalLane;
+		};
+
+		// Render other events as small background dots (rendered first so note bars appear on top)
+		// Build a set of all LFO-resolved addresses so they can be suppressed in channel lanes
+		const lfoAddrSet = new Set<number>();
+		for (const lfoDef of lfoRegisters) {
+			const base = parseHexByte(lfoDef.baseRegister);
+			if (base === null) continue;
+			for (let ch = 0; ch < channelCount; ch++) {
+				lfoAddrSet.add(resolveRegisterForChannel(base, ch));
+			}
+		}
+
+		events.forEach((event, index) => {
+			const addr = parseHexByte(event.addr);
+			// Suppress KC (0x28-0x2F), KF (0x30-0x37), KEY ON/OFF (0x08), and LFO registers —
+			// these are shown via note bars or dedicated LFO lanes.
+			const isKcKfOrKeyOn =
+				addr !== null &&
+				((addr >= KC_REGISTER_BASE &&
+					addr < KC_REGISTER_BASE + DEFAULT_CHANNELS) ||
+					(addr >= KF_REGISTER_BASE &&
+						addr < KF_REGISTER_BASE + DEFAULT_CHANNELS) ||
+					addr === 0x08);
+			if (isKcKfOrKeyOn) return;
+			if (addr !== null && lfoAddrSet.has(addr)) return;
+
+			const channel = detectChannel(event.addr, event.data, channelCount);
+			const lane =
+				channel !== null && channel >= 0 && channel < channelCount
+					? lanes[channel.toString()]
+					: ensureGlobalLane();
+			const marker = document.createElement("div");
+			marker.className = "log-visualizer-event";
+			marker.style.left = `${Math.max(0, Math.min(trackWidth - EVENT_WIDTH, event.time * PIXELS_PER_SECOND))}px`;
+			marker.style.backgroundColor = laneColor(channel);
+			marker.title = `t=${event.time.toFixed(3)}s addr=${event.addr} data=${event.data} (#${index})`;
+			lane.track.appendChild(marker);
+		});
+
+		// Render note bars on top (piano-roll style: keyon/off + KC pitch)
+		for (const seg of segments) {
+			const lane = lanes[seg.ch.toString()];
+			if (!lane) continue;
+			const bar = document.createElement("div");
+			bar.className = "log-visualizer-note";
+			const x = Math.max(
+				0,
+				Math.min(
+					trackWidth - MIN_NOTE_WIDTH,
+					seg.startTime * PIXELS_PER_SECOND,
+				),
+			);
+			const w = Math.max(
+				MIN_NOTE_WIDTH,
+				(seg.endTime - seg.startTime) * PIXELS_PER_SECOND - NOTE_WIDTH_GAP,
+			);
+			const y = noteYPosition(seg.kc, seg.kf, minPitch, maxPitch);
+			bar.style.left = `${x}px`;
+			bar.style.width = `${w}px`;
+			bar.style.top = `${y}px`;
+			bar.style.backgroundColor = laneColor(seg.ch);
+			bar.title = `CH${seg.ch} KC=0x${seg.kc.toString(16).padStart(2, "0")} KF=0x${seg.kf.toString(16).padStart(2, "0")} t=${seg.startTime.toFixed(3)}-${seg.endTime.toFixed(3)}s`;
+			lane.track.appendChild(bar);
+		}
+
+		// Render LFO waveform lanes (one per configured LFO base register)
+		if (lfoRegisters.length > 0) {
+			const lfoData = collectLfoEvents(events, lfoRegisters, channelCount);
+			for (const [, entry] of lfoData) {
+				renderLfoLane(container, entry.label, entry.events, trackWidth);
+			}
+		}
+	};
+
+	renderEmpty("YM2151 ログを変換するとここに描画します。");
+
+	const setLfoRegisters = (registers: LfoRegisterConfig[]) => {
+		lfoRegisters = registers;
+		// Re-render with the new LFO config if we already have data
+		if (lastJsonText != null) {
+			renderFromJson(lastJsonText);
+		}
+	};
+
+	return {
+		renderFromJson,
+		clear: () => {
+			lastJsonText = null;
+			renderEmpty("YM2151 ログを変換するとここに描画します。");
+		},
+		setLfoRegisters,
+	};
+}
 
 {% endraw %}
 ```
 
-### issue-notes/115.md
-```md
+### demo-library/tone-json-demo.ts
+```ts
 {% raw %}
-# issue 添付JSONについて、隣接する（後続の番号への）線形補間音色変化のon/offを実装し、demo pageも新規追加する #115
-[issues #115](https://github.com/cat2151/smf-to-ym2151log-rust/issues/115)
+import "./style.css";
 
-- 要は、ProgramChange0と1を定義し、さらにProgramChange0側に、「changeToNextTone: true」「changeToNextToneTime: 5」を指定すれば、
-- 5秒で、ProgramChange1の音色に線形補間で変化する。
-- つまりレジスタbase値を、5秒の間、連続して変更し続けて、レジスタ書き込みeventを発生させる。
-- これにより、MULがProgramChange0において1で、ProgramChange1においてMUL6だった音色は、1秒ごとにMULの値が1ずつ変化して、音色変化をすることになる。
-- よりスタンダードな用途としては、モジュレータTLがProgramChange0と1とで、20違う音色があれば、5秒間でモジュレータTLが変わって音色の倍音成分が滑らかに変化していくことになる。
-- ProgramChange1の音色に変わったのち、5秒かけて、ProgramChange0の音色に戻る。これをループする。
-- これは仮formatである
-   -  UX検証後、検証データを元に、「隣接音色」という結合、を使わない、より使いやすいformatを検討する。
-   - 例えばNRPN定義を添付JSONで行い、そこで定義したNRPNがSMFにあればこれをon/offや、動的なパラメータ変更、あるいはProgramChangeがある場所をみて自動的に時間を決定、などである。
-   - 今やらないのは、データ不足、YAGNI、であるから。
+import { smf_to_ym2151_json_with_attachment } from "smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js";
+import {
+	ensureWasmInitialized,
+	ensureWebYm2151,
+	setEventCountDisplay,
+	setStatus,
+	updateOutput,
+} from "./shared-demo";
+import { createLogVisualizer } from "./log-visualizer";
+import {
+	ATTACHMENT_PRESETS,
+	YM_LOG_STYLE_PRESET,
+	normalizeAttachmentText,
+} from "./tone-json-attachment";
+import {
+	ensureMmlRuntime,
+	getMmlParser,
+	getParseTreeJsonToSmf,
+	treeToJson,
+} from "./tone-json-mml";
 
-   
+let wasmReady = false;
+let midiBytes: Uint8Array | null = null;
+let currentOutput: string | null = null;
+let attachmentDebounce: number | null = null;
+let mmlDebounce: number | null = null;
+let latestMidiRequestId = 0;
+let latestAutoPlayId = 0;
+let lastMidiSource: "file" | "mml" | null = null;
+
+const toneJsonField = document.getElementById(
+	"tone-json",
+) as HTMLTextAreaElement | null;
+const conversionOutput = document.getElementById(
+	"conversion-output",
+) as HTMLPreElement | null;
+const conversionStatus = document.getElementById("conversion-status");
+const attachmentStatus = document.getElementById("attachment-status");
+const fileStatus = document.getElementById("file-status");
+const mmlStatus = document.getElementById("mml-status");
+const eventCount = document.getElementById("event-count");
+const jsonEditor = document.getElementById(
+	"jsonEditor",
+) as HTMLTextAreaElement | null;
+const playButton = document.getElementById(
+	"play-audio",
+) as HTMLButtonElement | null;
+const attachmentPresetSelect = document.getElementById(
+	"attachment-preset",
+) as HTMLSelectElement | null;
+const webYmStatus = document.getElementById("web-ym-status");
+const mmlInput = document.getElementById(
+	"mml-input",
+) as HTMLTextAreaElement | null;
+const logVisualizer = createLogVisualizer(
+	document.getElementById("log-visualizer"),
+);
+
+function updateOutputWithState(text: string): void {
+	currentOutput = text;
+	updateOutput(text, conversionOutput, jsonEditor, () => {
+		logVisualizer.renderFromJson(text);
+		updatePlayButtonState();
+	});
+}
+
+function updatePlayButtonState(): void {
+	if (!playButton) return;
+	playButton.disabled = !currentOutput;
+}
+
+async function convertMmlToSmf(trigger: string): Promise<void> {
+	if (!mmlInput) return;
+	const mmlText = mmlInput.value.trim();
+	if (mmlText.length === 0) {
+		if (lastMidiSource === "mml") {
+			midiBytes = null;
+			lastMidiSource = null;
+		}
+		setStatus(mmlStatus, "MML を入力すると SMF を生成します。");
+		return;
+	}
+
+	const requestId = ++latestMidiRequestId;
+	const initialized = await ensureMmlRuntime(mmlStatus);
+	if (!initialized || !getMmlParser() || !getParseTreeJsonToSmf()) {
+		return;
+	}
+	if (requestId !== latestMidiRequestId) {
+		return;
+	}
+
+	try {
+		const parser = getMmlParser()!;
+		const smfConverter = getParseTreeJsonToSmf()!;
+		const tree = parser.parse(mmlText);
+		const treeJson = JSON.stringify(treeToJson(tree.rootNode, mmlText));
+		const smfBytes = smfConverter(treeJson, mmlText);
+		const midiArray =
+			smfBytes instanceof Uint8Array ? smfBytes : new Uint8Array(smfBytes);
+
+		if (requestId !== latestMidiRequestId) {
+			return;
+		}
+
+		midiBytes = midiArray;
+		lastMidiSource = "mml";
+		setStatus(
+			fileStatus,
+			`MML 入力を SMF に変換しました (${midiArray.byteLength} bytes)`,
+		);
+		setStatus(mmlStatus, "MML から SMF への変換が完了しました。");
+		void runConversion(trigger);
+	} catch (error) {
+		if (requestId !== latestMidiRequestId) {
+			return;
+		}
+		setStatus(
+			mmlStatus,
+			`MML 変換に失敗しました: ${(error as Error).message}`,
+			true,
+		);
+	}
+}
+
+function readAttachmentBytes(): Uint8Array | null {
+	if (!toneJsonField) {
+		return new Uint8Array();
+	}
+
+	const original = toneJsonField.value;
+	const normalized = normalizeAttachmentText(original, attachmentStatus);
+	if (normalized === null) {
+		return null;
+	}
+	if (normalized.length === 0) {
+		return new Uint8Array();
+	}
+
+	toneJsonField.value = normalized;
+	if (
+		attachmentPresetSelect &&
+		attachmentPresetSelect.value !== "" &&
+		normalized.trim() !== original.trim()
+	) {
+		attachmentPresetSelect.value = "";
+	}
+	return new TextEncoder().encode(normalized);
+}
+
+async function runConversion(trigger: string): Promise<void> {
+	if (!wasmReady) {
+		setStatus(conversionStatus, "WASM 初期化中です。少しお待ちください...");
+		return;
+	}
+	if (!midiBytes) {
+		setStatus(
+			conversionStatus,
+			"SMF ファイルを選択するか、MML を入力してください。",
+			true,
+		);
+		return;
+	}
+
+	const attachmentBytes = readAttachmentBytes();
+	if (attachmentBytes === null) {
+		updatePlayButtonState();
+		return;
+	}
+
+	try {
+		const triggerLabel =
+			lastMidiSource === "mml"
+				? `${trigger} (MML 入力)`
+				: lastMidiSource === "file"
+					? `${trigger} (SMF ファイル)`
+					: trigger;
+		setStatus(conversionStatus, `変換中... (${triggerLabel})`);
+		const result = smf_to_ym2151_json_with_attachment(
+			midiBytes,
+			attachmentBytes,
+		);
+		const parsed = JSON.parse(result);
+		const formatted = JSON.stringify(parsed, null, 2);
+		setEventCountDisplay(
+			eventCount,
+			typeof parsed.event_count === "number" ? parsed.event_count : undefined,
+		);
+		updateOutputWithState(formatted);
+		setStatus(conversionStatus, "変換が完了しました。");
+		void handlePlay(++latestAutoPlayId);
+	} catch (error) {
+		updateOutputWithState("");
+		setEventCountDisplay(eventCount, undefined);
+		setStatus(
+			conversionStatus,
+			`変換に失敗しました: ${(error as Error).message}`,
+			true,
+		);
+	}
+}
+
+async function handlePlay(autoPlayId?: number): Promise<void> {
+	if (!currentOutput) {
+		setStatus(conversionStatus, "先に SMF を変換してください。", true);
+		return;
+	}
+	setStatus(conversionStatus, "web-ym2151 で再生します...");
+	try {
+		const api = await ensureWebYm2151();
+		if (autoPlayId !== undefined && autoPlayId !== latestAutoPlayId) {
+			return;
+		}
+		api.playAudioWithOverlay();
+		setStatus(conversionStatus, "再生コマンドを送信しました。");
+	} catch (error) {
+		setStatus(
+			conversionStatus,
+			`再生に失敗しました: ${(error as Error).message}`,
+			true,
+		);
+	}
+}
+
+function setupAttachmentEditor(): void {
+	if (!toneJsonField) return;
+	toneJsonField.value = YM_LOG_STYLE_PRESET;
+
+	if (attachmentPresetSelect) {
+		attachmentPresetSelect.innerHTML = "";
+		const manualOption = document.createElement("option");
+		manualOption.value = "";
+		manualOption.textContent = "手動入力";
+		attachmentPresetSelect.appendChild(manualOption);
+		ATTACHMENT_PRESETS.forEach((preset) => {
+			const option = document.createElement("option");
+			option.value = preset.id;
+			option.textContent = preset.label;
+			attachmentPresetSelect.appendChild(option);
+		});
+		attachmentPresetSelect.value = ATTACHMENT_PRESETS[0]?.id ?? "";
+		attachmentPresetSelect.addEventListener("change", () => {
+			const preset = ATTACHMENT_PRESETS.find(
+				(p) => p.id === attachmentPresetSelect.value,
+			);
+			if (!preset || !toneJsonField) return;
+			toneJsonField.value = preset.value;
+			void runConversion(`プリセット選択: ${preset.label}`);
+		});
+	}
+
+	toneJsonField.addEventListener("input", () => {
+		if (attachmentPresetSelect && attachmentPresetSelect.value !== "") {
+			attachmentPresetSelect.value = "";
+		}
+		if (attachmentDebounce) {
+			window.clearTimeout(attachmentDebounce);
+		}
+		attachmentDebounce = window.setTimeout(() => {
+			void runConversion("音色 JSON 更新");
+		}, 400);
+	});
+}
+
+function setupMmlInput(): void {
+	if (!mmlInput) return;
+	mmlInput.addEventListener("input", () => {
+		if (mmlDebounce) {
+			window.clearTimeout(mmlDebounce);
+		}
+		mmlDebounce = window.setTimeout(() => {
+			void convertMmlToSmf("MML 更新");
+		}, 400);
+	});
+}
+
+function setupMidiInput(): void {
+	const midiInput = document.getElementById(
+		"midi-input",
+	) as HTMLInputElement | null;
+	if (!midiInput) return;
+
+	midiInput.addEventListener("change", async (event) => {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (!file) {
+			midiBytes = null;
+			lastMidiSource = null;
+			latestMidiRequestId += 1;
+			updateOutputWithState("");
+			setEventCountDisplay(eventCount, undefined);
+			setStatus(fileStatus, "SMF ファイルを選択してください。");
+			updatePlayButtonState();
+			return;
+		}
+
+		setStatus(fileStatus, `${file.name} を読み込み中...`);
+		try {
+			const requestId = ++latestMidiRequestId;
+			const arrayBuffer = await file.arrayBuffer();
+			if (requestId !== latestMidiRequestId) {
+				return;
+			}
+			midiBytes = new Uint8Array(arrayBuffer);
+			lastMidiSource = "file";
+			setStatus(
+				fileStatus,
+				`${file.name} を読み込みました (${midiBytes.byteLength} bytes)`,
+			);
+			void runConversion("MIDI 更新");
+		} catch (error) {
+			midiBytes = null;
+			lastMidiSource = null;
+			setStatus(
+				fileStatus,
+				`読み込みに失敗しました: ${(error as Error).message}`,
+				true,
+			);
+		}
+	});
+}
+
+function bootstrapWebYm(): void {
+	setStatus(webYmStatus, "web-ym2151 を準備中...");
+	ensureWebYm2151()
+		.then(() => {
+			setStatus(webYmStatus, "web-ym2151 準備完了");
+			updatePlayButtonState();
+		})
+		.catch((error) => {
+			setStatus(
+				webYmStatus,
+				`web-ym2151 の準備に失敗しました: ${(error as Error).message}`,
+				true,
+			);
+		});
+}
+
+async function initializeWasm(): Promise<void> {
+	wasmReady = await ensureWasmInitialized(
+		(message, isError) => setStatus(conversionStatus, message, isError),
+		"WASM 初期化完了。MIDI を読み込んでください。",
+	);
+}
+
+function main(): void {
+	setupAttachmentEditor();
+	setupMidiInput();
+	setupMmlInput();
+	updateOutputWithState("");
+	updatePlayButtonState();
+	bootstrapWebYm();
+	void initializeWasm();
+
+	if (playButton) {
+		playButton.addEventListener("click", () => {
+			void handlePlay();
+		});
+	}
+}
+
+document.addEventListener("DOMContentLoaded", main);
 
 {% endraw %}
 ```
 
-### issue-notes/126.md
+### issue-notes/171.md
 ```md
 {% raw %}
-# issue ポップノイズdemoで、添付JSONを変更しても、最終log JSONに反映されていない #126
-[issues #126](https://github.com/cat2151/smf-to-ym2151log-rust/issues/126)
+# issue 添付音色JSONについて、プルダウンでコンパクトnibble形式を選んだあと、MMLでcを入力すると、nibbleが消えてym2151log形式になってしまいuserが混乱する #171
+[issues #171](https://github.com/cat2151/smf-to-ym2151log-rust/issues/171)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/172.md
+```md
+{% raw %}
+# issue 添付音色JSONについて、コンパクトnibble形式の項目名は、CompactToneをやめてregistersにする（web-ym2151に寄せる） #172
+[issues #172](https://github.com/cat2151/smf-to-ym2151log-rust/issues/172)
 
 
 
@@ -1288,24 +1877,6 @@ jobs:
 [issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
 
 
-
-{% endraw %}
-```
-
-### issue-notes/47.md
-```md
-{% raw %}
-# issue ブラウザ対応: SMFバイナリをJSONに変換するWASMインターフェースの実装 #47
-[issues #47](https://github.com/cat2151/smf-to-ym2151log-rust/issues/47)
-
-## agentに投げるprompt案
-- 現在CLIとして動作しているこのツールについて、変換機能を、Webブラウザ上（JavaScript）からも利用可能にしたいと考えています。  
-- そのために wasm-bindgen を導入し、SMFのバイナリデータを受け取って解析結果をJSON文字列として返すWASM関数を実装してください。
-- 必要に応じて、バイナリデータをSMFとしてparseする処理なども、ライブラリクレートとして分離するようリファクタリングしてください。
-- それらを呼び出すWASM用のエントリポイントを追加してください。
-- 完了条件
-    - WASMビルドが成功し、pkgディレクトリに成果物が配置されること。
-    - 既存のCLIツールとしての機能（cargo run）が破壊されず、そのまま動作すること。
 
 {% endraw %}
 ```
@@ -1327,159 +1898,328 @@ jobs:
 {% endraw %}
 ```
 
-### src/ym2151/converter_tests/programs.rs
+### src/ym2151/converter_tests/effects.rs
 ```rs
 {% raw %}
-//! Program change and drum channel tests for YM2151 converter
+//! Effects tests for YM2151 converter (delay vibrato, portamento, LFO, pop noise, attack)
 use super::*;
 
 #[test]
-fn test_convert_program_change() {
-    // Test that program change events trigger tone changes
+fn test_delay_vibrato_generates_additional_pitch_events() {
     let midi_data = MidiData {
         ticks_per_beat: 480,
         tempo_bpm: 120.0,
         events: vec![
-            // Program change at the start
-            MidiEvent::ProgramChange {
-                ticks: 0,
-                channel: 0,
-                program: 42,
-            },
-            // Play a note
             MidiEvent::NoteOn {
                 ticks: 0,
                 channel: 0,
-                note: 60,
+                note: 69, // A4 (440 Hz)
                 velocity: 100,
             },
             MidiEvent::NoteOff {
-                ticks: 480,
+                ticks: 1920, // 2 seconds at 120 BPM
                 channel: 0,
-                note: 60,
+                note: 69,
             },
         ],
     };
 
-    let result = convert_to_ym2151_log(&midi_data).unwrap();
-
-    // Should have initialization + program change tone events + note events
-    // 8 KEY OFF + 26 channel init + 26 program change tone + note on (3) + note off (1)
-    // = 64 events
-    assert_eq!(result.event_count, 64);
-
-    // Verify there are tone setting events at time 0
-    // Look for RL_FB_CONNECT register writes (0x20-0x27)
-    let tone_events: Vec<_> = result
-        .events
-        .iter()
-        .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time < 0.001)
-        .collect();
-
-    // Should have 2 writes: one from init, one from program change
-    assert!(
-        tone_events.len() >= 2,
-        "Should have tone settings from both init and program change"
-    );
-}
-
-#[test]
-fn test_convert_program_change_unused_channel() {
-    // Program change on a channel that has no notes should be ignored
-    let midi_data = MidiData {
-        ticks_per_beat: 480,
-        tempo_bpm: 120.0,
-        events: vec![
-            // Program change on channel 5
-            MidiEvent::ProgramChange {
-                ticks: 0,
-                channel: 5,
-                program: 10,
-            },
-            // But only channel 0 plays a note
-            MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 0,
-                note: 60,
-                velocity: 100,
-            },
-            MidiEvent::NoteOff {
-                ticks: 480,
-                channel: 0,
-                note: 60,
-            },
-        ],
+    let options = ConversionOptions {
+        delay_vibrato: true,
+        ..ConversionOptions::default()
     };
-
-    let result = convert_to_ym2151_log(&midi_data).unwrap();
-
-    // Should only have events for channel 0
-    // 8 KEY OFF + 26 channel 0 init + note on (3) + note off (1) = 38
-    assert_eq!(result.event_count, 38);
-}
-
-#[test]
-fn test_convert_program_change_with_attachment_tone() {
-    // Program change should use tone definitions supplied via attachment JSON
-    let midi_data = MidiData {
-        ticks_per_beat: 480,
-        tempo_bpm: 120.0,
-        events: vec![
-            MidiEvent::ProgramChange {
-                ticks: 0,
-                channel: 0,
-                program: 99,
-            },
-            MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 0,
-                note: 60,
-                velocity: 100,
-            },
-            MidiEvent::NoteOff {
-                ticks: 480,
-                channel: 0,
-                note: 60,
-            },
-        ],
-    };
-
-    let mut options = ConversionOptions::default();
-    options.tones.insert(
-        99,
-        ToneDefinition {
-            events: vec![Ym2151Event {
-                time: 0.0,
-                addr: "0x20".to_string(),
-                data: "0xAB".to_string(),
-            }],
-        },
-    );
 
     let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
 
-    // 8 KEY OFF + 26 init + 1 attachment tone + note on (3) + note off (1) = 39
-    assert_eq!(result.event_count, 39);
-
-    let has_custom_tone = result.events.iter().any(|e| e.data == "0xAB");
+    // Vibrato should emit KC/KF writes after the 200ms delay
+    let kc_events_after_delay: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time > 0.2)
+        .collect();
     assert!(
-        has_custom_tone,
-        "Attachment tone definition should be applied for program 99"
+        !kc_events_after_delay.is_empty(),
+        "KC events should include vibrato modulation after delay"
+    );
+
+    // Some KF events should deviate from the base (0) once vibrato ramps in
+    let non_zero_kf_after_delay: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x30" && e.time > 0.2 && e.data != "0x00")
+        .collect();
+    assert!(
+        !non_zero_kf_after_delay.is_empty(),
+        "KF events should include fractional pitch changes from vibrato"
     );
 }
 
 #[test]
-fn test_convert_multiple_program_changes() {
-    // Test multiple program changes on the same channel
+fn test_portamento_generates_pitch_glide_events() {
     let midi_data = MidiData {
         ticks_per_beat: 480,
         tempo_bpm: 120.0,
         events: vec![
-            MidiEvent::ProgramChange {
+            MidiEvent::NoteOn {
                 ticks: 0,
                 channel: 0,
-                program: 10,
+                note: 60,
+                velocity: 100,
             },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::NoteOn {
+                ticks: 480,
+                channel: 0,
+                note: 67,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 960,
+                channel: 0,
+                note: 67,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        portamento: true,
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    // First note should emit a KC write even with portamento enabled
+    let (kc_first, _) = midi_to_kc_kf(60);
+    let first_kc = result
+        .events
+        .iter()
+        .find(|e| {
+            e.addr == "0x28"
+                && (e.time - 0.0).abs() < f64::EPSILON
+                && e.data == format!("0x{:02X}", kc_first)
+        })
+        .map(|e| e.data.clone())
+        .expect("First note should set KC at time 0");
+    assert_eq!(first_kc, format!("0x{:02X}", kc_first));
+
+    // Collect KC events emitted strictly after the note-on time (> 0.5s) and within the
+    // portamento glide window (up to 0.6s). Using strictly-greater-than excludes the initial
+    // note-on KC write at exactly 0.5s emitted by the main converter, so only
+    // portamento-driven KC updates are collected. A small epsilon is added to portamento_end
+    // to avoid missing the final event that may be emitted at exactly stop_time.
+    let note_on_time = 0.5_f64;
+    let portamento_end = note_on_time + 0.1; // start_time + PORTAMENTO_TIME_SECONDS
+    let kc_events_in_glide: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| {
+            e.addr == "0x28"
+                && e.time > note_on_time
+                && e.time <= portamento_end + f64::EPSILON * portamento_end
+        })
+        .collect();
+    assert!(
+        kc_events_in_glide.len() >= 2,
+        "Portamento should emit multiple KC steps during the glide"
+    );
+
+    let (kc_second, kf_second) = midi_to_kc_kf(67);
+
+    // Glide should include the previous pitch at the start
+    assert!(
+        kc_events_in_glide
+            .iter()
+            .any(|e| e.data == format!("0x{:02X}", kc_first)),
+        "Glide should include the starting KC from the previous note"
+    );
+    // Glide must end at the target KC. Verify the LAST KC event in the glide window
+    // equals the target, confirming the portamento fully reaches the destination note.
+    let last_kc_in_glide = kc_events_in_glide
+        .iter()
+        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap());
+    assert_eq!(
+        last_kc_in_glide.map(|e| e.data.as_str()),
+        Some(format!("0x{:02X}", kc_second).as_str()),
+        "Portamento glide must reach the target KC at the end of the glide"
+    );
+
+    // The last KF event in the glide window must also match the target pitch exactly.
+    let last_kf_in_glide = result
+        .events
+        .iter()
+        .filter(|e| {
+            e.addr == "0x30"
+                && e.time > note_on_time
+                && e.time <= portamento_end + f64::EPSILON * portamento_end
+        })
+        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap());
+    assert_eq!(
+        last_kf_in_glide.map(|e| e.data.as_str()),
+        Some(format!("0x{:02X}", kf_second).as_str()),
+        "Portamento glide must reach the target KF at the end of the glide"
+    );
+}
+
+#[test]
+fn test_portamento_one_octave_reaches_target() {
+    // Verify that a 1-octave portamento (C4 -> C5) always writes the target KC at stop_time.
+    // Previously, the loop's time_step didn't align with stop_time, leaving the portamento
+    // stuck just below the target note.
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60, // C4
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::NoteOn {
+                ticks: 480,
+                channel: 0,
+                note: 72, // C5 (one octave up)
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 960,
+                channel: 0,
+                note: 72,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        portamento: true,
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    let (kc_target, kf_target) = midi_to_kc_kf(72); // C5
+    let note_on_time = 0.5_f64;
+    let portamento_end = note_on_time + 0.1; // start_time + PORTAMENTO_TIME_SECONDS
+                                             // A small epsilon is added to portamento_end to avoid missing the final event
+                                             // that is emitted at exactly stop_time due to floating-point boundary effects.
+    let portamento_end_with_eps = portamento_end + f64::EPSILON * portamento_end;
+
+    // The last KC event written during the portamento window must be the target (C5).
+    let last_portamento_kc = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time > note_on_time && e.time <= portamento_end_with_eps)
+        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap());
+
+    assert_eq!(
+        last_portamento_kc.map(|e| e.data.as_str()),
+        Some(format!("0x{:02X}", kc_target).as_str()),
+        "1-octave portamento must reach the target KC (C5) at the end of the glide"
+    );
+
+    // The last KF event must also match, confirming the exact pitch lands on C5 (KF=0).
+    let last_portamento_kf = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x30" && e.time > note_on_time && e.time <= portamento_end_with_eps)
+        .max_by(|a, b| a.time.partial_cmp(&b.time).unwrap());
+
+    assert_eq!(
+        last_portamento_kf.map(|e| e.data.as_str()),
+        Some(format!("0x{:02X}", kf_target).as_str()),
+        "1-octave portamento must reach the target KF (C5) at the end of the glide"
+    );
+}
+
+#[test]
+fn test_register_lfo_triangle_wave_smooth_transitions() {
+    // Verify that the triangle LFO produces intermediate values (not just top/center/bottom)
+    // and that consecutive register values differ by at most 1.
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 1920, // 2 seconds at 120 BPM
+                channel: 0,
+                note: 60,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        software_lfo: vec![RegisterLfoDefinition {
+            base_register: "0x60".to_string(),
+            depth: 6.0,
+            rate_hz: 4.0,
+            delay_seconds: 0.0,
+            attack_seconds: 0.0,
+            waveform: LfoWaveform::Triangle,
+        }],
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    let lfo_events: Vec<_> = result.events.iter().filter(|e| e.addr == "0x60").collect();
+
+    assert!(
+        !lfo_events.is_empty(),
+        "LFO should emit events for the TL register"
+    );
+
+    let values: Vec<u8> = lfo_events
+        .iter()
+        .filter_map(|e| {
+            let hex = e.data.strip_prefix("0x")?;
+            u8::from_str_radix(hex, 16).ok()
+        })
+        .collect();
+
+    let unique_count = {
+        let mut v = values.clone();
+        v.sort_unstable();
+        v.dedup();
+        v.len()
+    };
+    assert!(
+        unique_count > 3,
+        "Triangle LFO with depth=6 should produce more than 3 unique values, got {}",
+        unique_count
+    );
+
+    // All consecutive LFO value changes should be at most 1 (smooth transitions)
+    for window in values.windows(2) {
+        let diff = (window[0] as i16 - window[1] as i16).unsigned_abs();
+        assert!(
+            diff <= 1,
+            "Consecutive LFO values should differ by at most 1, got diff={diff} ({} → {})",
+            window[0],
+            window[1]
+        );
+    }
+}
+
+#[test]
+fn test_register_lfo_modulates_tone_register() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
             MidiEvent::NoteOn {
                 ticks: 0,
                 channel: 0,
@@ -1491,11 +2231,67 @@ fn test_convert_multiple_program_changes() {
                 channel: 0,
                 note: 60,
             },
-            // Change to a different program
-            MidiEvent::ProgramChange {
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 1,
+                note: 64,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480,
+                channel: 1,
+                note: 64,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        software_lfo: vec![RegisterLfoDefinition {
+            base_register: "0x60".to_string(),
+            depth: 4.0,
+            rate_hz: 2.0,
+            delay_seconds: 0.0,
+            attack_seconds: 0.0,
+            waveform: LfoWaveform::Triangle,
+        }],
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    // MIDI channel 1 maps to YM channel 1 when channel 0 is also present, so TL base reg 0x60 -> 0x61
+    let lfo_events: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x61" && e.time > 0.0)
+        .collect();
+
+    assert!(
+        !lfo_events.is_empty(),
+        "Software LFO should emit TL updates for channel 1"
+    );
+    assert!(
+        lfo_events.iter().any(|e| e.data != "0x00"),
+        "LFO should modulate TL away from the base value"
+    );
+}
+
+#[test]
+fn test_pop_noise_envelope_adds_pre_note_overrides() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
                 ticks: 240,
                 channel: 0,
-                program: 20,
+                note: 60,
             },
             MidiEvent::NoteOn {
                 ticks: 480,
@@ -1511,357 +2307,122 @@ fn test_convert_multiple_program_changes() {
         ],
     };
 
-    let result = convert_to_ym2151_log(&midi_data).unwrap();
-
-    // 8 KEY OFF + 26 init + 26 program 10 + note (3) + note off (1)
-    // + 26 program 20 + note (3) + note off (1) = 94
-    assert_eq!(result.event_count, 94);
-
-    // Verify both program changes generated tone events
-    // Check for RL_FB_CONNECT register writes at time 0
-    let tone_events_time_0: Vec<_> = result
-        .events
-        .iter()
-        .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time < 0.001)
-        .collect();
-    assert!(
-        tone_events_time_0.len() >= 2,
-        "Should have init + program 10 tone events"
-    ); // init + program 10
-
-    // Second program change should be at a different time
-    let tone_events_later: Vec<_> = result
-        .events
-        .iter()
-        .filter(|e| e.addr.starts_with("0x2") && e.addr.len() == 4 && e.time > 0.001)
-        .collect();
-    assert!(
-        !tone_events_later.is_empty(),
-        "Should have tone change at later time"
-    );
-}
-
-#[test]
-fn test_convert_drum_channel_note_on_channel_0() {
-    // Test that MIDI channel 9 (drum) maps to YM2151 channel 0
-    let midi_data = MidiData {
-        ticks_per_beat: 480,
-        tempo_bpm: 120.0,
-        events: vec![
-            MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 9, // Drum channel
-                note: 60,
-                velocity: 100,
-            },
-            MidiEvent::NoteOff {
-                ticks: 480,
-                channel: 9,
-                note: 60,
-            },
-        ],
+    let options = ConversionOptions {
+        pop_noise_envelope: Some(PopNoiseEnvelope {
+            enabled: true,
+            offset_seconds: 0.001,
+            registers: vec![RegisterOverride {
+                base_register: "0xA0".to_string(),
+                value: "0x02".to_string(),
+            }],
+        }),
+        ..ConversionOptions::default()
     };
 
-    let result = convert_to_ym2151_log(&midi_data).unwrap();
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
 
-    // Find KC register write for channel 0 (0x28)
-    let kc_events: Vec<&Ym2151Event> = result
+    let pre_overrides: Vec<_> = result
         .events
         .iter()
-        .filter(|e| e.addr == "0x28" && e.time < 0.001)
+        .filter(|e| e.addr == "0xA0" && e.data == "0x02" && e.time > 0.4 && e.time < 0.5)
         .collect();
-
     assert_eq!(
-        kc_events.len(),
+        pre_overrides.len(),
         1,
-        "Drum channel should use YM2151 channel 0 (KC register 0x28)"
+        "Second note should get one override"
     );
 
-    // Verify KEY ON uses channel 0
-    let key_on = result
+    let restores: Vec<_> = result
         .events
         .iter()
-        .find(|e| e.addr == "0x08" && e.data == "0x78" && e.time < 0.001)
-        .expect("Should have KEY ON for channel 0");
-    assert_eq!(key_on.data, "0x78"); // 0x78 = all operators on, channel 0
+        .filter(|e| e.addr == "0xA0" && e.time >= 0.499 && e.time <= 0.5)
+        .collect();
+    assert!(
+        restores.iter().any(|e| e.data == "0x05"),
+        "Override should be restored to the base D1R value"
+    );
 }
 
 #[test]
-fn test_convert_drum_and_regular_channels_together() {
-    // Test with both drum channel and regular channels
+fn test_attack_continuation_fix_forces_release_before_note_on() {
     let midi_data = MidiData {
         ticks_per_beat: 480,
         tempo_bpm: 120.0,
         events: vec![
-            // Drum channel (MIDI 9) at same tick
-            MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 9,
-                note: 36, // Bass drum
-                velocity: 100,
-            },
-            // Regular channel (MIDI 0) at same tick
             MidiEvent::NoteOn {
                 ticks: 0,
                 channel: 0,
                 note: 60,
                 velocity: 100,
             },
-            // Regular channel (MIDI 1) at same tick
+            MidiEvent::NoteOff {
+                ticks: 240,
+                channel: 0,
+                note: 60,
+            },
             MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 1,
+                ticks: 480,
+                channel: 0,
                 note: 64,
                 velocity: 100,
             },
             MidiEvent::NoteOff {
-                ticks: 480,
-                channel: 9,
-                note: 36,
-            },
-            MidiEvent::NoteOff {
-                ticks: 480,
+                ticks: 720,
                 channel: 0,
-                note: 60,
-            },
-            MidiEvent::NoteOff {
-                ticks: 480,
-                channel: 1,
                 note: 64,
             },
         ],
     };
 
-    let result = convert_to_ym2151_log(&midi_data).unwrap();
-
-    // Verify drum channel uses YM2151 channel 0
-    let drum_kc = result
-        .events
-        .iter()
-        .find(|e| e.addr == "0x28" && e.time < 0.001)
-        .expect("Drum should use YM2151 channel 0");
-    assert!(drum_kc.data.starts_with("0x"));
-
-    // Verify MIDI channel 0 uses YM2151 channel 1
-    let ch0_kc = result
-        .events
-        .iter()
-        .find(|e| e.addr == "0x29" && e.time < 0.001)
-        .expect("MIDI ch 0 should use YM2151 channel 1");
-    assert!(ch0_kc.data.starts_with("0x"));
-
-    // Verify MIDI channel 1 uses YM2151 channel 2
-    let ch1_kc = result
-        .events
-        .iter()
-        .find(|e| e.addr == "0x2A" && e.time < 0.001)
-        .expect("MIDI ch 1 should use YM2151 channel 2");
-    assert!(ch1_kc.data.starts_with("0x"));
-
-    // Verify KEY ON events at this time correspond to the expected channels,
-    // without relying on their relative ordering in the event list.
-    let key_on_events: Vec<&Ym2151Event> = result
-        .events
-        .iter()
-        .filter(|e| e.addr == "0x08" && e.time < 0.001 && e.data.starts_with("0x7"))
-        .collect();
-
-    // Should have 3 KEY ON events (drum + 2 regular channels)
-    assert_eq!(key_on_events.len(), 3);
-
-    // Collect the KEY ON data bytes and verify they include the expected channels.
-    let key_on_data: Vec<&str> = key_on_events.iter().map(|e| e.data.as_str()).collect();
-
-    assert!(
-        key_on_data.contains(&"0x78"),
-        "Expected a KEY ON for YM2151 channel 0 (drum)"
-    );
-    assert!(
-        key_on_data.contains(&"0x79"),
-        "Expected a KEY ON for YM2151 channel 1 (MIDI ch 0)"
-    );
-    assert!(
-        key_on_data.contains(&"0x7A"),
-        "Expected a KEY ON for YM2151 channel 2 (MIDI ch 1)"
-    );
-}
-
-#[test]
-fn test_program_attachment_delay_vibrato_applies_only_to_matching_program() {
-    // Notes under program 0 should get vibrato; notes under program 1 should not.
-    let midi_data = MidiData {
-        ticks_per_beat: 480,
-        tempo_bpm: 120.0,
-        events: vec![
-            // Program 0 note (2 seconds long — long enough for vibrato to activate)
-            MidiEvent::ProgramChange {
-                ticks: 0,
-                channel: 0,
-                program: 0,
-            },
-            MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 0,
-                note: 69,
-                velocity: 100,
-            },
-            MidiEvent::NoteOff {
-                ticks: 1920, // 2 seconds at 120 BPM
-                channel: 0,
-                note: 69,
-            },
-            // Program 1 note on a second channel
-            MidiEvent::ProgramChange {
-                ticks: 1920,
-                channel: 1,
-                program: 1,
-            },
-            MidiEvent::NoteOn {
-                ticks: 1920,
-                channel: 1,
-                note: 60,
-                velocity: 100,
-            },
-            MidiEvent::NoteOff {
-                ticks: 3840, // another 2 seconds
-                channel: 1,
-                note: 60,
-            },
-        ],
-    };
-
     let options = ConversionOptions {
-        program_attachments: vec![ProgramAttachment {
-            program_change: 0,
-            delay_vibrato: true,
-            ..ProgramAttachment::default()
-        }],
+        attack_continuation_fix: Some(AttackContinuationFix {
+            enabled: true,
+            offset_seconds: 0.001,
+            release_rate: 0xF0,
+        }),
         ..ConversionOptions::default()
     };
 
     let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
 
-    // Program 0 note (note 69 / A4, channel 0 → YM KC register 0x28) should have
-    // KC writes after the 200ms vibrato delay.
-    let kc_ch0_after_delay: Vec<_> = result
+    let target_release_addrs = ["0xE0", "0xE8", "0xF0", "0xF8"];
+    let release_overrides: Vec<_> = result
         .events
         .iter()
-        .filter(|e| e.addr == "0x28" && e.time > 0.2)
+        .filter(|e| {
+            target_release_addrs.contains(&e.addr.as_str())
+                && e.data == "0xF0"
+                && e.time > 0.49
+                && e.time < 0.5
+        })
         .collect();
-    assert!(
-        !kc_ch0_after_delay.is_empty(),
-        "Program 0 note should receive vibrato KC modulation"
-    );
-
-    // Program 1 note (channel 1 → YM KC register 0x29) must NOT have any KC writes
-    // after the note starts at 2 s — vibrato is not enabled for program 1.
-    let kc_ch1_after_start: Vec<_> = result
-        .events
-        .iter()
-        .filter(|e| e.addr == "0x29" && e.time > 2.0 + 0.2)
-        .collect();
-    assert!(
-        kc_ch1_after_start.is_empty(),
-        "Program 1 note must not receive vibrato KC modulation"
-    );
-}
-
-#[test]
-fn test_program_attachment_tone_only_entry_skipped_without_panic() {
-    // An attachment entry with only a Tone and no effects should be silently skipped
-    // without applying any vibrato/portamento/LFO/etc events.
-    let midi_data = MidiData {
-        ticks_per_beat: 480,
-        tempo_bpm: 120.0,
-        events: vec![
-            MidiEvent::ProgramChange {
-                ticks: 0,
-                channel: 0,
-                program: 5,
-            },
-            MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 0,
-                note: 60,
-                velocity: 100,
-            },
-            MidiEvent::NoteOff {
-                ticks: 480,
-                channel: 0,
-                note: 60,
-            },
-        ],
-    };
-
-    // Attachment with a tone-only entry (no effects flags set)
-    let options = ConversionOptions {
-        program_attachments: vec![ProgramAttachment {
-            program_change: 5,
-            // All effect flags remain false / None (default)
-            ..ProgramAttachment::default()
-        }],
-        ..ConversionOptions::default()
-    };
-
-    // Should succeed without panicking
-    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
-    assert!(result.event_count > 0);
-
-    // No extra KC events from vibrato should be present
-    let vibrato_kc: Vec<_> = result
-        .events
-        .iter()
-        .filter(|e| e.addr == "0x28" && e.time > 0.2)
-        .collect();
-    assert!(
-        vibrato_kc.is_empty(),
-        "Tone-only attachment must not produce vibrato events"
-    );
-}
-
-#[test]
-fn test_program_attachment_unmatched_program_produces_no_extra_events() {
-    // An attachment for program 99 should do nothing when only program 0 is used.
-    let midi_data = MidiData {
-        ticks_per_beat: 480,
-        tempo_bpm: 120.0,
-        events: vec![
-            MidiEvent::ProgramChange {
-                ticks: 0,
-                channel: 0,
-                program: 0,
-            },
-            MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 0,
-                note: 60,
-                velocity: 100,
-            },
-            MidiEvent::NoteOff {
-                ticks: 480,
-                channel: 0,
-                note: 60,
-            },
-        ],
-    };
-
-    let options_with_attachment = ConversionOptions {
-        program_attachments: vec![ProgramAttachment {
-            program_change: 99, // not used in the MIDI
-            delay_vibrato: true,
-            ..ProgramAttachment::default()
-        }],
-        ..ConversionOptions::default()
-    };
-
-    let result_with =
-        convert_to_ym2151_log_with_options(&midi_data, &options_with_attachment).unwrap();
-    let result_without = convert_to_ym2151_log(&midi_data).unwrap();
-
-    // Both outputs should have the same event count — unmatched attachment is a no-op.
     assert_eq!(
-        result_with.event_count, result_without.event_count,
-        "Unmatched program attachment must not add extra events"
+        release_overrides.len(),
+        4,
+        "All four operators should receive a pre-note release override"
+    );
+    assert!(release_overrides.iter().all(|e| e.data == "0xF0"));
+
+    let key_off = result
+        .events
+        .iter()
+        .find(|e| e.addr == "0x08" && e.data == "0x00" && e.time > 0.49 && e.time < 0.5)
+        .expect("Pre-note key off should be generated");
+    assert!(key_off.time < 0.5);
+
+    let restore_events: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| {
+            target_release_addrs.contains(&e.addr.as_str())
+                && e.data == "0xF7"
+                && e.time >= 0.499
+                && e.time <= 0.5
+        })
+        .collect();
+    assert!(
+        restore_events.iter().all(|e| e.data == "0xF7"),
+        "Release rate should return to the base value before key on"
     );
 }
 
@@ -2011,47 +2572,33 @@ fn test_program_attachment_unmatched_program_produces_no_extra_events() {
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-7cbd1d2 Merge pull request #146 from cat2151/copilot/fix-web-ym2151-load-issue
-4aa90b1 fix: update web-ym2151 URL from sine_test.js to ym2151.js
-0b623af Initial plan
-286cae6 Add issue note for #145 [auto]
-0d01189 Merge pull request #144 from cat2151/copilot/translate-copilot-instructions-to-japanese
-455ba0c docs: fix deploy description accuracy per review feedback
-e17b248 docs: update copilot-instructions.md with current module list and deploy structure
-422b0af Initial plan
-d1fe83f Merge pull request #142 from cat2151/copilot/change-json-format-for-programchange
-990afd2 perf/test: pre-group segments by program, skip effect-free entries, add program_attachment tests
+3c81f4a Merge pull request #170 from cat2151/copilot/implement-linear-interpolation-feature
+f71761c fix: use checked_add(1) for next_program to avoid silent u8 wraparound
+73f6539 Add issue note for #172 [auto]
+b85e46e Add issue note for #171 [auto]
+eafa59a refactor: address code review feedback (rename test vars, use TIME_LOOP_EPSILON)
+8b4cd1d feat: implement ChangeToNextTone linear interpolation and demo page
+417913c Initial plan
+583bc3b Add issue note for #169 [auto]
+e361356 Add notes for ym2151log format and sound demo
+8419ced style: auto-format with cargo fmt
 
 ### 変更されたファイル:
-.github/copilot-instructions.md
-.github/scripts/create_ci_issue.py
-.github/workflows/ci.yml
-.gitignore
-demo-library/delay-vibrato-demo.ts
-demo-library/log-visualizer.ts
-demo-library/pop-noise-demo.ts
-demo-library/portamento-soft-lfo-demo.ts
-demo-library/shared-demo.ts
-demo-library/style.css
-demo-library/tone-json-attachment.ts
-issue-notes/122.md
-issue-notes/125.md
-issue-notes/128.md
-issue-notes/131.md
-issue-notes/133.md
-issue-notes/145.md
+demo-library/index.html
+demo-library/tone-interpolation-demo.ts
+demo-library/tone-interpolation.html
+demo-library/vite.config.ts
+issue-notes/164.md
+issue-notes/166.md
+issue-notes/167.md
+issue-notes/171.md
+issue-notes/172.md
 src/lib.rs
 src/ym2151/converter.rs
-src/ym2151/converter_tests.rs
-src/ym2151/converter_tests/channels.rs
-src/ym2151/converter_tests/effects.rs
-src/ym2151/converter_tests/programs.rs
-src/ym2151/event_processor.rs
-tests/integration_conversion.rs
-tests/integration_midi.rs
-tests/integration_multichannel.rs
+src/ym2151/converter/register_effects.rs
+src/ym2151/converter_tests/attachments.rs
 tests/integration_program_change.rs
 
 
 ---
-Generated at: 2026-03-08 07:07:51 JST
+Generated at: 2026-03-09 07:08:13 JST

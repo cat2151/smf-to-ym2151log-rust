@@ -1,4 +1,4 @@
-Last updated: 2026-03-08
+Last updated: 2026-03-09
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -74,7 +74,7 @@ Standard MIDI Files (SMF) をYM2151レジスタ書き込みログ（JSON形式�
 ## 用途
 
 - ライブラリとして、 `cat-play-mml` から利用しています。ネイティブアプリ用のRustライブラリクレートです（利用方式1）。
-- ライブラリとして、`web-ym2151` から利用予定です。ブラウザ用のWASMライブラリです（利用方式2）。
+- ライブラリとして、`web-ym2151` から利用しています。ブラウザ用のWASMライブラリです（利用方式2）。
 
 ## WIP
 
@@ -330,6 +330,7 @@ cargo audit
   📊 biome.json
   📘 delay-vibrato-demo.ts
   🌐 delay-vibrato.html
+  📘 envelope-generator.ts
   📘 globals.d.ts
   🌐 index.html
   📘 library-demo.ts
@@ -343,12 +344,18 @@ cargo audit
   🌐 portamento-soft-lfo.html
   📘 shared-demo.ts
   🎨 style.css
+  📘 tone-interpolation-demo.ts
+  🌐 tone-interpolation.html
   📘 tone-json-attachment.ts
   📘 tone-json-demo.ts
   📘 tone-json-mml.ts
   🌐 tone-json.html
   📊 tsconfig.json
   📘 vite.config.ts
+  📘 waveform-canvas.ts
+  📘 waveform-simulator.ts
+  📘 waveform-viewer.ts
+  📘 ym2151-utils.ts
 📁 generated-docs/
 🌐 googled947dc864c270e07.html
 📁 issue-notes/
@@ -357,8 +364,10 @@ cargo audit
   📖 112.md
   📖 115.md
   📖 123.md
-  📖 126.md
-  📖 145.md
+  📖 157.md
+  📖 166.md
+  📖 171.md
+  📖 172.md
   📖 22.md
   📖 33.md
   📖 45.md
@@ -390,8 +399,10 @@ cargo audit
       📄 waveform.rs
     📄 converter.rs
     📁 converter_tests/
+      📄 attachments.rs
       📄 basic.rs
       📄 channels.rs
+      📄 drums.rs
       📄 effects.rs
       📄 programs.rs
     📄 converter_tests.rs
@@ -421,19 +432,23 @@ cargo audit
   📖 README.md
 
 ## ファイル詳細分析
-**demo-library/delay-vibrato-demo.ts** (285行, 6886バイト)
-  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
+**demo-library/delay-vibrato-demo.ts** (324行, 7918バイト)
+  - 関数: computeHash, nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/delay-vibrato.html** (55行, 2158バイト)
+**demo-library/delay-vibrato.html** (55行, 2153バイト)
   - 関数: なし
   - インポート: なし
+
+**demo-library/envelope-generator.ts** (108行, 3362バイト)
+  - 関数: kcToFrequency, ampStepPerSample, switch, if
+  - インポート: ./ym2151-utils
 
 **demo-library/globals.d.ts** (5行, 167バイト)
   - 関数: playAudioWithOverlay, clearAudioCache
   - インポート: なし
 
-**demo-library/index.html** (53行, 2302バイト)
+**demo-library/index.html** (54行, 2405バイト)
   - 関数: なし
   - インポート: なし
 
@@ -441,27 +456,27 @@ cargo audit
   - 関数: initWasm, displayResult, showError, readAttachmentBytes, setupFileInput, catch, if
   - インポート: ./log-visualizer
 
-**demo-library/log-visualizer.ts** (345行, 9527バイト)
-  - 関数: parseHexByte, detectChannel, buildNoteSegments, computeKcRange, noteYPosition, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, if, for
+**demo-library/log-visualizer.ts** (584行, 17354バイト)
+  - 関数: resolveRegisterForChannel, collectLfoEvents, renderLfoLane, detectChannel, buildNoteSegments, notePitch, computePitchRange, noteYPosition, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, setLfoRegisters, if, for
   - インポート: なし
 
 **demo-library/mml-support.ts** (100行, 2258バイト)
   - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (280行, 6807バイト)
+**demo-library/pop-noise-demo.ts** (299行, 7497バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, bootstrap, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/pop-noise.html** (55行, 2191バイト)
+**demo-library/pop-noise.html** (85行, 3429バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/portamento-soft-lfo-demo.ts** (295行, 7094バイト)
-  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
+**demo-library/portamento-soft-lfo-demo.ts** (334行, 8372バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, extractLfoRegistersFromAttachment, syncLfoRegisters, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, for, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/portamento-soft-lfo.html** (57行, 2337バイト)
+**demo-library/portamento-soft-lfo.html** (57行, 2332バイト)
   - 関数: なし
   - インポート: なし
 
@@ -469,7 +484,15 @@ cargo audit
   - 関数: ensureWasmInitialized, setStatus, setEventCountDisplay, ensureWebYm2151, clearWebYmAudioCache, updateOutput, parseAttachmentField, cleanup, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js
 
-**demo-library/style.css** (255行, 3717バイト)
+**demo-library/style.css** (298行, 4310バイト)
+  - 関数: なし
+  - インポート: なし
+
+**demo-library/tone-interpolation-demo.ts** (319行, 8128バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
+  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
+
+**demo-library/tone-interpolation.html** (61行, 2367バイト)
   - 関数: なし
   - インポート: なし
 
@@ -481,17 +504,33 @@ cargo audit
   - 関数: updateOutputWithState, updatePlayButtonState, convertMmlToSmf, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, initializeWasm, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./log-visualizer
 
-**demo-library/tone-json-mml.ts** (108行, 3172バイト)
+**demo-library/tone-json-mml.ts** (110行, 3168バイト)
   - 関数: getMmlParser, getParseTreeJsonToSmf, treeToJson, ensureMmlRuntime, if, for
   - インポート: ./shared-demo
 
-**demo-library/tone-json.html** (60行, 2274バイト)
+**demo-library/tone-json.html** (60行, 2269バイト)
   - 関数: なし
   - インポート: なし
 
-**demo-library/vite.config.ts** (24行, 594バイト)
+**demo-library/vite.config.ts** (25行, 664バイト)
   - 関数: なし
   - インポート: vite, path
+
+**demo-library/waveform-canvas.ts** (174行, 4748バイト)
+  - 関数: drawEmpty, drawWaveform, for, if
+  - インポート: ./ym2151-utils, ./waveform-simulator
+
+**demo-library/waveform-simulator.ts** (146行, 4026バイト)
+  - 関数: simulateWaveform, applyOp, for, while, if
+  - インポート: ./ym2151-utils
+
+**demo-library/waveform-viewer.ts** (274行, 7975バイト)
+  - 関数: createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, rebuildAndRender, setZoom, endDrag, if, renderFromJson, clear
+  - インポート: ./ym2151-utils, ./waveform-simulator, ./waveform-canvas
+
+**demo-library/ym2151-utils.ts** (48行, 1427バイト)
+  - 関数: parseHexByte
+  - インポート: なし
 
 **googled947dc864c270e07.html** (1行, 53バイト)
   - 関数: なし
@@ -499,8 +538,9 @@ cargo audit
 
 ## 関数呼び出し階層
 - if (demo-library/delay-vibrato-demo.ts)
-  - nextRequestId (demo-library/delay-vibrato-demo.ts)
-    - isLatestRequest ()
+  - computeHash (demo-library/delay-vibrato-demo.ts)
+    - nextRequestId ()
+      - isLatestRequest ()
       - updateOutputWithState ()
       - updatePlayButtonState ()
       - initializeWasm ()
@@ -525,14 +565,24 @@ cargo audit
       - parseAttachmentField ()
       - setupPlayButton ()
       - bootstrap ()
+      - createWaveformViewer ()
+      - setLfoRegisters (demo-library/log-visualizer.ts)
+      - extractLfoRegistersFromAttachment ()
+      - syncLfoRegisters ()
+  - kcToFrequency (demo-library/envelope-generator.ts)
+    - ampStepPerSample ()
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
       - setupFileInput ()
-  - parseHexByte (demo-library/log-visualizer.ts)
-    - detectChannel ()
+      - clear ()
+  - resolveRegisterForChannel (demo-library/log-visualizer.ts)
+    - collectLfoEvents ()
+      - renderLfoLane ()
+      - detectChannel ()
       - buildNoteSegments ()
-      - computeKcRange ()
+      - notePitch ()
+      - computePitchRange ()
       - noteYPosition ()
       - normalizeEvents ()
       - laneColor ()
@@ -540,6 +590,7 @@ cargo audit
       - computeTrackWidth ()
       - renderEmpty ()
       - ensureGlobalLane ()
+      - parseHexByte ()
   - getMmlParser ()
     - getParseTreeJsonToSmf ()
       - treeToJson ()
@@ -551,7 +602,20 @@ cargo audit
     - serializeWithStatus ()
       - normalizeAttachmentText ()
   - convertMmlToSmf ()
+  - drawEmpty (demo-library/waveform-canvas.ts)
+    - drawWaveform ()
+  - simulateWaveform (demo-library/waveform-simulator.ts)
+    - applyOp ()
+  - getWindowDurS ()
+    - clampViewStart ()
+      - updatePositionLabel ()
+      - render ()
+      - rebuildAndRender ()
+      - setZoom ()
+- switch (demo-library/envelope-generator.ts)
 - for (demo-library/log-visualizer.ts)
+- while (demo-library/waveform-simulator.ts)
+- endDrag (demo-library/waveform-viewer.ts)
 
 
 ## プロジェクト構造（ファイル一覧）
@@ -561,6 +625,7 @@ WASM_USAGE.md
 demo-library/biome.json
 demo-library/delay-vibrato-demo.ts
 demo-library/delay-vibrato.html
+demo-library/envelope-generator.ts
 demo-library/globals.d.ts
 demo-library/index.html
 demo-library/library-demo.ts
@@ -574,18 +639,17 @@ demo-library/portamento-soft-lfo-demo.ts
 demo-library/portamento-soft-lfo.html
 demo-library/shared-demo.ts
 demo-library/style.css
+demo-library/tone-interpolation-demo.ts
+demo-library/tone-interpolation.html
 demo-library/tone-json-attachment.ts
 demo-library/tone-json-demo.ts
 demo-library/tone-json-mml.ts
 demo-library/tone-json.html
 demo-library/tsconfig.json
 demo-library/vite.config.ts
+demo-library/waveform-canvas.ts
+demo-library/waveform-simulator.ts
 googled947dc864c270e07.html
-issue-notes/105.md
-issue-notes/111.md
-issue-notes/112.md
-issue-notes/115.md
-package-lock.json
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
 特に以下の点を重視してください：
@@ -597,4 +661,4 @@ package-lock.json
 
 
 ---
-Generated at: 2026-03-08 07:07:51 JST
+Generated at: 2026-03-09 07:08:13 JST
