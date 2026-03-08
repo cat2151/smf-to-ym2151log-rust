@@ -29,7 +29,7 @@ export const YM_LOG_STYLE_PRESET = `[
 export const COMPACT_NIBBLE_PRESET = `[
   {
     "ProgramChange": 0,
-    "CompactTone": "20C76010801FE00F"
+    "registers": "20C76010801FE00F"
   }
 ]`;
 
@@ -52,14 +52,18 @@ export function buildEventsFromCompact(compact: string): Ym2151Event[] {
 		return [];
 	}
 	if (cleaned.length % 4 !== 0) {
-		throw new Error("CompactTones の長さは4の倍数である必要があります");
+		throw new Error(
+			"コンパクト nibble 文字列の長さは4の倍数である必要があります",
+		);
 	}
 	const events: Ym2151Event[] = [];
 	for (let i = 0; i < cleaned.length; i += 4) {
 		const addr = cleaned.slice(i, i + 2);
 		const data = cleaned.slice(i + 2, i + 4);
 		if (!/^[0-9a-fA-F]{4}$/.test(`${addr}${data}`)) {
-			throw new Error("CompactTones に16進以外の文字が含まれています");
+			throw new Error(
+				"コンパクト nibble 文字列に16進以外の文字が含まれています",
+			);
 		}
 		events.push({
 			time: 0,
@@ -95,16 +99,24 @@ export function normalizeAttachmentText(
 		const parsed = JSON.parse(trimmed);
 		let mutated = false;
 
-		// New array format: normalize per-entry CompactTone fields
+		// New array format: normalize per-entry registers (or legacy CompactTone) fields
 		if (Array.isArray(parsed)) {
 			const normalized = (parsed as Array<Record<string, unknown>>).map(
 				(entry) => {
-					if (
-						typeof entry.CompactTone === "string" &&
-						entry.CompactTone.length > 0
-					) {
-						const events = buildEventsFromCompact(entry.CompactTone);
-						const { CompactTone: _compactTone, ...rest } = entry;
+					const compactValue =
+						typeof entry.registers === "string" && entry.registers.length > 0
+							? entry.registers
+							: typeof entry.CompactTone === "string" &&
+									entry.CompactTone.length > 0
+								? entry.CompactTone
+								: null;
+					if (compactValue !== null) {
+						const events = buildEventsFromCompact(compactValue);
+						const {
+							registers: _registers,
+							CompactTone: _compactTone,
+							...rest
+						} = entry;
 						mutated = true;
 						return { ...rest, Tone: { events } };
 					}
@@ -115,7 +127,7 @@ export function normalizeAttachmentText(
 				normalized,
 				statusEl,
 				mutated,
-				"CompactTone を YM2151 音色 JSON に正規化しました",
+				"コンパクト nibble を YM2151 音色 JSON に正規化しました",
 			);
 		}
 
