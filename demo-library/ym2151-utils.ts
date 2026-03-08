@@ -45,3 +45,34 @@ export function parseHexByte(value: string): number | null {
 	const parsed = Number.parseInt(match[1], 16);
 	return Number.isNaN(parsed) ? null : parsed;
 }
+
+// ---------------------------------------------------------------------------
+// Shared visualizer layout constants
+// ---------------------------------------------------------------------------
+
+/** Number of YM2151 hardware channels. */
+export const DEFAULT_CHANNELS = 8;
+
+/** Base address of the KC (key code) registers, one per channel (0x28–0x2F). */
+export const KC_REGISTER_BASE = 0x28;
+
+/** Base address of the KF (key fraction) registers, one per channel (0x30–0x37). */
+export const KF_REGISTER_BASE = 0x30;
+
+/** Width/height in pixels of a single register-write event dot. */
+export const EVENT_WIDTH = 4;
+
+/** Minimum rendered width in pixels for a note bar. */
+export const MIN_NOTE_WIDTH = 2;
+
+/** Height in pixels of each channel lane track area. */
+export const TRACK_HEIGHT = 80;
+
+/** Height in pixels of a rendered note bar within a lane. */
+export const NOTE_BAR_HEIGHT = 8;
+
+/** A labelled lane containing a scrollable track div. */
+export type LaneElements = {
+	root: HTMLElement;
+	track: HTMLElement;
+};
