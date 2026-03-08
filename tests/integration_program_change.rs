@@ -193,8 +193,8 @@ fn test_end_to_end_program_change_with_file() {
 #[test]
 fn test_attachment_tone_applied_without_program_change_event() {
     use smf_to_ym2151log::midi::{MidiData, MidiEvent};
-    use smf_to_ym2151log::ConversionOptions;
     use smf_to_ym2151log::ym2151::convert_to_ym2151_log_with_options;
+    use smf_to_ym2151log::ConversionOptions;
 
     // Build attachment options with a tone for program 0 containing a distinctive register
     let attachment_json = br#"[
