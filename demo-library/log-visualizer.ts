@@ -19,9 +19,17 @@ type NoteSegment = {
 	ch: number;
 };
 
+/** Config for a single LFO-modulated register (base register in hex, e.g. "0x60"). */
+export type LfoRegisterConfig = {
+	baseRegister: string;
+	label?: string;
+};
+
 export type LogVisualizer = {
 	renderFromJson: (jsonText: string | null | undefined) => void;
 	clear: () => void;
+	/** Provide LFO register config so the visualizer can draw waveform lanes. */
+	setLfoRegisters: (registers: LfoRegisterConfig[]) => void;
 };
 
 const DEFAULT_CHANNELS = 8;
@@ -70,6 +78,116 @@ function parseHexByte(value: string): number | null {
 	if (!match) return null;
 	const parsed = parseInt(match[1], 16);
 	return Number.isNaN(parsed) ? null : parsed;
+}
+
+/**
+ * Mirrors the Rust `resolve_register_for_channel` function.
+ * Given a base register and YM2151 channel index, returns the per-channel address.
+ */
+function resolveRegisterForChannel(baseReg: number, channel: number): number {
+	if (baseReg >= 0x20 && baseReg <= 0x27) return 0x20 + channel;
+	if (baseReg >= 0x28 && baseReg <= 0x2f) return 0x28 + channel;
+	if (baseReg >= 0x30 && baseReg <= 0x37) return 0x30 + channel;
+	if (baseReg >= 0x38 && baseReg <= 0x3f) return 0x38 + channel;
+	if (baseReg >= 0x40) {
+		const base = baseReg & 0xe0;
+		const slot = baseReg & 0x1f;
+		const operator = Math.floor(slot / 8);
+		const newSlot = channel + operator * 8;
+		return base + newSlot;
+	}
+	return baseReg;
+}
+
+/**
+ * For each LFO base register, collect the set of resolved per-channel addresses
+ * (for the 8 YM2151 channels) that appear in the event list.
+ */
+function collectLfoEvents(
+	events: YmLogEvent[],
+	lfoRegisters: LfoRegisterConfig[],
+	channelCount: number,
+): Map<
+	string,
+	{ addr: number; label: string; events: { x: number; data: number }[] }
+> {
+	const result = new Map<
+		string,
+		{ addr: number; label: string; events: { x: number; data: number }[] }
+	>();
+
+	if (lfoRegisters.length === 0) return result;
+
+	// Build address → (baseKey, label) lookup for all channel-resolved addresses
+	const addrToKey = new Map<number, { key: string; label: string }>();
+	for (const lfoDef of lfoRegisters) {
+		const base = parseHexByte(lfoDef.baseRegister);
+		if (base === null) continue;
+		const key = lfoDef.baseRegister;
+		const label = lfoDef.label ?? `LFO ${lfoDef.baseRegister}`;
+		for (let ch = 0; ch < channelCount; ch++) {
+			const resolved = resolveRegisterForChannel(base, ch);
+			addrToKey.set(resolved, { key, label });
+		}
+	}
+
+	for (const event of events) {
+		const addr = parseHexByte(event.addr);
+		const data = parseHexByte(event.data);
+		if (addr === null || data === null) continue;
+		const entry = addrToKey.get(addr);
+		if (!entry) continue;
+		if (!result.has(entry.key)) {
+			result.set(entry.key, {
+				addr: parseHexByte(entry.key) ?? addr,
+				label: entry.label,
+				events: [],
+			});
+		}
+		result.get(entry.key)!.events.push({ x: event.time, data });
+	}
+
+	return result;
+}
+
+/**
+ * Render an LFO waveform lane below the channel lanes.
+ * Events are plotted as dots whose Y position is proportional to the data byte value,
+ * scaled between the observed minimum and maximum so the full lane height is used.
+ */
+function renderLfoLane(
+	container: HTMLElement,
+	label: string,
+	lfoEvts: { x: number; data: number }[],
+	trackWidth: number,
+): void {
+	if (lfoEvts.length === 0) return;
+
+	let minVal = Number.POSITIVE_INFINITY;
+	let maxVal = Number.NEGATIVE_INFINITY;
+	for (const e of lfoEvts) {
+		if (e.data < minVal) minVal = e.data;
+		if (e.data > maxVal) maxVal = e.data;
+	}
+
+	const lane = createLane(`${label} ${minVal}–${maxVal}`, trackWidth);
+	container.appendChild(lane.root);
+
+	const valueRange = maxVal - minVal;
+	const usableHeight = TRACK_HEIGHT - EVENT_WIDTH;
+
+	for (const e of lfoEvts) {
+		const ratio = valueRange > 0 ? (e.data - minVal) / valueRange : 0.5;
+		// High data value → low Y (top of track); low data value → high Y (bottom)
+		const top = Math.round((1 - ratio) * usableHeight);
+
+		const dot = document.createElement("div");
+		dot.className = "log-visualizer-event log-visualizer-event--lfo";
+		dot.style.left = `${Math.max(0, Math.min(trackWidth - EVENT_WIDTH, e.x * PIXELS_PER_SECOND))}px`;
+		dot.style.top = `${top}px`;
+		dot.title = `t=${e.x.toFixed(3)}s data=0x${e.data.toString(16).padStart(2, "0")}`;
+		lane.track.appendChild(dot);
+	}
 }
 
 function detectChannel(
@@ -335,6 +453,9 @@ export function createLogVisualizer(
 			clear: () => {
 				/* no-op */
 			},
+			setLfoRegisters: () => {
+				/* no-op */
+			},
 		};
 	}
 
@@ -342,6 +463,9 @@ export function createLogVisualizer(
 		1,
 		Math.min(16, options?.channelCount ?? DEFAULT_CHANNELS),
 	);
+
+	let lfoRegisters: LfoRegisterConfig[] = [];
+	let lastJsonText: string | null | undefined = null;
 
 	const renderEmpty = (message: string) => {
 		container.classList.add("log-visualizer", "log-visualizer--empty");
@@ -353,6 +477,7 @@ export function createLogVisualizer(
 	};
 
 	const renderFromJson = (jsonText: string | null | undefined) => {
+		lastJsonText = jsonText;
 		if (!jsonText || jsonText.trim().length === 0) {
 			renderEmpty("変換結果がまだありません。");
 			return;
@@ -447,12 +572,32 @@ export function createLogVisualizer(
 			bar.title = `CH${seg.ch} KC=0x${seg.kc.toString(16).padStart(2, "0")} KF=0x${seg.kf.toString(16).padStart(2, "0")} t=${seg.startTime.toFixed(3)}-${seg.endTime.toFixed(3)}s`;
 			lane.track.appendChild(bar);
 		}
+
+		// Render LFO waveform lanes (one per configured LFO base register)
+		if (lfoRegisters.length > 0) {
+			const lfoData = collectLfoEvents(events, lfoRegisters, channelCount);
+			for (const [, entry] of lfoData) {
+				renderLfoLane(container, entry.label, entry.events, trackWidth);
+			}
+		}
 	};
 
 	renderEmpty("YM2151 ログを変換するとここに描画します。");
 
+	const setLfoRegisters = (registers: LfoRegisterConfig[]) => {
+		lfoRegisters = registers;
+		// Re-render with the new LFO config if we already have data
+		if (lastJsonText !== null) {
+			renderFromJson(lastJsonText);
+		}
+	};
+
 	return {
 		renderFromJson,
-		clear: () => renderEmpty("YM2151 ログを変換するとここに描画します。"),
+		clear: () => {
+			lastJsonText = null;
+			renderEmpty("YM2151 ログを変換するとここに描画します。");
+		},
+		setLfoRegisters,
 	};
 }

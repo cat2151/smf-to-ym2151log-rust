@@ -61,7 +61,11 @@ fn append_register_lfo_for_segment(
         return;
     }
 
-    let time_step = (1.0 / def.rate_hz.max(f64::EPSILON)) / 8.0;
+    // Use enough samples per period so consecutive values differ by at most 1 integer step.
+    // A triangle wave with amplitude `depth` has a max slope of 4*depth per period,
+    // so we need at least 4*depth samples to avoid stepping by more than 1.
+    let samples_per_period = (4.0 * def.depth.abs()).max(8.0).ceil();
+    let time_step = (1.0 / def.rate_hz.max(f64::EPSILON)) / samples_per_period;
     if !time_step.is_finite() || time_step <= 0.0 {
         return;
     }

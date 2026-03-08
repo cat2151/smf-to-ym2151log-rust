@@ -245,6 +245,11 @@ button:disabled {
 	opacity: 0.5;
 }
 
+.log-visualizer-event--lfo {
+	background-color: #e76f00;
+	opacity: 0.85;
+}
+
 .log-visualizer-note {
 	position: absolute;
 	height: 8px;
