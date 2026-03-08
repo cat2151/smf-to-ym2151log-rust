@@ -27,6 +27,14 @@ let lastMidiSource: "file" | "mml" | null = null;
 let latestMidiRequestId = 0;
 let latestAutoPlayId = 0;
 
+async function computeHash(data: Uint8Array | string): Promise<string> {
+	const bytes =
+		typeof data === "string" ? new TextEncoder().encode(data) : data;
+	const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
+	const hashArray = Array.from(new Uint8Array(hashBuffer));
+	return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 const attachmentField = document.getElementById(
 	"attachment-json",
 ) as HTMLTextAreaElement | null;
@@ -122,6 +130,10 @@ async function runConversion(trigger: string): Promise<void> {
 			midiBytes,
 			attachmentBytes,
 		);
+		void computeHash(result).then((hash) => {
+			console.log("[delay-vibrato] YM2151 JSON:", result);
+			console.log("[delay-vibrato] YM2151 JSON hash:", hash);
+		});
 		const parsed = JSON.parse(result);
 		const formatted = JSON.stringify(parsed, null, 2);
 		setEventCountDisplay(
@@ -187,6 +199,10 @@ function setupMmlInput(): void {
 		onMidiReady: (bytes) => {
 			midiBytes = bytes;
 			lastMidiSource = "mml";
+			void computeHash(bytes).then((hash) => {
+				console.log("[delay-vibrato] SMF bytes:", bytes);
+				console.log("[delay-vibrato] SMF hash:", hash);
+			});
 		},
 		onClear: () => {
 			if (lastMidiSource === "mml") {
