@@ -14,6 +14,7 @@ export default defineConfig({
 				portamentoSoftLfo: resolve(__dirname, "portamento-soft-lfo.html"),
 				toneJson: resolve(__dirname, "tone-json.html"),
 				popNoise: resolve(__dirname, "pop-noise.html"),
+				toneInterpolation: resolve(__dirname, "tone-interpolation.html"),
 			},
 		},
 	},
