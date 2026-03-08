@@ -2,6 +2,12 @@ import {
 	NOTE_CODE_TO_SEMITONE,
 	PIXELS_PER_SECOND,
 	parseHexByte,
+	DEFAULT_CHANNELS,
+	KC_REGISTER_BASE,
+	KF_REGISTER_BASE,
+	TRACK_HEIGHT,
+	NOTE_BAR_HEIGHT,
+	MIN_NOTE_WIDTH,
 } from "./ym2151-utils";
 
 export type NoteOnState = { time: number; kc: number; kf: number };
@@ -14,14 +20,8 @@ export type NoteSegment = {
 	ch: number;
 };
 
-const DEFAULT_CHANNELS = 8;
-const KC_REGISTER_BASE = 0x28;
-const KF_REGISTER_BASE = 0x30;
-const TRACK_HEIGHT = 80;
-const NOTE_BAR_HEIGHT = 8;
 // Minimum segment duration to keep DOM node count manageable.
 // Segments shorter than one pixel at the current scale are coalesced into their successor.
-const MIN_NOTE_WIDTH = 2;
 const MIN_SEGMENT_SECONDS = MIN_NOTE_WIDTH / PIXELS_PER_SECOND;
 const UNCLOSED_NOTE_EXTENSION_S = 0.1;
 

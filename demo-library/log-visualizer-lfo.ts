@@ -1,13 +1,16 @@
-import { PIXELS_PER_SECOND, parseHexByte } from "./ym2151-utils";
+import {
+	PIXELS_PER_SECOND,
+	parseHexByte,
+	EVENT_WIDTH,
+	TRACK_HEIGHT,
+	type LaneElements,
+} from "./ym2151-utils";
 
 /** Config for a single LFO-modulated register (base register in hex, e.g. "0x60"). */
 export type LfoRegisterConfig = {
 	baseRegister: string;
 	label?: string;
 };
-
-const EVENT_WIDTH = 4;
-const TRACK_HEIGHT = 80;
 
 /**
  * Mirrors the Rust `resolve_register_for_channel` function.
@@ -81,11 +84,6 @@ export function collectLfoEvents(
 
 	return result;
 }
-
-type LaneElements = {
-	root: HTMLElement;
-	track: HTMLElement;
-};
 
 /**
  * Render an LFO waveform lane below the channel lanes.

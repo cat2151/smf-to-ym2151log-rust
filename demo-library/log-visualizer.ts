@@ -2,6 +2,12 @@ import {
 	type YmLogEvent,
 	PIXELS_PER_SECOND,
 	parseHexByte,
+	DEFAULT_CHANNELS,
+	KC_REGISTER_BASE,
+	KF_REGISTER_BASE,
+	EVENT_WIDTH,
+	MIN_NOTE_WIDTH,
+	type LaneElements,
 } from "./ym2151-utils";
 import {
 	buildNoteSegments,
@@ -17,11 +23,6 @@ import {
 
 export type { LfoRegisterConfig };
 
-type LaneElements = {
-	root: HTMLElement;
-	track: HTMLElement;
-};
-
 export type LogVisualizer = {
 	renderFromJson: (jsonText: string | null | undefined) => void;
 	clear: () => void;
@@ -29,13 +30,8 @@ export type LogVisualizer = {
 	setLfoRegisters: (registers: LfoRegisterConfig[]) => void;
 };
 
-const DEFAULT_CHANNELS = 8;
 const MIN_TRACK_WIDTH = 640;
 const MAX_TRACK_WIDTH = 6400;
-const EVENT_WIDTH = 4;
-const KC_REGISTER_BASE = 0x28;
-const KF_REGISTER_BASE = 0x30;
-const MIN_NOTE_WIDTH = 2;
 const NOTE_WIDTH_GAP = 1;
 
 function detectChannel(
