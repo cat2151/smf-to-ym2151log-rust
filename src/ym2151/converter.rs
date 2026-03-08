@@ -91,13 +91,18 @@ pub fn convert_to_ym2151_log_with_options(
     // Allocate YM2151 channels based on polyphony with drum channel priority
     let mut allocation = allocate_channels(&polyphony);
 
-    // Collect all allocated YM2151 channels for initialization
-    let mut used_ym2151_channels = HashSet::new();
-    for ym_channels in allocation.midi_to_ym2151.values() {
-        for &ym_ch in ym_channels {
-            used_ym2151_channels.insert(ym_ch);
+    // Collect all allocated YM2151 channels for initialization, sorted for deterministic output
+    let used_ym2151_channels: Vec<u8> = {
+        let mut set = HashSet::new();
+        for ym_channels in allocation.midi_to_ym2151.values() {
+            for &ym_ch in ym_channels {
+                set.insert(ym_ch);
+            }
         }
-    }
+        let mut v: Vec<u8> = set.into_iter().collect();
+        v.sort_unstable();
+        v
+    };
 
     // Initialize all used YM2151 channels with default parameters
     for &ch in &used_ym2151_channels {

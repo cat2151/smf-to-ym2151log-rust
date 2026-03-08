@@ -238,14 +238,22 @@ fn test_attachment_tone_applied_without_program_change_event() {
 
     let log = result.unwrap();
 
-    // The distinctive register value 0xAB must appear in the output log
-    let has_distinctive_value = log
-        .events
-        .iter()
-        .any(|e| e.addr == "0x20" && e.data == "0xAB");
+    // The distinctive register value 0xAB must appear in the output log at some
+    // channel-adjusted address in the 0x20..=0x27 range (apply_tone_to_channel adjusts
+    // the address based on the allocated YM2151 channel).
+    let has_distinctive_value = log.events.iter().any(|e| {
+        if e.data != "0xAB" {
+            return false;
+        }
+        if let Some(hex) = e.addr.strip_prefix("0x") {
+            matches!(u8::from_str_radix(hex, 16), Ok(addr) if (0x20..=0x27).contains(&addr))
+        } else {
+            false
+        }
+    });
     assert!(
         has_distinctive_value,
-        "Attachment tone register write (addr=0x20, data=0xAB) must appear in the log \
+        "Attachment tone register write with data=0xAB at addr=0x20..=0x27 must appear in the log \
          even without an explicit Program Change event"
     );
 }
