@@ -1,8 +1,9 @@
-type YmLogEvent = {
-	time: number;
-	addr: string;
-	data: string;
-};
+import {
+	type YmLogEvent,
+	NOTE_CODE_TO_SEMITONE,
+	PIXELS_PER_SECOND,
+	parseHexByte,
+} from "./ym2151-utils";
 
 type LaneElements = {
 	root: HTMLElement;
@@ -35,7 +36,6 @@ export type LogVisualizer = {
 const DEFAULT_CHANNELS = 8;
 const MIN_TRACK_WIDTH = 640;
 const MAX_TRACK_WIDTH = 6400;
-const PIXELS_PER_SECOND = 180;
 const EVENT_WIDTH = 4;
 const KC_REGISTER_BASE = 0x28;
 const KF_REGISTER_BASE = 0x30;
@@ -47,38 +47,6 @@ const UNCLOSED_NOTE_EXTENSION_S = 0.1;
 // Minimum segment duration to keep DOM node count manageable.
 // Segments shorter than one pixel at the current scale are coalesced into their successor.
 const MIN_SEGMENT_SECONDS = MIN_NOTE_WIDTH / PIXELS_PER_SECOND;
-
-/**
- * Maps YM2151 note code (low nibble of KC byte) to a linear semitone index (0–11).
- * YM2151 note codes start at C# (code 0) and end at C (code 14).
- * Codes 3, 7, 11, and 15 are unused by the note table and are mapped to the
- * nearest lower valid semitone so that the resulting pitch is still monotonic.
- */
-const NOTE_CODE_TO_SEMITONE: readonly number[] = [
-	0, // 0  = C#
-	1, // 1  = D
-	2, // 2  = D#
-	2, // 3  = (unused, treated as D#)
-	3, // 4  = E
-	4, // 5  = F
-	5, // 6  = F#
-	5, // 7  = (unused, treated as F#)
-	6, // 8  = G
-	7, // 9  = G#
-	8, // 10 = A
-	8, // 11 = (unused, treated as A)
-	9, // 12 = A#
-	10, // 13 = B
-	11, // 14 = C
-	11, // 15 = (unused, treated as C)
-];
-
-function parseHexByte(value: string): number | null {
-	const match = /^0x([0-9a-fA-F]{1,2})$/.exec(value.trim());
-	if (!match) return null;
-	const parsed = parseInt(match[1], 16);
-	return Number.isNaN(parsed) ? null : parsed;
-}
 
 /**
  * Mirrors the Rust `resolve_register_for_channel` function.

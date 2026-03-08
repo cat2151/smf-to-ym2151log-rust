@@ -6,12 +6,17 @@
  * waveform period, and visually confirm whether pop-noise has been reduced.
  */
 
+import {
+	type YmLogEvent,
+	NOTE_CODE_TO_SEMITONE,
+	PIXELS_PER_SECOND,
+	parseHexByte,
+} from "./ym2151-utils";
+
 // YM2151 internal sample rate (55.93 kHz, per the OPM datasheet §4).
 const YM_SAMPLE_RATE = 55930;
 // Number of FM operators per channel
 const NUM_OPERATORS = 4;
-// Base pixels-per-second scale (same as log-visualizer)
-const BASE_PIXELS_PER_SECOND = 180;
 // Maximum simulation length in seconds to keep memory reasonable
 const MAX_SIMULATE_SECONDS = 30;
 
@@ -19,21 +24,6 @@ const MAX_SIMULATE_SECONDS = 30;
 const MSG_INITIAL = "YM2151 ログを変換するとここに描画します。";
 const MSG_EMPTY = "変換結果がまだありません。";
 const MSG_PARSE_ERROR = "ログ JSON を解析できませんでした。";
-
-// --- Helpers ---
-
-function parseHex(s: string): number | null {
-	const m = /^0x([0-9a-fA-F]{1,2})$/.exec(s.trim());
-	if (!m) return null;
-	const n = Number.parseInt(m[1], 16);
-	return Number.isNaN(n) ? null : n;
-}
-
-// Maps YM2151 note code (low nibble of KC) to semitone offset from C# (0-11).
-// Matches the same table used in log-visualizer.ts.
-const NOTE_CODE_TO_SEMITONE: readonly number[] = [
-	0, 1, 2, 2, 3, 4, 5, 5, 6, 7, 8, 8, 9, 10, 11, 11,
-];
 
 /**
  * Convert YM2151 KC and KF register values to a frequency in Hz.
@@ -132,11 +122,10 @@ class EnvelopeGenerator {
 
 // --- Waveform simulation ---
 
-type YmLogEvent = { time: number; addr: string; data: string };
-
 type WaveformData = {
-	/** Interleaved [envelope, waveform] pairs: index 2i = envelope, 2i+1 = waveform */
+	/** Envelope amplitude per sample (0–1 scale). */
 	envelopeSamples: Float32Array;
+	/** Waveform sample (envelope × carrier sine) per sample. */
 	waveformSamples: Float32Array;
 	sampleRate: number;
 	durationS: number;
@@ -173,8 +162,8 @@ function simulateWaveform(rawEvents: YmLogEvent[], ch: number): WaveformData {
 		// Process all events at or before current sample time
 		while (eventIndex < rawEvents.length && rawEvents[eventIndex].time <= t) {
 			const ev = rawEvents[eventIndex++];
-			const addr = parseHex(ev.addr);
-			const data = parseHex(ev.data);
+			const addr = parseHexByte(ev.addr);
+			const data = parseHexByte(ev.data);
 			if (addr === null || data === null) continue;
 
 			// Key On/Off: register 0x08
@@ -283,7 +272,7 @@ function drawWaveform(
 	viewStart: number,
 	zoom: number,
 ): void {
-	const pixelsPerSec = BASE_PIXELS_PER_SECOND * zoom;
+	const pixelsPerSec = PIXELS_PER_SECOND * zoom;
 	const viewDurationS = width / pixelsPerSec;
 	const viewEnd = viewStart + viewDurationS;
 
@@ -454,7 +443,8 @@ export function createWaveformViewer(
 	let waveformData: WaveformData | null = null;
 	let rawEvents: YmLogEvent[] = [];
 	let viewStart = 0; // seconds from start of log
-	let zoom = 50; // current zoom multiplier
+	// Initial zoom=1 matches slider value="0" (2000^0=1) and label "1x" in HTML.
+	let zoom = 1;
 	let selectedChannel = 0;
 
 	const {
@@ -467,7 +457,7 @@ export function createWaveformViewer(
 	} = controls;
 
 	function getWindowDurS(): number {
-		return W / (BASE_PIXELS_PER_SECOND * zoom);
+		return W / (PIXELS_PER_SECOND * zoom);
 	}
 
 	function clampViewStart(v: number): number {
@@ -609,7 +599,7 @@ export function createWaveformViewer(
 	canvas.addEventListener("mousemove", (e) => {
 		if (!dragState) return;
 		const dx = e.clientX - dragState.startX;
-		const pixPerSec = BASE_PIXELS_PER_SECOND * zoom;
+		const pixPerSec = PIXELS_PER_SECOND * zoom;
 		viewStart = clampViewStart(dragState.startViewStart - dx / pixPerSec);
 		render();
 	});
