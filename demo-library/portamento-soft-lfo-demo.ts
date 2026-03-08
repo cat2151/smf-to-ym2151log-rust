@@ -10,7 +10,7 @@ import {
 	updateOutput,
 } from "./shared-demo";
 import { setupMmlToSmf } from "./mml-support";
-import { createLogVisualizer } from "./log-visualizer";
+import { type LfoRegisterConfig, createLogVisualizer } from "./log-visualizer";
 
 const DEFAULT_ATTACHMENT = `[
   {
@@ -100,6 +100,41 @@ function readAttachmentBytes(): Uint8Array | null {
 	);
 }
 
+/**
+ * Parse the attachment JSON text and extract SoftwareLfo register configs
+ * so the log visualizer can render dedicated LFO waveform lanes.
+ */
+function extractLfoRegistersFromAttachment(
+	attachmentText: string,
+): LfoRegisterConfig[] {
+	try {
+		const parsed: unknown = JSON.parse(attachmentText);
+		const entries = Array.isArray(parsed) ? parsed : [parsed];
+		const configs: LfoRegisterConfig[] = [];
+		for (const entry of entries) {
+			if (!entry || typeof entry !== "object") continue;
+			const lfoList = (entry as Record<string, unknown>)["SoftwareLfo"];
+			if (!Array.isArray(lfoList)) continue;
+			for (const lfo of lfoList) {
+				if (!lfo || typeof lfo !== "object") continue;
+				const baseReg = (lfo as Record<string, unknown>)["BaseRegister"];
+				if (typeof baseReg !== "string") continue;
+				configs.push({ baseRegister: baseReg, label: `LFO ${baseReg}` });
+			}
+		}
+		return configs;
+	} catch {
+		return [];
+	}
+}
+
+function syncLfoRegisters(): void {
+	const raw = attachmentField?.value.trim() ?? "";
+	const registers =
+		raw.length > 0 ? extractLfoRegistersFromAttachment(raw) : [];
+	logVisualizer.setLfoRegisters(registers);
+}
+
 async function runConversion(trigger: string): Promise<void> {
 	if (!wasmReady) {
 		setStatus(conversionStatus, "WASM 初期化中です。少しお待ちください...");
@@ -119,6 +154,8 @@ async function runConversion(trigger: string): Promise<void> {
 		updatePlayButtonState();
 		return;
 	}
+
+	syncLfoRegisters();
 
 	try {
 		const triggerLabel =
@@ -283,6 +320,8 @@ function main(): void {
 	updatePlayButtonState();
 	bootstrapWebYm();
 	void initializeWasm();
+	// Initialise LFO registers from the default attachment text
+	syncLfoRegisters();
 
 	if (playButton) {
 		playButton.addEventListener("click", () => {
