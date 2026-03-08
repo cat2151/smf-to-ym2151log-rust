@@ -139,13 +139,10 @@ function readAttachmentBytes(): Uint8Array | null {
 		return new Uint8Array();
 	}
 
-	toneJsonField.value = normalized;
-	if (
-		attachmentPresetSelect &&
-		attachmentPresetSelect.value !== "" &&
-		normalized.trim() !== original.trim()
-	) {
-		attachmentPresetSelect.value = "";
+	const isPresetActive =
+		attachmentPresetSelect != null && attachmentPresetSelect.value !== "";
+	if (!isPresetActive) {
+		toneJsonField.value = normalized;
 	}
 	return new TextEncoder().encode(normalized);
 }
