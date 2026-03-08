@@ -36,29 +36,16 @@ export function getParseTreeJsonToSmf():
 	return parseTreeJsonToSmf;
 }
 
-// Non-leaf node types whose Rust token_extractor reads node.text directly.
-// Leaf nodes (childCount === 0) always receive text regardless of this set.
-const NON_LEAF_TEXT_NODES = new Set([
-	"octave_set",
-	"length_set",
-	"program_change",
-	"tempo_set",
-	"velocity_set",
-	"key_transpose",
-]);
-
 export function treeToJson(
 	node: TreeSitterNode,
 	source: string,
 ): Record<string, unknown> {
-	const result: Record<string, unknown> = { type: node.type };
+	const result: Record<string, unknown> = {
+		type: node.type,
+		text: source.substring(node.startIndex, node.endIndex),
+	};
 	if (node.childCount === 0) {
-		result.text = source.substring(node.startIndex, node.endIndex);
 		return result;
-	}
-
-	if (NON_LEAF_TEXT_NODES.has(node.type)) {
-		result.text = source.substring(node.startIndex, node.endIndex);
 	}
 
 	const children: Record<string, unknown>[] = [];
