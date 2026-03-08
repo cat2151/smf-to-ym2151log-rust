@@ -86,6 +86,19 @@ pub struct ProgramAttachment {
     /// Optional inline tone definition for this program
     #[serde(rename = "Tone", default)]
     pub tone: Option<ToneDefinition>,
+    /// Enable looping linear interpolation toward the next program's tone (program_change + 1).
+    /// When true, register values are continuously morphed from this program's tone
+    /// to the next program's tone over `change_to_next_tone_time` seconds, then back,
+    /// repeating for the duration of the song.
+    #[serde(rename = "ChangeToNextTone", default)]
+    pub change_to_next_tone: bool,
+    /// Duration in seconds for one interpolation direction (tone N → tone N+1 or back).
+    /// Defaults to 5.0 seconds.
+    #[serde(
+        rename = "ChangeToNextToneTime",
+        default = "default_change_to_next_tone_time"
+    )]
+    pub change_to_next_tone_time: f64,
 }
 
 /// Optional conversion options supplied via attachment JSON
@@ -186,6 +199,10 @@ pub enum LfoWaveform {
 
 fn default_lfo_waveform() -> LfoWaveform {
     LfoWaveform::Triangle
+}
+
+fn default_change_to_next_tone_time() -> f64 {
+    5.0
 }
 
 fn default_pre_note_offset() -> f64 {
@@ -378,5 +395,28 @@ mod tests {
         let json = b"[]";
         let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
         assert!(opts.program_attachments.is_empty());
+    }
+
+    #[test]
+    fn test_from_attachment_bytes_change_to_next_tone_fields() {
+        let json = br#"[
+          {
+            "ProgramChange": 0,
+            "ChangeToNextTone": true,
+            "ChangeToNextToneTime": 3.5,
+            "Tone": { "events": [] }
+          },
+          {
+            "ProgramChange": 1,
+            "Tone": { "events": [] }
+          }
+        ]"#;
+        let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
+        assert_eq!(opts.program_attachments.len(), 2);
+        assert!(opts.program_attachments[0].change_to_next_tone);
+        assert!((opts.program_attachments[0].change_to_next_tone_time - 3.5).abs() < 1e-9);
+        assert!(!opts.program_attachments[1].change_to_next_tone);
+        // Default time for the second entry (not specified)
+        assert!((opts.program_attachments[1].change_to_next_tone_time - 5.0).abs() < 1e-9);
     }
 }

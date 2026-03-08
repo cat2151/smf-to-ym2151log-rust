@@ -16,8 +16,8 @@ use crate::ym2151::{
 use crate::ConversionOptions;
 use pitch_effects::{append_delay_vibrato_events, append_portamento_events};
 use register_effects::{
-    append_attack_continuation_fix_events, append_pop_noise_envelope_events,
-    append_register_lfo_events, build_register_state_cache,
+    append_attack_continuation_fix_events, append_change_to_next_tone_events,
+    append_pop_noise_envelope_events, append_register_lfo_events, build_register_state_cache,
 };
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
@@ -313,6 +313,25 @@ pub fn convert_to_ym2151_log_with_options(
     }
 
     ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
+
+    // Apply looping linear tone interpolation toward the adjacent program tone.
+    // This is independent of note segments and runs for the full song duration.
+    let has_change_to_next_tone = options
+        .program_attachments
+        .iter()
+        .any(|pa| pa.change_to_next_tone);
+    if has_change_to_next_tone && !options.tones.is_empty() {
+        let song_end_time = ticks_to_seconds_with_tempo_map(last_tick, ticks_per_beat, &tempo_map);
+        append_change_to_next_tone_events(
+            &options.program_attachments,
+            &options.tones,
+            &used_ym2151_channels,
+            song_end_time,
+            &mut ym2151_events,
+        );
+        // Re-sort to interleave newly generated events
+        ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
+    }
 
     Ok(Ym2151Log {
         event_count: ym2151_events.len(),
