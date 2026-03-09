@@ -16,6 +16,7 @@ export const YM_LOG_STYLE_PRESET = `[
   {
     "ProgramChange": 0,
     "Tone": {
+      "type": "YM2151 tone",
       "events": [
         { "time": 0, "addr": "0x20", "data": "0xC7" },
         { "time": 0, "addr": "0x60", "data": "0x10" },
@@ -118,7 +119,7 @@ export function normalizeAttachmentText(
 							...rest
 						} = entry;
 						mutated = true;
-						return { ...rest, Tone: { events } };
+						return { ...rest, Tone: { type: "YM2151 tone", events } };
 					}
 					return entry;
 				},

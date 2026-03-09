@@ -121,6 +121,7 @@ fn test_convert_program_change_with_attachment_tone() {
                 addr: "0x20".to_string(),
                 data: "0xAB".to_string(),
             }],
+            ..ToneDefinition::default()
         },
     );
 
