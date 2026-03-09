@@ -1,4 +1,4 @@
-Last updated: 2026-03-09
+Last updated: 2026-03-10
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -334,6 +334,8 @@ cargo audit
   📘 globals.d.ts
   🌐 index.html
   📘 library-demo.ts
+  📘 log-visualizer-lfo.ts
+  📘 log-visualizer-note-segments.ts
   📘 log-visualizer.ts
   📘 mml-support.ts
   📊 package-lock.json
@@ -366,8 +368,8 @@ cargo audit
   📖 123.md
   📖 157.md
   📖 166.md
-  📖 171.md
-  📖 172.md
+  📖 177.md
+  📖 178.md
   📖 22.md
   📖 33.md
   📖 45.md
@@ -404,6 +406,8 @@ cargo audit
       📄 channels.rs
       📄 drums.rs
       📄 effects.rs
+      📄 lfo.rs
+      📄 portamento.rs
       📄 programs.rs
     📄 converter_tests.rs
     📄 event_processor.rs
@@ -456,8 +460,16 @@ cargo audit
   - 関数: initWasm, displayResult, showError, readAttachmentBytes, setupFileInput, catch, if
   - インポート: ./log-visualizer
 
-**demo-library/log-visualizer.ts** (584行, 17354バイト)
-  - 関数: resolveRegisterForChannel, collectLfoEvents, renderLfoLane, detectChannel, buildNoteSegments, notePitch, computePitchRange, noteYPosition, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, setLfoRegisters, if, for
+**demo-library/log-visualizer-lfo.ts** (128行, 4002バイト)
+  - 関数: resolveRegisterForChannel, collectLfoEvents, renderLfoLane, if, for
+  - インポート: なし
+
+**demo-library/log-visualizer-note-segments.ts** (203行, 5759バイト)
+  - 関数: buildNoteSegments, notePitch, computePitchRange, noteYPosition, for, if
+  - インポート: なし
+
+**demo-library/log-visualizer.ts** (290行, 8254バイト)
+  - 関数: detectChannel, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, setLfoRegisters, if, for
   - インポート: なし
 
 **demo-library/mml-support.ts** (100行, 2258バイト)
@@ -496,11 +508,11 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/tone-json-attachment.ts** (161行, 3922バイト)
+**demo-library/tone-json-attachment.ts** (174行, 4250バイト)
   - 関数: buildEventsFromCompact, serializeWithStatus, normalizeAttachmentText, if, for, catch
   - インポート: ./shared-demo
 
-**demo-library/tone-json-demo.ts** (365行, 9422バイト)
+**demo-library/tone-json-demo.ts** (362行, 9387バイト)
   - 関数: updateOutputWithState, updatePlayButtonState, convertMmlToSmf, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, initializeWasm, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./log-visualizer
 
@@ -528,7 +540,7 @@ cargo audit
   - 関数: createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, rebuildAndRender, setZoom, endDrag, if, renderFromJson, clear
   - インポート: ./ym2151-utils, ./waveform-simulator, ./waveform-canvas
 
-**demo-library/ym2151-utils.ts** (48行, 1427バイト)
+**demo-library/ym2151-utils.ts** (79行, 2455バイト)
   - 関数: parseHexByte
   - インポート: なし
 
@@ -576,21 +588,21 @@ cargo audit
       - showError ()
       - setupFileInput ()
       - clear ()
-  - resolveRegisterForChannel (demo-library/log-visualizer.ts)
+  - resolveRegisterForChannel (demo-library/log-visualizer-lfo.ts)
     - collectLfoEvents ()
       - renderLfoLane ()
-      - detectChannel ()
-      - buildNoteSegments ()
-      - notePitch ()
+      - createLane ()
+      - parseHexByte ()
+  - buildNoteSegments (demo-library/log-visualizer-note-segments.ts)
+    - notePitch ()
       - computePitchRange ()
       - noteYPosition ()
-      - normalizeEvents ()
+  - detectChannel (demo-library/log-visualizer.ts)
+    - normalizeEvents ()
       - laneColor ()
-      - createLane ()
       - computeTrackWidth ()
       - renderEmpty ()
       - ensureGlobalLane ()
-      - parseHexByte ()
   - getMmlParser ()
     - getParseTreeJsonToSmf ()
       - treeToJson ()
@@ -613,7 +625,7 @@ cargo audit
       - rebuildAndRender ()
       - setZoom ()
 - switch (demo-library/envelope-generator.ts)
-- for (demo-library/log-visualizer.ts)
+- for (demo-library/log-visualizer-lfo.ts)
 - while (demo-library/waveform-simulator.ts)
 - endDrag (demo-library/waveform-viewer.ts)
 
@@ -629,6 +641,8 @@ demo-library/envelope-generator.ts
 demo-library/globals.d.ts
 demo-library/index.html
 demo-library/library-demo.ts
+demo-library/log-visualizer-lfo.ts
+demo-library/log-visualizer-note-segments.ts
 demo-library/log-visualizer.ts
 demo-library/mml-support.ts
 demo-library/package-lock.json
@@ -647,8 +661,6 @@ demo-library/tone-json-mml.ts
 demo-library/tone-json.html
 demo-library/tsconfig.json
 demo-library/vite.config.ts
-demo-library/waveform-canvas.ts
-demo-library/waveform-simulator.ts
 googled947dc864c270e07.html
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
@@ -661,4 +673,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-09 07:08:13 JST
+Generated at: 2026-03-10 07:11:19 JST
