@@ -31,6 +31,7 @@ fn test_change_to_next_tone_generates_interpolation_events() {
             addr: "0x60".to_string(), // TL op0, ch0
             data: "0x10".to_string(),
         }],
+        ..ToneDefinition::default()
     };
     let tone_program1 = ToneDefinition {
         events: vec![Ym2151Event {
@@ -38,6 +39,7 @@ fn test_change_to_next_tone_generates_interpolation_events() {
             addr: "0x60".to_string(),
             data: "0x30".to_string(),
         }],
+        ..ToneDefinition::default()
     };
 
     let options = ConversionOptions {
@@ -112,6 +114,7 @@ fn test_change_to_next_tone_disabled_produces_no_extra_events() {
             addr: "0x60".to_string(),
             data: "0x10".to_string(),
         }],
+        ..ToneDefinition::default()
     };
     let tone1 = ToneDefinition {
         events: vec![Ym2151Event {
@@ -119,6 +122,7 @@ fn test_change_to_next_tone_disabled_produces_no_extra_events() {
             addr: "0x60".to_string(),
             data: "0x30".to_string(),
         }],
+        ..ToneDefinition::default()
     };
 
     let base_options = ConversionOptions {
@@ -182,6 +186,7 @@ fn test_change_to_next_tone_requires_both_tones() {
             addr: "0x60".to_string(),
             data: "0x10".to_string(),
         }],
+        ..ToneDefinition::default()
     };
 
     // Only tone 0 defined; tone 1 is missing

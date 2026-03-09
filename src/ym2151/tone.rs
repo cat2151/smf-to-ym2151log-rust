@@ -14,11 +14,30 @@ use std::path::Path;
 /// a tone/voice for a channel. The events should not include time-dependent
 /// registers like KC (Key Code) or KF (Key Fraction), as those are set
 /// dynamically based on the note being played.
+///
+/// The `type` field is always serialized as `"YM2151 tone"` to make the JSON
+/// self-descriptive.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToneDefinition {
+    /// Type identifier for self-description; always `"YM2151 tone"`
+    #[serde(rename = "type", default = "default_tone_type")]
+    pub r#type: String,
     /// List of YM2151 register write events
     /// Time values are ignored when loading tones
     pub events: Vec<Ym2151Event>,
+}
+
+fn default_tone_type() -> String {
+    "YM2151 tone".to_string()
+}
+
+impl Default for ToneDefinition {
+    fn default() -> Self {
+        Self {
+            r#type: default_tone_type(),
+            events: Vec::new(),
+        }
+    }
 }
 
 /// Load a tone definition from a JSON file
@@ -164,6 +183,7 @@ mod tests {
                     data: "0x01".to_string(),
                 },
             ],
+            ..ToneDefinition::default()
         };
 
         // Apply to channel 1 at time 1.0 seconds
@@ -186,6 +206,7 @@ mod tests {
                 addr: "0x60".to_string(), // TL for operator 0, channel 0
                 data: "0x00".to_string(),
             }],
+            ..ToneDefinition::default()
         };
 
         // Apply to channel 0
@@ -226,6 +247,7 @@ mod tests {
                     data: "0x7F".to_string(),
                 },
             ],
+            ..ToneDefinition::default()
         };
 
         // Apply to channel 2
