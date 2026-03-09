@@ -12,10 +12,11 @@ Tone files should be named according to the MIDI program number they represent:
 
 ## JSON Format
 
-Each tone file contains a JSON object with an `events` array. Each event represents a YM2151 register write:
+Each tone file contains a JSON object with a `type` field and an `events` array. Each event represents a YM2151 register write:
 
 ```json
 {
+  "type": "YM2151 tone",
   "events": [
     {
       "time": 0,

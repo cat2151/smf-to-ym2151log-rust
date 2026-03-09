@@ -18,6 +18,10 @@ fn test_tone_loading_from_file() {
     );
 
     let tone = tone_opt.unwrap();
+    assert_eq!(
+        tone.r#type, "YM2151 tone",
+        "Tone type field should be 'YM2151 tone'"
+    );
     assert!(
         !tone.events.is_empty(),
         "Tone should have register write events"
