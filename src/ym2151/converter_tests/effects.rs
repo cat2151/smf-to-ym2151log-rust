@@ -119,15 +119,11 @@ fn test_pop_noise_envelope_adds_pre_note_overrides() {
 
     // Key-off must be emitted at apply_time so the envelope decays with the
     // overridden (faster-release) register values, eliminating pop noise.
-    let pre_note_key_off = result
+    let _pre_note_key_off = result
         .events
         .iter()
         .find(|e| e.addr == "0x08" && e.data == "0x00" && e.time > 0.49 && e.time < 0.5)
         .expect("Pre-note key-off should be generated for pop noise mitigation");
-    assert!(
-        pre_note_key_off.time < 0.5,
-        "Key-off must happen before the next key-on"
-    );
 }
 
 #[test]
