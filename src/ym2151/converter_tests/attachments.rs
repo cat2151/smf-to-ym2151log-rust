@@ -24,13 +24,13 @@ fn test_change_to_next_tone_skips_kc_kf_key_on_registers() {
         ],
     };
 
-    let make_tone = |tl: &str, kc: &str, kf: &str| ToneDefinition {
+    let make_tone = |tl: &str, key_on: &str, kc: &str, kf: &str| ToneDefinition {
         events: vec![
-            // Key-on register — must be ignored
+            // Key-on register — must be ignored even when values differ between tones
             Ym2151Event {
                 time: 0.0,
                 addr: "0x08".to_string(),
-                data: "0x78".to_string(),
+                data: key_on.to_string(),
             },
             // KC register — must be ignored
             Ym2151Event {
@@ -54,8 +54,10 @@ fn test_change_to_next_tone_skips_kc_kf_key_on_registers() {
         ..ToneDefinition::default()
     };
 
-    let tone0 = make_tone("0x10", "0x4E", "0x00"); // TL=0x10, KC=A4, KF=0
-    let tone1 = make_tone("0x30", "0x5E", "0x20"); // TL=0x30, KC different, KF different
+    // Use different key-on values (0x78 vs 0x38) so the 0x08 register would have been
+    // interpolated before the fix, verifying that is_note_register(0x08) is exercised.
+    let tone0 = make_tone("0x10", "0x78", "0x4E", "0x00"); // TL=0x10, key-on=0x78, KC=A4, KF=0
+    let tone1 = make_tone("0x30", "0x38", "0x5E", "0x20"); // TL=0x30, key-on=0x38 (different!), KC different, KF different
 
     let options = ConversionOptions {
         program_attachments: vec![
@@ -99,6 +101,33 @@ fn test_change_to_next_tone_skips_kc_kf_key_on_registers() {
         kc_extra.is_empty(),
         "KC register must NOT be interpolated; got {} unexpected KC events",
         kc_extra.len()
+    );
+
+    // 0x08 (key-on) must NOT receive interpolation events — values differ between
+    // tone0 (0x78) and tone1 (0x38), so without the is_note_register guard the
+    // interpolation loop would emit writes between those values.
+    // Only the initial key-on write at t=0 and the key-off write are expected.
+    let key_on_interpolated: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| {
+            if e.addr != "0x08" {
+                return false;
+            }
+            // Any value strictly between 0x38 and 0x78 would be an interpolated write
+            if let Some(hex) = e.data.strip_prefix("0x") {
+                if let Ok(v) = u8::from_str_radix(hex, 16) {
+                    return v > 0x38 && v < 0x78;
+                }
+            }
+            false
+        })
+        .collect();
+    assert!(
+        key_on_interpolated.is_empty(),
+        "Key-on register (0x08) must NOT be interpolated; got {} unexpected writes: {:?}",
+        key_on_interpolated.len(),
+        key_on_interpolated
     );
 
     // KF (0x30) must NOT receive interpolation events
