@@ -1,12 +1,13 @@
 /**
  * WAV file export utility.
  *
- * Encodes a Float32Array of audio samples into a 16-bit mono PCM WAV Blob
- * and triggers a browser download.
+ * Encodes a Float32Array of audio samples into a 16-bit mono PCM WAV
+ * ArrayBuffer, and provides a helper to wrap it in a Blob and trigger
+ * a browser download.
  */
 
 /**
- * Encode Float32Array samples as a 16-bit mono PCM WAV Blob.
+ * Encode Float32Array samples as a 16-bit mono PCM WAV ArrayBuffer.
  * Samples should be in the range [-1, 1].
  */
 export function encodeWav(

@@ -15,7 +15,6 @@
 import { type YmLogEvent, PIXELS_PER_SECOND } from "./ym2151-utils";
 import { type WaveformData, simulateWaveform } from "./waveform-simulator";
 import { drawEmpty, drawWaveform } from "./waveform-canvas";
-import { YM_SAMPLE_RATE } from "./envelope-generator";
 import { downloadWav } from "./wav-exporter";
 
 // --- UI string constants ---
@@ -276,7 +275,11 @@ export function createWaveformViewer(
 		},
 		exportWav(filename: string) {
 			if (!waveformData || waveformData.waveformSamples.length === 0) return;
-			downloadWav(waveformData.waveformSamples, YM_SAMPLE_RATE, filename);
+			downloadWav(
+				waveformData.waveformSamples,
+				waveformData.sampleRate,
+				filename,
+			);
 		},
 	};
 }
