@@ -1,51 +1,50 @@
-Last updated: 2026-03-10
+Last updated: 2026-03-11
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #177](../issue-notes/177.md)と[Issue #83](../issue-notes/83.md)は、添付JSONと音色データの整理に関するドッグフーディングと課題解決を求めています。
-- [Issue #33](../issue-notes/33.md)は、ym2151-tone-editorの出力するJSONを優先して読み込む仕様追加を検討しています。
-- [Issue #22](../issue-notes/22.md)は、デフォルト音色（000.json～127.json）の手作業での配置と作成を課題としています。
+- [Issue #189](../issue-notes/189.md): ディレイビブラートのピッチビジュアライザーが連続的な変化を表現できておらず、表示が飛び飛びに見える問題を解決します。
+- [Issue #188](../issue-notes/188.md): ソフトLFOに`key on sync`オプションを追加し、LFOがKey Onに連動せずフレーズ間で継続できるように改善します。
+- [Issue #187](../issue-notes/187.md): ソフトLFOのレジスタビジュアライザーで、演奏データのないチャンネルを「ch1～ch7 : 演奏データなし」のようにコンパクトに表示するよう修正します。
 
 ## 次の一手候補
-1. [Issue #33](../issue-notes/33.md) ym2151-tone-editorの出力するJSONを優先する仕様の検討と実装計画
-   - 最初の小さな一歩: 現在の音色データ読み込みロジックがどのファイルでどのように処理されているかを特定し、`ym2151-tone-editor`からのJSONを優先的に読み込む際に変更が必要となる可能性のある箇所を洗い出す。
+1. [Issue #189](../issue-notes/189.md): demo ディレイビブラート pitch ビジュアライザーの表示改善
+   - 最初の小さな一歩: `demo-library/delay-vibrato-demo.ts`と`demo-library/log-visualizer-lfo.ts`内のピッチ描画ロジックを分析し、現在の固定Y幅描画を特定する。特に、`LogVisualizer`クラスやその`draw`メソッド、またはピッチデータを処理する部分に注目する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `src/ym2151/tone.rs`, `src/ym2151/converter.rs`, `tones/README.md`
+     対象ファイル: demo-library/delay-vibrato-demo.ts, demo-library/log-visualizer-lfo.ts, demo-library/log-visualizer.ts
 
-     実行内容: `src/ym2151/tone.rs` を中心に、現在の音色データ（`tones/` ディレクトリ内のJSONファイル）の読み込みロジックを分析してください。特に、JSONファイルをどのように探し、パースし、アプリケーション内で利用しているかを詳細に把握し、Markdown形式でその処理フローを記述してください。
+     実行内容: ディレイビブラートのピッチビジュアライザーの描画ロジックを分析してください。特に、ピッチの変化が固定Y幅で描画されている箇所、および1pxごとのピッチの最大値と最小値を算出してY軸の可変幅描画を実現するために修正が必要な箇所を特定してください。
 
-     確認事項: 既存の音色読み込み処理が依存する他のモジュールや設定ファイル（例: `tones/README.md` に記載されている情報など）があるかを確認してください。
+     確認事項: `LogVisualizer`クラスや関連する描画ヘルパー関数がどのようにピッチデータを消費し、Canvasに描画しているかを確認してください。既存の描画関数に与えられるデータの形式も確認し、変更の影響範囲を把握してください。
 
-     期待する出力: 既存の音色読み込み処理のフロー図（テキストベースで可）と、`ym2151-tone-editor` から出力されるJSONを優先的に読み込む際に変更が必要となる可能性のある箇所について、具体的な候補をMarkdown形式で提案してください。
+     期待する出力: ピッチデータの描画を担当する関数名とファイルパス、およびY軸可変幅描画に必要な変更の具体的なコード差分（擬似コードまたはTypeScriptコード）をMarkdown形式で出力してください。
      ```
 
-2. [Issue #83](../issue-notes/83.md) 音色データの扱いについて整理（デフォルト音色データ未整備の現状把握）
-   - 最初の小さな一歩: デフォルト音色データがどのように扱われることを想定しているか、現在の`tones/`ディレクトリの構造と既存の`tones/000.json`の内容、および関連するコード（`src/ym2151/tone.rs`など）を確認し、現状を把握する。
+2. [Issue #188](../issue-notes/188.md): demo ソフトLFOにkey on syncオプションを追加
+   - 最初の小さな一歩: `src/ym2151/converter/register_effects.rs`内の`RegisterLfoDefinition`構造体に`key_on_sync`フィールド（`bool`型）を追加し、`append_register_lfo_for_segment`関数内で`start_time`の計算にこのフィールドを反映させるためのロジックを検討する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `tones/`, `tones/000.json`, `tones/README.md`, `src/ym2151/tone.rs`
+     対象ファイル: src/ym2151/converter/register_effects.rs, src/ym2151/mod.rs, src/ym2151/tone.rs
 
-     実行内容: `tones/` ディレクトリの現在の内容（特に`000.json`の構造）と、`src/ym2151/tone.rs` における音色データのロードおよび利用方法を分析してください。デフォルト音色データ0～127が未整備という課題に対して、現在のコードがどのように対応しているか、または対応できていないかを明確にしてください。
+     実行内容: `src/ym2151/mod.rs`の`RegisterLfoDefinition`に`key_on_sync: bool`フィールドを追加し、この設定に基づいてソフトLFOの`start_time`を調整するロジックを`src/ym2151/converter/register_effects.rs`の`append_register_lfo_for_segment`関数に実装してください。`key_on_sync`が`false`の場合、LFOはノートの開始ではなく、曲の開始 (`0.0`秒) から継続して発動するように変更します。また、`src/ym2151/tone.rs`で`RegisterLfoDefinition`のJSONシリアライズ/デシリアライズに`key_on_sync`フィールドを追加してください。
 
-     確認事項: `src/ym2151/tone.rs` が音色データをどのように解決しているか（パス、ファイル名規則など）を確認し、`tones/README.md` に記載されている情報との整合性を確認してください。
+     確認事項: `RegisterLfoDefinition`がJSONからどのようにロードされるか、および`append_register_lfo_for_segment`関数が`NoteSegment`の`start_time`をどのように利用しているかを確認してください。`start_time`を調整することで他のLFO関連計算 (`elapsed`, `phase`, `attack_ratio`) にどのような影響があるかも考慮してください。
 
-     期待する出力: `tones/` ディレクトリの現状（存在しないファイルや仮のファイル）、`tones/000.json` の内容の簡単な説明、および `src/ym2151/tone.rs` が音色データをロードする際の具体的な挙動について、Markdown形式でレポートしてください。また、デフォルト音色データ整備の初期ステップとして、どのような情報が必要であるかを提案してください。
+     期待する出力: `RegisterLfoDefinition`構造体の変更案と、`append_register_lfo_for_segment`関数の修正案、および`src/ym2151/tone.rs`におけるJSON処理の変更案をRustコードブロックで出力してください。
      ```
 
-3. [Issue #177](../issue-notes/177.md) 添付JSONまわりのドッグフーディングに必要な環境とフローの確認
-   - 最初の小さな一歩: `demo-library/tone-json-attachment.ts`と`demo-library/tone-json-demo.ts`を中心に、添付JSONがどのように生成され、デモで利用されているかを理解する。
+3. [Issue #187](../issue-notes/187.md): demo ソフトLFOのレジスタビジュアライザー表示をコンパクト化
+   - 最初の小さな一歩: `demo-library/portamento-soft-lfo-demo.ts`および`demo-library/log-visualizer-lfo.ts`内のレジスタビジュアライザーの描画ロジックを分析し、各チャンネルのデータを取得する部分と、HTML要素を生成する部分を特定する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `demo-library/tone-json-attachment.ts`, `demo-library/tone-json-demo.ts`, `src/ym2151/tone.rs`, `src/ym2151/converter.rs`
+     対象ファイル: demo-library/portamento-soft-lfo-demo.ts, demo-library/log-visualizer-lfo.ts, demo-library/log-visualizer.ts
 
-     実行内容: `demo-library/tone-json-attachment.ts` と `demo-library/tone-json-demo.ts` がどのように連携し、添付JSONの生成と利用を行っているかを分析してください。また、それが `src/ym2151/tone.rs` や `src/ym2151/converter.rs` での音色変換にどのように影響しているかを調査し、Markdown形式でその現状と潜在的な課題を記述してください。
+     実行内容: ソフトLFOのレジスタビジュアライザーにおいて、演奏データが存在しない（key onがない）チャンネル (`ch1`～`ch7`) の表示をコンパクトにするための修正案を生成してください。具体的には、これらのチャンネルに対して「chX : 演奏データなし」のような一行表示に切り替えるロジックを提案してください。
 
-     確認事項: `demo-library` 側のTypeScriptコードが、WASMモジュール（`smf-to-ym2151log-rust`）のどの機能と連携しているか、特に添付JSONの形式や受け渡し方法に注目して確認してください。
+     確認事項: `LogVisualizer`クラスやLFO関連のデモファイルがどのようにチャンネルごとのレジスタデータを処理し、HTMLに出力しているかを確認してください。チャンネルがアクティブかどうかを判断するための情報（例: `NoteSegment`の有無）が利用可能かどうかも確認してください。
 
-     期待する出力: 添付JSONの生成・利用フローの概要、現在のデモにおける添付JSONの役割、および [Issue #177](../issue-notes/177.md) のドッグフーディングを進める上で考慮すべき技術的ポイントや潜在的な改善点をMarkdown形式で提案してください。
-     ```
+     期待する出力: `demo-library/log-visualizer-lfo.ts`内の描画ロジック、または関連するHTML生成ロジックの修正案をTypeScript/HTMLコードブロックで出力してください。また、空のチャンネルを判定するためのロジックの概要も記述してください。
 
 ---
-Generated at: 2026-03-10 07:11:38 JST
+Generated at: 2026-03-11 07:10:24 JST
