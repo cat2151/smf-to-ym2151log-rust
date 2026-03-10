@@ -126,8 +126,9 @@ pub(super) fn append_pop_noise_envelope_events(
             continue;
         }
         let apply_time = segment.start_time - offset;
-        let restore_time = (segment.start_time - RESTORE_BEFORE_NOTE_EPSILON).max(0.0);
+        let restore_time = segment.start_time;
 
+        let channel_key_off_data = format!("0x{:02X}", segment.ym2151_channel);
         let mut any_override = false;
         for reg in &config.registers {
             let Some(base_reg) = parse_hex_byte(&reg.base_register) else {
@@ -158,15 +159,18 @@ pub(super) fn append_pop_noise_envelope_events(
             any_override = true;
         }
 
-        // Send key-off after register overrides so the envelope decays using the
-        // overridden (e.g. faster-release) register values, reducing pop noise at
-        // the subsequent key-on.
+        // Move the existing key-off at segment.start_time to apply_time so the
+        // envelope has time to decay under the overridden (faster-release) registers
+        // before the next key-on.  Only back-to-back notes have a key-off exactly at
+        // segment.start_time; skip when the channel was already silent before apply_time.
         if any_override {
-            events.push(Ym2151Event {
-                time: apply_time,
-                addr: "0x08".to_string(),
-                data: format!("0x{:02X}", segment.ym2151_channel),
-            });
+            if let Some(existing_key_off) = events.iter_mut().find(|e| {
+                e.addr == "0x08"
+                    && e.data == channel_key_off_data
+                    && (e.time - segment.start_time).abs() < TIME_LOOP_EPSILON
+            }) {
+                existing_key_off.time = apply_time;
+            }
         }
     }
 }
