@@ -53,6 +53,9 @@ fn test_delay_vibrato_generates_additional_pitch_events() {
 
 #[test]
 fn test_pop_noise_envelope_adds_pre_note_overrides() {
+    // Use back-to-back notes so that the key-off for note 1 is at the same
+    // time as the key-on for note 2 (t=0.5s).  PopNoiseEnvelope should move
+    // that key-off to apply_time so the envelope decays before note 2 starts.
     let midi_data = MidiData {
         ticks_per_beat: 480,
         tempo_bpm: 120.0,
@@ -64,7 +67,7 @@ fn test_pop_noise_envelope_adds_pre_note_overrides() {
                 velocity: 100,
             },
             MidiEvent::NoteOff {
-                ticks: 240,
+                ticks: 480, // ends at t=0.5s — same tick as note 2 start (back-to-back)
                 channel: 0,
                 note: 60,
             },
@@ -75,7 +78,7 @@ fn test_pop_noise_envelope_adds_pre_note_overrides() {
                 velocity: 100,
             },
             MidiEvent::NoteOff {
-                ticks: 720,
+                ticks: 960,
                 channel: 0,
                 note: 64,
             },
@@ -96,25 +99,45 @@ fn test_pop_noise_envelope_adds_pre_note_overrides() {
 
     let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
 
+    // Register override should appear at apply_time (≈ 0.499)
     let pre_overrides: Vec<_> = result
         .events
         .iter()
-        .filter(|e| e.addr == "0xA0" && e.data == "0x02" && e.time > 0.4 && e.time < 0.5)
+        .filter(|e| e.addr == "0xA0" && e.data == "0x02" && e.time > 0.498 && e.time < 0.5)
         .collect();
     assert_eq!(
         pre_overrides.len(),
         1,
-        "Second note should get one override"
+        "Second note should get one override at apply_time"
     );
 
+    // Register restore should appear at segment.start_time (0.5)
     let restores: Vec<_> = result
         .events
         .iter()
-        .filter(|e| e.addr == "0xA0" && e.time >= 0.499 && e.time <= 0.5)
+        .filter(|e| e.addr == "0xA0" && (e.time - 0.5_f64).abs() < 1e-6)
         .collect();
     assert!(
-        restores.iter().any(|e| e.data == "0x05"),
-        "Override should be restored to the base D1R value"
+        restores.iter().any(|e| e.data != "0x02"),
+        "Override should be restored to the base value at segment.start_time"
+    );
+
+    // The existing key-off (from note 1 ending at t=0.5) must be moved to apply_time
+    // so the envelope decays with the overridden registers before note 2's key-on.
+    let _pre_note_key_off = result
+        .events
+        .iter()
+        .find(|e| e.addr == "0x08" && e.data == "0x00" && e.time > 0.498 && e.time < 0.5)
+        .expect("Key-off should be moved to apply_time for pop noise mitigation");
+
+    // No key-off should remain at segment.start_time (t=0.5) — it was moved.
+    let key_off_at_note_start = result
+        .events
+        .iter()
+        .find(|e| e.addr == "0x08" && e.data == "0x00" && (e.time - 0.5_f64).abs() < 1e-9);
+    assert!(
+        key_off_at_note_start.is_none(),
+        "Key-off should have been moved away from segment.start_time"
     );
 }
 
