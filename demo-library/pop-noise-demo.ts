@@ -287,12 +287,23 @@ function setupPlayButton(): void {
 	});
 }
 
+function setupWavExportButton(): void {
+	const wavExportBtn = document.getElementById(
+		"wv-export-wav",
+	) as HTMLButtonElement | null;
+	if (!wavExportBtn) return;
+	wavExportBtn.addEventListener("click", () => {
+		waveformViewer.exportWav("waveform.wav");
+	});
+}
+
 function bootstrap(): void {
 	void initializeWasm();
 	setupAttachmentEditor();
 	setupMidiInput();
 	setupPlayButton();
 	setupMmlInput();
+	setupWavExportButton();
 }
 
 bootstrap();
