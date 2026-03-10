@@ -2,6 +2,119 @@
 use super::*;
 
 #[test]
+fn test_change_to_next_tone_skips_kc_kf_key_on_registers() {
+    // Tone events that include KC (0x28), KF (0x30), and key-on (0x08) along with
+    // a real tone register (TL 0x60).  The KC/KF/key-on differences must NOT produce
+    // interpolation events; only TL should be interpolated.
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 4800,
+                channel: 0,
+                note: 60,
+            },
+        ],
+    };
+
+    let make_tone = |tl: &str, kc: &str, kf: &str| ToneDefinition {
+        events: vec![
+            // Key-on register — must be ignored
+            Ym2151Event {
+                time: 0.0,
+                addr: "0x08".to_string(),
+                data: "0x78".to_string(),
+            },
+            // KC register — must be ignored
+            Ym2151Event {
+                time: 0.0,
+                addr: "0x28".to_string(),
+                data: kc.to_string(),
+            },
+            // KF register — must be ignored
+            Ym2151Event {
+                time: 0.0,
+                addr: "0x30".to_string(),
+                data: kf.to_string(),
+            },
+            // TL register — must be interpolated
+            Ym2151Event {
+                time: 0.0,
+                addr: "0x60".to_string(),
+                data: tl.to_string(),
+            },
+        ],
+        ..ToneDefinition::default()
+    };
+
+    let tone0 = make_tone("0x10", "0x4E", "0x00"); // TL=0x10, KC=A4, KF=0
+    let tone1 = make_tone("0x30", "0x5E", "0x20"); // TL=0x30, KC different, KF different
+
+    let options = ConversionOptions {
+        program_attachments: vec![
+            ProgramAttachment {
+                program_change: 0,
+                change_to_next_tone: true,
+                change_to_next_tone_time: 5.0,
+                ..ProgramAttachment::default()
+            },
+            ProgramAttachment {
+                program_change: 1,
+                ..ProgramAttachment::default()
+            },
+        ],
+        tones: {
+            let mut m = std::collections::HashMap::new();
+            m.insert(0, tone0);
+            m.insert(1, tone1);
+            m
+        },
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    // TL (0x60) differences must still be interpolated
+    let tl_events: Vec<_> = result.events.iter().filter(|e| e.addr == "0x60").collect();
+    assert!(
+        tl_events.len() > 2,
+        "TL register must still be interpolated; got {} events",
+        tl_events.len()
+    );
+
+    // KC (0x28) must NOT receive interpolation events — it is note-related
+    let kc_extra: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time > 0.01)
+        .collect();
+    assert!(
+        kc_extra.is_empty(),
+        "KC register must NOT be interpolated; got {} unexpected KC events",
+        kc_extra.len()
+    );
+
+    // KF (0x30) must NOT receive interpolation events
+    let kf_extra: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x30" && e.time > 0.01)
+        .collect();
+    assert!(
+        kf_extra.is_empty(),
+        "KF register must NOT be interpolated; got {} unexpected KF events",
+        kf_extra.len()
+    );
+}
+
+#[test]
 fn test_change_to_next_tone_generates_interpolation_events() {
     // A 10-second song with program 0 and program 1 tones that differ in TL (0x60).
     // changeToNextTone should produce continuously changing register writes.
