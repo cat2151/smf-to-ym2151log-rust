@@ -128,6 +128,7 @@ pub(super) fn append_pop_noise_envelope_events(
         let apply_time = segment.start_time - offset;
         let restore_time = (segment.start_time - RESTORE_BEFORE_NOTE_EPSILON).max(0.0);
 
+        let mut any_override = false;
         for reg in &config.registers {
             let Some(base_reg) = parse_hex_byte(&reg.base_register) else {
                 continue;
@@ -153,6 +154,18 @@ pub(super) fn append_pop_noise_envelope_events(
                 time: restore_time,
                 addr: addr_str,
                 data: format!("0x{:02X}", base_value),
+            });
+            any_override = true;
+        }
+
+        // Send key-off after register overrides so the envelope decays using the
+        // overridden (e.g. faster-release) register values, reducing pop noise at
+        // the subsequent key-on.
+        if any_override {
+            events.push(Ym2151Event {
+                time: apply_time,
+                addr: "0x08".to_string(),
+                data: format!("0x{:02X}", segment.ym2151_channel),
             });
         }
     }
