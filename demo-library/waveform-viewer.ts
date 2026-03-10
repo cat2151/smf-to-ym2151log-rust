@@ -15,6 +15,7 @@
 import { type YmLogEvent, PIXELS_PER_SECOND } from "./ym2151-utils";
 import { type WaveformData, simulateWaveform } from "./waveform-simulator";
 import { drawEmpty, drawWaveform } from "./waveform-canvas";
+import { downloadWav } from "./wav-exporter";
 
 // --- UI string constants ---
 const MSG_INITIAL = "YM2151 ログを変換するとここに描画します。";
@@ -35,15 +36,18 @@ export type WaveformViewerControls = {
 export type WaveformViewer = {
 	renderFromJson: (jsonText: string | null | undefined) => void;
 	clear: () => void;
+	exportWav: (filename: string) => void;
 };
 
 export function createWaveformViewer(
 	canvas: HTMLCanvasElement | null,
 	controls: WaveformViewerControls,
 ): WaveformViewer {
-	if (!canvas) return { renderFromJson: () => {}, clear: () => {} };
+	if (!canvas)
+		return { renderFromJson: () => {}, clear: () => {}, exportWav: () => {} };
 	const ctx = canvas.getContext("2d");
-	if (!ctx) return { renderFromJson: () => {}, clear: () => {} };
+	if (!ctx)
+		return { renderFromJson: () => {}, clear: () => {}, exportWav: () => {} };
 
 	// ctx is guaranteed non-null from here on; alias as a non-nullable type.
 	const ctx2d: CanvasRenderingContext2D = ctx;
@@ -268,6 +272,14 @@ export function createWaveformViewer(
 			rawEvents = [];
 			waveformData = null;
 			drawEmpty(ctx2d, W, H, MSG_INITIAL);
+		},
+		exportWav(filename: string) {
+			if (!waveformData || waveformData.waveformSamples.length === 0) return;
+			downloadWav(
+				waveformData.waveformSamples,
+				waveformData.sampleRate,
+				filename,
+			);
 		},
 	};
 }
