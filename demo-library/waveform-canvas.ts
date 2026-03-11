@@ -1,8 +1,8 @@
 /**
  * Canvas rendering for the waveform viewer.
  *
- * Provides drawEmpty (placeholder text) and drawWaveform (waveform +
- * envelope overlay with note-boundary markers and time labels).
+ * Provides drawEmpty (placeholder text) and drawWaveform (waveform with
+ * note-boundary markers and time labels).
  */
 
 import { PIXELS_PER_SECOND } from "./ym2151-utils";
@@ -24,7 +24,7 @@ export function drawEmpty(
 	ctx.textAlign = "left";
 }
 
-/** Render the waveform and envelope overlay for the visible time window. */
+/** Render the waveform for the visible time window. */
 export function drawWaveform(
 	ctx: CanvasRenderingContext2D,
 	width: number,
@@ -80,8 +80,9 @@ export function drawWaveform(
 		ctx.fillText(`key-on ${(t * 1000).toFixed(1)}ms`, x + 3, 11);
 	}
 
-	// Compute sample range for visible window
-	const startSample = Math.max(0, Math.floor(viewStart * data.sampleRate) - 1);
+	// Compute sample range for visible window (with edge padding for anti-aliasing)
+	const viewStartSample = viewStart * data.sampleRate;
+	const startSample = Math.max(0, Math.floor(viewStartSample) - 1);
 	const endSample = Math.min(
 		data.waveformSamples.length - 1,
 		Math.ceil(viewEnd * data.sampleRate) + 1,
@@ -89,7 +90,11 @@ export function drawWaveform(
 
 	if (startSample >= endSample) return;
 
-	const samplesPerPixel = (endSample - startSample + 1) / width;
+	// Use the view window duration (not data length) for pixel-to-sample mapping,
+	// so waveform positions align correctly with time labels and note-boundary markers.
+	// Anchor pixel 0 to viewStartSample exactly (not startSample) to avoid the -1
+	// edge-padding offset causing a horizontal shift at high zoom levels.
+	const samplesPerPixel = (viewDurationS * data.sampleRate) / width;
 
 	// Draw waveform (blue) using min/max per pixel column for correct anti-aliasing
 	ctx.strokeStyle = "#2196F3";
@@ -97,10 +102,13 @@ export function drawWaveform(
 	ctx.beginPath();
 	let firstWave = true;
 	for (let px = 0; px < width; px++) {
-		const sStart = Math.floor(startSample + px * samplesPerPixel);
+		const sStart = Math.max(
+			startSample,
+			Math.floor(viewStartSample + px * samplesPerPixel),
+		);
 		const sEnd = Math.min(
 			endSample,
-			Math.floor(startSample + (px + 1) * samplesPerPixel),
+			Math.floor(viewStartSample + (px + 1) * samplesPerPixel),
 		);
 		let minVal = 0;
 		let maxVal = 0;
@@ -124,32 +132,6 @@ export function drawWaveform(
 	}
 	ctx.stroke();
 
-	// Draw envelope (orange) as an overlay line
-	ctx.strokeStyle = "rgba(230, 100, 20, 0.85)";
-	ctx.lineWidth = 1.5;
-	ctx.beginPath();
-	let firstEnv = true;
-	for (let px = 0; px < width; px++) {
-		const sStart = Math.floor(startSample + px * samplesPerPixel);
-		const sEnd = Math.min(
-			endSample,
-			Math.floor(startSample + (px + 1) * samplesPerPixel),
-		);
-		let maxEnv = 0;
-		for (let s = sStart; s <= sEnd; s++) {
-			const v = data.envelopeSamples[s] ?? 0;
-			if (v > maxEnv) maxEnv = v;
-		}
-		const y = yCenter - maxEnv * yScale;
-		if (firstEnv) {
-			ctx.moveTo(px, y);
-			firstEnv = false;
-		} else {
-			ctx.lineTo(px, y);
-		}
-	}
-	ctx.stroke();
-
 	// Time-axis labels
 	const labelCount = Math.min(8, Math.floor(width / 80));
 	ctx.fillStyle = "#888";
@@ -166,8 +148,4 @@ export function drawWaveform(
 	ctx.fillStyle = "#555";
 	ctx.font = "10px sans-serif";
 	ctx.fillText("波形", 24, height - 24);
-	ctx.fillStyle = "rgba(230, 100, 20, 0.85)";
-	ctx.fillRect(60, height - 28, 14, 3);
-	ctx.fillStyle = "#555";
-	ctx.fillText("エンベロープ", 78, height - 24);
 }

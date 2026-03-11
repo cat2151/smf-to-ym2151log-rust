@@ -2,7 +2,7 @@
  * YM2151 waveform simulation.
  *
  * Replays YM2151 register-write events for a single channel and produces
- * per-sample envelope and waveform arrays used by the canvas renderer.
+ * a per-sample waveform array used by the canvas renderer.
  */
 
 import { type YmLogEvent, parseHexByte } from "./ym2151-utils";
@@ -17,8 +17,6 @@ import {
 const MAX_SIMULATE_SECONDS = 30;
 
 export type WaveformData = {
-	/** Envelope amplitude per sample (0–1 scale). */
-	envelopeSamples: Float32Array;
 	/** Waveform sample (envelope × carrier sine) per sample. */
 	waveformSamples: Float32Array;
 	sampleRate: number;
@@ -39,7 +37,6 @@ export function simulateWaveform(
 	const durationS = Math.min(maxTime + 1.0, MAX_SIMULATE_SECONDS);
 	const totalSamples = Math.ceil(durationS * YM_SAMPLE_RATE);
 
-	const envelopeSamples = new Float32Array(totalSamples);
 	const waveformSamples = new Float32Array(totalSamples);
 	const noteBoundaries: number[] = [];
 
@@ -127,7 +124,6 @@ export function simulateWaveform(
 		for (const gen of envGens) {
 			envelope = Math.max(envelope, gen.step());
 		}
-		envelopeSamples[i] = envelope;
 
 		// Carrier sine wave multiplied by envelope
 		oscPhase += (2 * Math.PI * freq) / YM_SAMPLE_RATE;
@@ -136,7 +132,6 @@ export function simulateWaveform(
 	}
 
 	return {
-		envelopeSamples,
 		waveformSamples,
 		sampleRate: YM_SAMPLE_RATE,
 		durationS,
