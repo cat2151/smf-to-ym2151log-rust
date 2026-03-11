@@ -107,6 +107,28 @@ function computeTrackWidth(events: YmLogEvent[]): number {
 	return Math.min(MAX_TRACK_WIDTH, Math.max(MIN_TRACK_WIDTH, width));
 }
 
+/**
+ * Format a list of channel numbers into a compact human-readable range string.
+ * E.g. [1,2,3,5,6,7] → "CH 1～3, 5～7 : 演奏データなし"
+ */
+function formatInactiveChannels(channels: number[]): string {
+	if (channels.length === 0) return "";
+	const ranges: string[] = [];
+	let start = channels[0];
+	let end = channels[0];
+	for (let i = 1; i < channels.length; i++) {
+		if (channels[i] === end + 1) {
+			end = channels[i];
+		} else {
+			ranges.push(start === end ? `${start}` : `${start}～${end}`);
+			start = channels[i];
+			end = channels[i];
+		}
+	}
+	ranges.push(start === end ? `${start}` : `${start}～${end}`);
+	return `CH ${ranges.join(", ")} : 演奏データなし`;
+}
+
 export function createLogVisualizer(
 	container: HTMLElement | null,
 	options?: { channelCount?: number },
@@ -167,13 +189,30 @@ export function createLogVisualizer(
 		const segments = buildNoteSegments(events, channelCount);
 		const { min: minPitch, max: maxPitch } = computePitchRange(segments);
 
+		// Group segments by channel to determine which channels are active
+		// (have key-on events). This is computed before lane creation so that
+		// inactive channels can be collapsed into a compact summary.
+		const segsByChannel = new Map<number, typeof segments>();
+		for (const seg of segments) {
+			if (!segsByChannel.has(seg.ch)) segsByChannel.set(seg.ch, []);
+			segsByChannel.get(seg.ch)!.push(seg);
+		}
+
+		const activeChannels = new Set<number>(segsByChannel.keys());
+		const inactiveChannels = Array.from(
+			{ length: channelCount },
+			(_, i) => i,
+		).filter((ch) => !activeChannels.has(ch));
+
 		container.classList.add("log-visualizer");
 		container.classList.remove("log-visualizer--empty");
 		container.innerHTML = "";
 
 		const lanes: Record<string, LaneElements> = {};
 
+		// Only create lane elements for active channels (channels with key-on events).
 		for (let ch = 0; ch < channelCount; ch += 1) {
+			if (!activeChannels.has(ch)) continue;
 			const lane = createLane(`CH ${ch}`, trackWidth);
 			container.appendChild(lane.root);
 			lanes[ch.toString()] = lane;
@@ -213,10 +252,19 @@ export function createLogVisualizer(
 			if (addr !== null && lfoAddrSet.has(addr)) return;
 
 			const channel = detectChannel(event.addr, event.data, channelCount);
+			// Skip events belonging to inactive channels (they have no lane).
+			if (
+				channel !== null &&
+				channel >= 0 &&
+				channel < channelCount &&
+				!activeChannels.has(channel)
+			)
+				return;
 			const lane =
 				channel !== null && channel >= 0 && channel < channelCount
 					? lanes[channel.toString()]
 					: ensureGlobalLane();
+			if (!lane) return;
 			const marker = document.createElement("div");
 			marker.className = "log-visualizer-event";
 			marker.style.left = `${Math.max(0, Math.min(trackWidth - EVENT_WIDTH, event.time * PIXELS_PER_SECOND))}px`;
@@ -228,11 +276,6 @@ export function createLogVisualizer(
 		// Render note pitch on a per-channel canvas overlay.
 		// Groups segments by channel and renders each group with a connected
 		// line-graph so that vibrato/delay-vibrato looks continuous.
-		const segsByChannel = new Map<number, typeof segments>();
-		for (const seg of segments) {
-			if (!segsByChannel.has(seg.ch)) segsByChannel.set(seg.ch, []);
-			segsByChannel.get(seg.ch)!.push(seg);
-		}
 		for (const [ch, chSegs] of segsByChannel) {
 			const lane = lanes[ch.toString()];
 			if (!lane) continue;
@@ -246,7 +289,8 @@ export function createLogVisualizer(
 			);
 		}
 
-		// Render LFO waveform lanes (one per configured LFO base register)
+		// Render LFO waveform lanes immediately after active channel lanes,
+		// before the inactive-channel summary, so the waveform is visible at a glance.
 		if (lfoRegisters.length > 0) {
 			const lfoData = collectLfoEvents(events, lfoRegisters, channelCount);
 			for (const [, entry] of lfoData) {
@@ -258,6 +302,14 @@ export function createLogVisualizer(
 					trackWidth,
 				);
 			}
+		}
+
+		// Render a compact one-line summary for inactive channels (no key-on events).
+		if (inactiveChannels.length > 0) {
+			const summary = document.createElement("div");
+			summary.className = "log-visualizer-inactive-summary";
+			summary.textContent = formatInactiveChannels(inactiveChannels);
+			container.appendChild(summary);
 		}
 	};
 
