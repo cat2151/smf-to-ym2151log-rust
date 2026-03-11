@@ -334,12 +334,16 @@ pub(super) fn append_change_to_next_tone_events(
             to_values.insert(addr, value);
         }
 
-        // Collect registers that differ between the two tones
+        // Collect registers that differ between the two tones.
+        // Skip note-related registers (KC, KF, key-on) which must not be interpolated.
         let mut register_changes: Vec<(u8, u8, u8)> = Vec::new(); // (base_addr, from, to)
         for ev in &tone_from.events {
             let Some(base_addr) = parse_hex_byte(&ev.addr) else {
                 continue;
             };
+            if is_note_register(base_addr) {
+                continue;
+            }
             let Some(value_from) = parse_hex_byte(&ev.data) else {
                 continue;
             };
@@ -414,6 +418,17 @@ fn resolve_register_for_channel(base_register: u8, channel: u8) -> u8 {
         }
         _ => base_register,
     }
+}
+
+/// Returns true if the register address is note-related (KC, KF, or key-on).
+///
+/// These registers control pitch and key state and must be excluded from tone
+/// interpolation so that note playback is not affected by the morphing process.
+/// - 0x08: Key Control (key on/off)
+/// - 0x28–0x2F: KC (Key Code, one per channel)
+/// - 0x30–0x37: KF (Key Fraction, one per channel)
+fn is_note_register(addr: u8) -> bool {
+    matches!(addr, 0x08 | 0x28..=0x2F | 0x30..=0x37)
 }
 
 fn parse_hex_byte(value: &str) -> Option<u8> {
