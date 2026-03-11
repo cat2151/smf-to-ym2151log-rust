@@ -80,8 +80,9 @@ export function drawWaveform(
 		ctx.fillText(`key-on ${(t * 1000).toFixed(1)}ms`, x + 3, 11);
 	}
 
-	// Compute sample range for visible window
-	const startSample = Math.max(0, Math.floor(viewStart * data.sampleRate) - 1);
+	// Compute sample range for visible window (with edge padding for anti-aliasing)
+	const viewStartSample = viewStart * data.sampleRate;
+	const startSample = Math.max(0, Math.floor(viewStartSample) - 1);
 	const endSample = Math.min(
 		data.waveformSamples.length - 1,
 		Math.ceil(viewEnd * data.sampleRate) + 1,
@@ -91,6 +92,8 @@ export function drawWaveform(
 
 	// Use the view window duration (not data length) for pixel-to-sample mapping,
 	// so waveform positions align correctly with time labels and note-boundary markers.
+	// Anchor pixel 0 to viewStartSample exactly (not startSample) to avoid the -1
+	// edge-padding offset causing a horizontal shift at high zoom levels.
 	const samplesPerPixel = (viewDurationS * data.sampleRate) / width;
 
 	// Draw waveform (blue) using min/max per pixel column for correct anti-aliasing
@@ -99,10 +102,13 @@ export function drawWaveform(
 	ctx.beginPath();
 	let firstWave = true;
 	for (let px = 0; px < width; px++) {
-		const sStart = Math.floor(startSample + px * samplesPerPixel);
+		const sStart = Math.max(
+			startSample,
+			Math.floor(viewStartSample + px * samplesPerPixel),
+		);
 		const sEnd = Math.min(
 			endSample,
-			Math.floor(startSample + (px + 1) * samplesPerPixel),
+			Math.floor(viewStartSample + (px + 1) * samplesPerPixel),
 		);
 		let minVal = 0;
 		let maxVal = 0;
