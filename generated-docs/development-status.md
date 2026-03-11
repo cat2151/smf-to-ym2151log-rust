@@ -1,50 +1,50 @@
-Last updated: 2026-03-11
+Last updated: 2026-03-12
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #189](../issue-notes/189.md): ディレイビブラートのピッチビジュアライザーが連続的な変化を表現できておらず、表示が飛び飛びに見える問題を解決します。
-- [Issue #188](../issue-notes/188.md): ソフトLFOに`key on sync`オプションを追加し、LFOがKey Onに連動せずフレーズ間で継続できるように改善します。
-- [Issue #187](../issue-notes/187.md): ソフトLFOのレジスタビジュアライザーで、演奏データのないチャンネルを「ch1～ch7 : 演奏データなし」のようにコンパクトに表示するよう修正します。
+- [Issue #193](../issue-notes/193.md) は、`src/ym2151/converter_tests/attachments.rs` が500行を超過しており、リファクタリングが推奨されています。
+- [Issue #189](../issue-notes/189.md) では、demoのディレイビブラートのピッチビジュアライザーが、実態と異なり飛び飛びに見える問題を解決する必要があります。
+- [Issue #187](../issue-notes/187.md) は、demoのソフトLFOレジスタビジュアライザーがチャンネル0の後に空欄が多く見づらいため、表示をコンパクトにする必要があります。
 
 ## 次の一手候補
-1. [Issue #189](../issue-notes/189.md): demo ディレイビブラート pitch ビジュアライザーの表示改善
-   - 最初の小さな一歩: `demo-library/delay-vibrato-demo.ts`と`demo-library/log-visualizer-lfo.ts`内のピッチ描画ロジックを分析し、現在の固定Y幅描画を特定する。特に、`LogVisualizer`クラスやその`draw`メソッド、またはピッチデータを処理する部分に注目する。
+1. [Issue #193](../issue-notes/193.md): 大きなファイルの検出: 1個のファイルが500行を超えています
+   - 最初の小さな一歩: `src/ym2151/converter_tests/attachments.rs` の現在のテスト構造を分析し、機能ごとに分割するリファクタリング計画を策定する。
+   - Agent実行プロンプ:
+     ```
+     対象ファイル: `src/ym2151/converter_tests/attachments.rs`
+
+     実行内容: 対象ファイルについて、現在のテスト関数群の構成を分析し、可読性と保守性を向上させるためのリファクタリング計画をMarkdown形式で生成してください。具体的には、テストのカテゴリ分けに基づいた関数やモジュールへの分割案と、それに伴うファイル構造の変更案を提示してください。
+
+     確認事項: 既存のテストの意図やカバレッジを損なわないこと、Rustのテストフレームワークの慣習に従うことを確認してください。リファクタリング前後でテストの挙動が変わらないことを前提とします。
+
+     期待する出力: リファクタリング計画をMarkdown形式で出力してください。計画には、提案される新しいファイル構造、各ファイルに移動するテスト関数の概要、および実装における考慮事項を含めてください。
+     ```
+
+2. [Issue #189](../issue-notes/189.md): demo ディレイビブラート pitch ビジュアライザーの表示が、実態と違って飛び飛びに見えてしまう
+   - 最初の小さな一歩: `demo-library/delay-vibrato-demo.ts` と `demo-library/waveform-viewer.ts` のピッチ描画ロジックを分析し、x 1pxごとのy幅可変描画の具体的な実装方針を検討する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: demo-library/delay-vibrato-demo.ts, demo-library/log-visualizer-lfo.ts, demo-library/log-visualizer.ts
+     対象ファイル: `demo-library/delay-vibrato-demo.ts`, `demo-library/waveform-viewer.ts`
 
-     実行内容: ディレイビブラートのピッチビジュアライザーの描画ロジックを分析してください。特に、ピッチの変化が固定Y幅で描画されている箇所、および1pxごとのピッチの最大値と最小値を算出してY軸の可変幅描画を実現するために修正が必要な箇所を特定してください。
+     実行内容: `demo-library/delay-vibrato-demo.ts`で生成されたピッチデータが、`demo-library/waveform-viewer.ts`でどのように描画されているかを分析してください。特に、x 1pxごとにy幅を固定で描画している現在のロジックを特定し、これをy幅可変（1px範囲内のピッチの最大値と最小値を使って描画）に変更する具体的な実装方針をMarkdown形式で提案してください。
 
-     確認事項: `LogVisualizer`クラスや関連する描画ヘルパー関数がどのようにピッチデータを消費し、Canvasに描画しているかを確認してください。既存の描画関数に与えられるデータの形式も確認し、変更の影響範囲を把握してください。
+     確認事項: 既存のデモ機能が損なわれないこと、描画のパフォーマンスに大きな影響を与えないこと、そしてビブラートの動きがより滑らかに正確に視覚化されることを確認してください。
 
-     期待する出力: ピッチデータの描画を担当する関数名とファイルパス、およびY軸可変幅描画に必要な変更の具体的なコード差分（擬似コードまたはTypeScriptコード）をMarkdown形式で出力してください。
+     期待する出力: 現在の描画ロジックの分析結果と、y幅可変描画への変更方針をMarkdown形式で出力してください。変更が必要な主要な関数やコードブロックの特定、および新しい描画アルゴリズムの概要を含めてください。
      ```
 
-2. [Issue #188](../issue-notes/188.md): demo ソフトLFOにkey on syncオプションを追加
-   - 最初の小さな一歩: `src/ym2151/converter/register_effects.rs`内の`RegisterLfoDefinition`構造体に`key_on_sync`フィールド（`bool`型）を追加し、`append_register_lfo_for_segment`関数内で`start_time`の計算にこのフィールドを反映させるためのロジックを検討する。
+3. [Issue #187](../issue-notes/187.md): demo ソフトLFO のレジスタビジュアライザーが、ch0のあと、ch1～ch7が空欄があるため、見づらい
+   - 最初の小さな一歩: `demo-library/log-visualizer-lfo.ts` のレジスタビジュアライザーの表示ロジックを分析し、チャンネルに演奏データがない場合の表示を「演奏データなし」といったコンパクトなメッセージに切り替える方法を検討する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: src/ym2151/converter/register_effects.rs, src/ym2151/mod.rs, src/ym2151/tone.rs
+     対象ファイル: `demo-library/log-visualizer-lfo.ts`
 
-     実行内容: `src/ym2151/mod.rs`の`RegisterLfoDefinition`に`key_on_sync: bool`フィールドを追加し、この設定に基づいてソフトLFOの`start_time`を調整するロジックを`src/ym2151/converter/register_effects.rs`の`append_register_lfo_for_segment`関数に実装してください。`key_on_sync`が`false`の場合、LFOはノートの開始ではなく、曲の開始 (`0.0`秒) から継続して発動するように変更します。また、`src/ym2151/tone.rs`で`RegisterLfoDefinition`のJSONシリアライズ/デシリアライズに`key_on_sync`フィールドを追加してください。
+     実行内容: `demo-library/log-visualizer-lfo.ts`内のレジスタビジュアライザーの表示ロジックを分析し、チャンネル0の後に表示されるチャンネル1～7の空欄を、演奏データがない場合に「ch1～ch7 : 演奏データなし」のようなコンパクトな表示に変更する改善案をMarkdown形式で生成してください。
 
-     確認事項: `RegisterLfoDefinition`がJSONからどのようにロードされるか、および`append_register_lfo_for_segment`関数が`NoteSegment`の`start_time`をどのように利用しているかを確認してください。`start_time`を調整することで他のLFO関連計算 (`elapsed`, `phase`, `attack_ratio`) にどのような影響があるかも考慮してください。
+     確認事項: 既存のビジュアライザーの機能が損なわれないこと、ユーザーがチャンネルの状態を明確に理解できること、そして表示の切り替えロジックがシンプルであることを確認してください。
 
-     期待する出力: `RegisterLfoDefinition`構造体の変更案と、`append_register_lfo_for_segment`関数の修正案、および`src/ym2151/tone.rs`におけるJSON処理の変更案をRustコードブロックで出力してください。
-     ```
-
-3. [Issue #187](../issue-notes/187.md): demo ソフトLFOのレジスタビジュアライザー表示をコンパクト化
-   - 最初の小さな一歩: `demo-library/portamento-soft-lfo-demo.ts`および`demo-library/log-visualizer-lfo.ts`内のレジスタビジュアライザーの描画ロジックを分析し、各チャンネルのデータを取得する部分と、HTML要素を生成する部分を特定する。
-   - Agent実行プロンプト:
-     ```
-     対象ファイル: demo-library/portamento-soft-lfo-demo.ts, demo-library/log-visualizer-lfo.ts, demo-library/log-visualizer.ts
-
-     実行内容: ソフトLFOのレジスタビジュアライザーにおいて、演奏データが存在しない（key onがない）チャンネル (`ch1`～`ch7`) の表示をコンパクトにするための修正案を生成してください。具体的には、これらのチャンネルに対して「chX : 演奏データなし」のような一行表示に切り替えるロジックを提案してください。
-
-     確認事項: `LogVisualizer`クラスやLFO関連のデモファイルがどのようにチャンネルごとのレジスタデータを処理し、HTMLに出力しているかを確認してください。チャンネルがアクティブかどうかを判断するための情報（例: `NoteSegment`の有無）が利用可能かどうかも確認してください。
-
-     期待する出力: `demo-library/log-visualizer-lfo.ts`内の描画ロジック、または関連するHTML生成ロジックの修正案をTypeScript/HTMLコードブロックで出力してください。また、空のチャンネルを判定するためのロジックの概要も記述してください。
+     期待する出力: 現在のレジスタ表示ロジックの分析結果と、空きチャンネルの表示改善案をMarkdown形式で出力してください。変更が必要なコード箇所（関数名、ファイル内の位置など）と、具体的な表示ロジックの提案を含めてください。
 
 ---
-Generated at: 2026-03-11 07:10:24 JST
+Generated at: 2026-03-12 07:11:05 JST

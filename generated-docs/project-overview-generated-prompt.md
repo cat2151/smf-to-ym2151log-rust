@@ -1,4 +1,4 @@
-Last updated: 2026-03-11
+Last updated: 2026-03-12
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -354,6 +354,7 @@ cargo audit
   🌐 tone-json.html
   📊 tsconfig.json
   📘 vite.config.ts
+  📘 wav-exporter.ts
   📘 waveform-canvas.ts
   📘 waveform-simulator.ts
   📘 waveform-viewer.ts
@@ -485,11 +486,11 @@ cargo audit
   - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (299行, 7497バイト)
-  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, bootstrap, if, catch
+**demo-library/pop-noise-demo.ts** (310行, 7788バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, bootstrap, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/pop-noise.html** (85行, 3429バイト)
+**demo-library/pop-noise.html** (84行, 3375バイト)
   - 関数: なし
   - インポート: なし
 
@@ -537,16 +538,20 @@ cargo audit
   - 関数: なし
   - インポート: vite, path
 
-**demo-library/waveform-canvas.ts** (174行, 4748バイト)
+**demo-library/wav-exporter.ts** (79行, 2333バイト)
+  - 関数: encodeWav, writeAscii, downloadWav, for
+  - インポート: なし
+
+**demo-library/waveform-canvas.ts** (152行, 4349バイト)
   - 関数: drawEmpty, drawWaveform, for, if
   - インポート: ./ym2151-utils, ./waveform-simulator
 
-**demo-library/waveform-simulator.ts** (146行, 4026バイト)
+**demo-library/waveform-simulator.ts** (141行, 3822バイト)
   - 関数: simulateWaveform, applyOp, for, while, if
   - インポート: ./ym2151-utils
 
-**demo-library/waveform-viewer.ts** (274行, 7975バイト)
-  - 関数: createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, rebuildAndRender, setZoom, endDrag, if, renderFromJson, clear
+**demo-library/waveform-viewer.ts** (286行, 8318バイト)
+  - 関数: createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, rebuildAndRender, setZoom, endDrag, if, renderFromJson, clear, exportWav
   - インポート: ./ym2151-utils, ./waveform-simulator, ./waveform-canvas
 
 **demo-library/ym2151-utils.ts** (79行, 2455バイト)
@@ -585,8 +590,10 @@ cargo audit
       - updateOutput ()
       - parseAttachmentField ()
       - setupPlayButton ()
+      - setupWavExportButton ()
       - bootstrap ()
       - createWaveformViewer ()
+      - exportWav ()
       - setLfoRegisters (demo-library/log-visualizer.ts)
       - extractLfoRegistersFromAttachment ()
       - syncLfoRegisters ()
@@ -627,6 +634,9 @@ cargo audit
     - drawWaveform ()
   - simulateWaveform (demo-library/waveform-simulator.ts)
     - applyOp ()
+  - downloadWav ()
+    - encodeWav (demo-library/wav-exporter.ts)
+      - writeAscii ()
   - getWindowDurS ()
     - clampViewStart ()
       - updatePositionLabel ()
@@ -682,4 +692,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-11 07:10:02 JST
+Generated at: 2026-03-12 07:10:46 JST
