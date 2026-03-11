@@ -1,8 +1,8 @@
 /**
  * Canvas rendering for the waveform viewer.
  *
- * Provides drawEmpty (placeholder text) and drawWaveform (waveform +
- * envelope overlay with note-boundary markers and time labels).
+ * Provides drawEmpty (placeholder text) and drawWaveform (waveform with
+ * note-boundary markers and time labels).
  */
 
 import { PIXELS_PER_SECOND } from "./ym2151-utils";
@@ -24,7 +24,7 @@ export function drawEmpty(
 	ctx.textAlign = "left";
 }
 
-/** Render the waveform and envelope overlay for the visible time window. */
+/** Render the waveform for the visible time window. */
 export function drawWaveform(
 	ctx: CanvasRenderingContext2D,
 	width: number,
@@ -89,7 +89,9 @@ export function drawWaveform(
 
 	if (startSample >= endSample) return;
 
-	const samplesPerPixel = (endSample - startSample + 1) / width;
+	// Use the view window duration (not data length) for pixel-to-sample mapping,
+	// so waveform positions align correctly with time labels and note-boundary markers.
+	const samplesPerPixel = (viewDurationS * data.sampleRate) / width;
 
 	// Draw waveform (blue) using min/max per pixel column for correct anti-aliasing
 	ctx.strokeStyle = "#2196F3";
@@ -124,32 +126,6 @@ export function drawWaveform(
 	}
 	ctx.stroke();
 
-	// Draw envelope (orange) as an overlay line
-	ctx.strokeStyle = "rgba(230, 100, 20, 0.85)";
-	ctx.lineWidth = 1.5;
-	ctx.beginPath();
-	let firstEnv = true;
-	for (let px = 0; px < width; px++) {
-		const sStart = Math.floor(startSample + px * samplesPerPixel);
-		const sEnd = Math.min(
-			endSample,
-			Math.floor(startSample + (px + 1) * samplesPerPixel),
-		);
-		let maxEnv = 0;
-		for (let s = sStart; s <= sEnd; s++) {
-			const v = data.envelopeSamples[s] ?? 0;
-			if (v > maxEnv) maxEnv = v;
-		}
-		const y = yCenter - maxEnv * yScale;
-		if (firstEnv) {
-			ctx.moveTo(px, y);
-			firstEnv = false;
-		} else {
-			ctx.lineTo(px, y);
-		}
-	}
-	ctx.stroke();
-
 	// Time-axis labels
 	const labelCount = Math.min(8, Math.floor(width / 80));
 	ctx.fillStyle = "#888";
@@ -166,8 +142,4 @@ export function drawWaveform(
 	ctx.fillStyle = "#555";
 	ctx.font = "10px sans-serif";
 	ctx.fillText("波形", 24, height - 24);
-	ctx.fillStyle = "rgba(230, 100, 20, 0.85)";
-	ctx.fillRect(60, height - 28, 14, 3);
-	ctx.fillStyle = "#555";
-	ctx.fillText("エンベロープ", 78, height - 24);
 }
