@@ -6,14 +6,13 @@ import {
 	KC_REGISTER_BASE,
 	KF_REGISTER_BASE,
 	EVENT_WIDTH,
-	MIN_NOTE_WIDTH,
 	type LaneElements,
 } from "./ym2151-utils";
 import {
 	buildNoteSegments,
 	computePitchRange,
-	noteYPosition,
 } from "./log-visualizer-note-segments";
+import { renderPitchCanvas } from "./log-visualizer-pitch-canvas";
 import {
 	type LfoRegisterConfig,
 	collectLfoEvents,
@@ -32,7 +31,6 @@ export type LogVisualizer = {
 
 const MIN_TRACK_WIDTH = 640;
 const MAX_TRACK_WIDTH = 6400;
-const NOTE_WIDTH_GAP = 1;
 
 function detectChannel(
 	addrHex: string,
@@ -227,30 +225,25 @@ export function createLogVisualizer(
 			lane.track.appendChild(marker);
 		});
 
-		// Render note bars on top (piano-roll style: keyon/off + KC pitch)
+		// Render note pitch on a per-channel canvas overlay.
+		// Groups segments by channel and renders each group with a connected
+		// line-graph so that vibrato/delay-vibrato looks continuous.
+		const segsByChannel = new Map<number, typeof segments>();
 		for (const seg of segments) {
-			const lane = lanes[seg.ch.toString()];
+			if (!segsByChannel.has(seg.ch)) segsByChannel.set(seg.ch, []);
+			segsByChannel.get(seg.ch)!.push(seg);
+		}
+		for (const [ch, chSegs] of segsByChannel) {
+			const lane = lanes[ch.toString()];
 			if (!lane) continue;
-			const bar = document.createElement("div");
-			bar.className = "log-visualizer-note";
-			const x = Math.max(
-				0,
-				Math.min(
-					trackWidth - MIN_NOTE_WIDTH,
-					seg.startTime * PIXELS_PER_SECOND,
-				),
+			renderPitchCanvas(
+				lane.track,
+				trackWidth,
+				chSegs,
+				minPitch,
+				maxPitch,
+				laneColor(ch),
 			);
-			const w = Math.max(
-				MIN_NOTE_WIDTH,
-				(seg.endTime - seg.startTime) * PIXELS_PER_SECOND - NOTE_WIDTH_GAP,
-			);
-			const y = noteYPosition(seg.kc, seg.kf, minPitch, maxPitch);
-			bar.style.left = `${x}px`;
-			bar.style.width = `${w}px`;
-			bar.style.top = `${y}px`;
-			bar.style.backgroundColor = laneColor(seg.ch);
-			bar.title = `CH${seg.ch} KC=0x${seg.kc.toString(16).padStart(2, "0")} KF=0x${seg.kf.toString(16).padStart(2, "0")} t=${seg.startTime.toFixed(3)}-${seg.endTime.toFixed(3)}s`;
-			lane.track.appendChild(bar);
 		}
 
 		// Render LFO waveform lanes (one per configured LFO base register)
