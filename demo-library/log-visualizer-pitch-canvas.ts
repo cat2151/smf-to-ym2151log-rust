@@ -27,17 +27,23 @@ export function renderPitchCanvas(
 ): void {
 	if (segments.length === 0) return;
 
+	// Canvas dimensions must be integers; ceil so we never clip the last pixel.
+	const widthPx = Math.ceil(trackWidth);
+
 	const canvas = document.createElement("canvas");
-	canvas.width = trackWidth;
+	canvas.width = widthPx;
 	canvas.height = TRACK_HEIGHT;
 	canvas.style.position = "absolute";
 	canvas.style.top = "0";
 	canvas.style.left = "0";
 	canvas.style.pointerEvents = "none";
-	track.appendChild(canvas);
 
 	const ctx = canvas.getContext("2d");
 	if (!ctx) return;
+
+	// Only append after confirming we have a valid context so no stray empty
+	// canvas elements are left in the DOM on failure.
+	track.appendChild(canvas);
 
 	ctx.globalAlpha = 0.9;
 	ctx.fillStyle = color;
@@ -52,14 +58,14 @@ export function renderPitchCanvas(
 		.sort((a, b) => a.startTime - b.startTime)
 		.map((s) => ({
 			x0: Math.max(0, Math.floor(s.startTime * PIXELS_PER_SECOND)),
-			x1: Math.min(trackWidth, Math.ceil(s.endTime * PIXELS_PER_SECOND)),
+			x1: Math.min(widthPx, Math.ceil(s.endTime * PIXELS_PER_SECOND)),
 			y: noteYPosition(s.kc, s.kf, minPitch, maxPitch),
 		}));
 
 	let prevY: number | null = null;
 	let segIdx = 0;
 
-	for (let x = 0; x < trackWidth; x++) {
+	for (let x = 0; x < widthPx; x++) {
 		// Advance past segments that ended before this pixel column.
 		// Safe because pixelSegs is sorted by x0/x1 and segments don't overlap.
 		while (segIdx < pixelSegs.length && pixelSegs[segIdx].x1 <= x) {
