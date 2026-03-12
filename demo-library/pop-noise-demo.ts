@@ -28,7 +28,7 @@ const DEFAULT_ATTACHMENT = `[
     "AttackContinuationFix": {
       "Enabled": true,
       "OffsetSeconds": 0.001,
-      "ReleaseRate": 240
+      "ReleaseRate": 255
     }
   }
 ]`;
@@ -80,6 +80,7 @@ const waveformViewer = createWaveformViewer(
 		) as HTMLSelectElement | null,
 		positionLabel: document.getElementById("wv-position"),
 	},
+	ensureWebYm2151(),
 );
 
 function nextRequestId(): number {

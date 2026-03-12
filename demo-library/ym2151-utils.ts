@@ -14,6 +14,12 @@ export type YmLogEvent = {
 export const PIXELS_PER_SECOND = 180;
 
 /**
+ * YM2151 internal sample rate in Hz (per the OPM datasheet §4).
+ * Used as the audio render rate by web-ym2151 and as the waveform sample rate.
+ */
+export const OPM_SAMPLE_RATE = 55930;
+
+/**
  * Maps YM2151 note code (low nibble of KC byte) to a linear semitone index (0–11).
  * YM2151 note codes start at C# (code 0) and end at C (code 14).
  * Codes 3, 7, 11, and 15 are unused by the note table and are mapped to the

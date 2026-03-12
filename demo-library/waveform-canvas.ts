@@ -6,7 +6,15 @@
  */
 
 import { PIXELS_PER_SECOND } from "./ym2151-utils";
-import type { WaveformData } from "./waveform-simulator";
+
+export type WaveformData = {
+	/** PCM waveform samples (left channel from web-ym2151 real synthesis). */
+	waveformSamples: Float32Array;
+	sampleRate: number;
+	durationS: number;
+	/** Timestamps (seconds) of key-on events for the selected channel. */
+	noteBoundaries: number[];
+};
 
 /** Render a placeholder message on the canvas (no data loaded yet). */
 export function drawEmpty(
