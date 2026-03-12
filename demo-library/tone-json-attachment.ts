@@ -121,6 +121,31 @@ export function normalizeAttachmentText(
 						mutated = true;
 						return { ...rest, Tone: { type: "YM2151 tone", events } };
 					}
+
+					// Handle Tone.registers: expand compact nibble string inside Tone object
+					const toneValue = entry.Tone;
+					if (
+						toneValue !== null &&
+						typeof toneValue === "object" &&
+						!Array.isArray(toneValue)
+					) {
+						const toneObj = toneValue as Record<string, unknown>;
+						const toneRegisters =
+							typeof toneObj.registers === "string" &&
+							toneObj.registers.length > 0
+								? toneObj.registers
+								: null;
+						if (toneRegisters !== null) {
+							const events = buildEventsFromCompact(toneRegisters);
+							const { registers: _registers, ...restTone } = toneObj;
+							mutated = true;
+							return {
+								...entry,
+								Tone: { type: "YM2151 tone", ...restTone, events },
+							};
+						}
+					}
+
 					return entry;
 				},
 			);
