@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use crate::ym2151::{NoteSegment, ToneDefinition, Ym2151Event};
 use crate::{AttackContinuationFix, PopNoiseEnvelope, ProgramAttachment, RegisterLfoDefinition};
 
+use super::register_fields::{get_register_fields, interpolate_fields, max_steps_for_fields};
 use super::waveform::lfo_waveform_value;
 
 pub(super) const RESTORE_BEFORE_NOTE_EPSILON: f64 = 1e-6;
@@ -415,10 +416,12 @@ pub(super) fn append_change_to_next_tone_events(
 
         for &ch in used_channels {
             for &(base_addr, value_from, value_to) in &register_changes {
+                let fields = get_register_fields(base_addr);
                 let resolved_addr = resolve_register_for_channel(base_addr, ch);
                 let addr_str = format!("0x{:02X}", resolved_addr);
-                let delta = (value_to as i32) - (value_from as i32);
-                let steps = delta.unsigned_abs() as usize;
+
+                // Step count is the maximum field-delta so every integer step is covered.
+                let steps = max_steps_for_fields(value_from, value_to, fields);
 
                 // One event per integer step; keep time_step fine enough for smooth changes
                 let time_step = period / steps.max(1) as f64;
@@ -435,9 +438,8 @@ pub(super) fn append_change_to_next_tone_events(
                         2.0 - cycle_pos / period
                     };
 
-                    let value = ((value_from as f64) + (delta as f64) * t)
-                        .round()
-                        .clamp(0.0, 255.0) as u8;
+                    // Interpolate each packed field independently to avoid cross-field contamination.
+                    let value = interpolate_fields(value_from, value_to, t, fields);
 
                     if Some(value) != last_value {
                         events.push(Ym2151Event {
