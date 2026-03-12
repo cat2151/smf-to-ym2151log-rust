@@ -131,10 +131,12 @@ export function simulateWaveform(
 			envelope = Math.max(envelope, gen.step());
 		}
 
-		// Carrier sine wave multiplied by envelope
+		// Carrier sine wave multiplied by envelope.
+		// Phase is sampled first, then incremented, so that oscPhase=0 at key-on
+		// causes the very first post-key-on sample to be exactly sin(0)=0.
+		waveformSamples[i] = envelope * Math.sin(oscPhase);
 		oscPhase += (2 * Math.PI * freq) / YM_SAMPLE_RATE;
 		if (oscPhase > 2 * Math.PI) oscPhase -= 2 * Math.PI;
-		waveformSamples[i] = envelope * Math.sin(oscPhase);
 	}
 
 	return {
