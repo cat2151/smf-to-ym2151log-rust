@@ -8,9 +8,7 @@ use std::collections::HashMap;
 use crate::ym2151::{NoteSegment, ToneDefinition, Ym2151Event};
 use crate::{AttackContinuationFix, PopNoiseEnvelope, ProgramAttachment, RegisterLfoDefinition};
 
-use super::register_fields::{
-    get_register_fields, interpolate_fields, max_steps_for_fields, print_interpolation_list,
-};
+use super::register_fields::{get_register_fields, interpolate_fields, max_steps_for_fields};
 use super::waveform::lfo_waveform_value;
 
 pub(super) const RESTORE_BEFORE_NOTE_EPSILON: f64 = 1e-6;
@@ -412,16 +410,6 @@ pub(super) fn append_change_to_next_tone_events(
 
         if register_changes.is_empty() {
             continue;
-        }
-
-        // Display the list of parameters that will be morphed for this program pair.
-        eprintln!(
-            "[ChangeToNextTone] Program {} → {} ({:.1}s):",
-            attachment.program_change, next_program, period
-        );
-        for &(base_addr, value_from, value_to) in &register_changes {
-            let fields = get_register_fields(base_addr);
-            print_interpolation_list(base_addr, value_from, value_to, fields);
         }
 
         let cycle = 2.0 * period;

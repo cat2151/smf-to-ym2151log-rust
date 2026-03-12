@@ -5,10 +5,8 @@
 //! This module defines those sub-fields so that linear interpolation can operate
 //! on each parameter independently, rather than blending the raw byte value.
 
-/// A single named parameter packed into a YM2151 register byte.
+/// A single parameter packed into a YM2151 register byte.
 pub(super) struct RegisterFieldDef {
-    /// Standard abbreviation for this parameter (e.g. "AR", "TL", "DT1").
-    pub name: &'static str,
     /// Bitmask of this field's bits in their original register-byte position.
     pub mask: u8,
     /// Bit-position of this field's least-significant bit (right-shift amount).
@@ -25,28 +23,20 @@ impl RegisterFieldDef {
     pub fn max_value(&self) -> u8 {
         self.mask >> self.shift
     }
-
-    /// Bit-position of this field's most-significant bit within the register byte.
-    pub fn msb_pos(&self) -> u8 {
-        7 - self.mask.leading_zeros() as u8
-    }
 }
 
 // ── static field tables ──────────────────────────────────────────────────────
 
 static RL_FB_CON_FIELDS: [RegisterFieldDef; 3] = [
     RegisterFieldDef {
-        name: "CON",
         mask: 0x07,
         shift: 0,
     },
     RegisterFieldDef {
-        name: "FB",
         mask: 0x38,
         shift: 3,
     },
     RegisterFieldDef {
-        name: "RL",
         mask: 0xC0,
         shift: 6,
     },
@@ -54,12 +44,10 @@ static RL_FB_CON_FIELDS: [RegisterFieldDef; 3] = [
 
 static PMS_AMS_FIELDS: [RegisterFieldDef; 2] = [
     RegisterFieldDef {
-        name: "AMS",
         mask: 0x03,
         shift: 0,
     },
     RegisterFieldDef {
-        name: "PMS",
         mask: 0x70,
         shift: 4,
     },
@@ -67,31 +55,26 @@ static PMS_AMS_FIELDS: [RegisterFieldDef; 2] = [
 
 static DT1_MUL_FIELDS: [RegisterFieldDef; 2] = [
     RegisterFieldDef {
-        name: "MUL",
         mask: 0x0F,
         shift: 0,
     },
     RegisterFieldDef {
-        name: "DT1",
         mask: 0x70,
         shift: 4,
     },
 ];
 
 static TL_FIELDS: [RegisterFieldDef; 1] = [RegisterFieldDef {
-    name: "TL",
     mask: 0x7F,
     shift: 0,
 }];
 
 static KS_AR_FIELDS: [RegisterFieldDef; 2] = [
     RegisterFieldDef {
-        name: "AR",
         mask: 0x1F,
         shift: 0,
     },
     RegisterFieldDef {
-        name: "KS",
         mask: 0xC0,
         shift: 6,
     },
@@ -99,12 +82,10 @@ static KS_AR_FIELDS: [RegisterFieldDef; 2] = [
 
 static AMSEN_D1R_FIELDS: [RegisterFieldDef; 2] = [
     RegisterFieldDef {
-        name: "D1R",
         mask: 0x1F,
         shift: 0,
     },
     RegisterFieldDef {
-        name: "AMS-EN",
         mask: 0x80,
         shift: 7,
     },
@@ -112,12 +93,10 @@ static AMSEN_D1R_FIELDS: [RegisterFieldDef; 2] = [
 
 static DT2_D2R_FIELDS: [RegisterFieldDef; 2] = [
     RegisterFieldDef {
-        name: "D2R",
         mask: 0x1F,
         shift: 0,
     },
     RegisterFieldDef {
-        name: "DT2",
         mask: 0xC0,
         shift: 6,
     },
@@ -125,19 +104,16 @@ static DT2_D2R_FIELDS: [RegisterFieldDef; 2] = [
 
 static D1L_RR_FIELDS: [RegisterFieldDef; 2] = [
     RegisterFieldDef {
-        name: "RR",
         mask: 0x0F,
         shift: 0,
     },
     RegisterFieldDef {
-        name: "D1L",
         mask: 0xF0,
         shift: 4,
     },
 ];
 
 static GENERIC_FIELDS: [RegisterFieldDef; 1] = [RegisterFieldDef {
-    name: "value",
     mask: 0xFF,
     shift: 0,
 }];
@@ -196,51 +172,6 @@ pub(super) fn max_steps_for_fields(
         })
         .max()
         .unwrap_or(1)
-}
-
-/// Human-readable scope label for a register address (e.g. "CH0 OP1").
-///
-/// Operator index in the address is mapped to the visible OP number:
-/// addr-op 0 → OP1, 1 → OP3, 2 → OP2, 3 → OP4.
-fn scope_label(addr: u8) -> String {
-    if addr >= 0x40 {
-        let slot = addr & 0x1F;
-        let op_idx = (slot / 8) as usize;
-        let op_name = ["OP1", "OP3", "OP2", "OP4"][op_idx];
-        let ch = (slot % 8) as usize;
-        format!("CH{ch} {op_name}")
-    } else if addr >= 0x20 {
-        let ch = (addr & 0x07) as usize;
-        format!("CH{ch}")
-    } else {
-        format!("0x{addr:02X}")
-    }
-}
-
-/// Print the list of parameters that will be interpolated for a register.
-///
-/// Only fields whose value differs between `value_from` and `value_to` are printed.
-/// Output is written to stderr so it does not affect the JSON log on stdout.
-pub(super) fn print_interpolation_list(
-    addr: u8,
-    value_from: u8,
-    value_to: u8,
-    fields: &[RegisterFieldDef],
-) {
-    let scope = scope_label(addr);
-    for field in fields {
-        let from_f = field.extract(value_from);
-        let to_f = field.extract(value_to);
-        if from_f == to_f {
-            continue;
-        }
-        eprintln!(
-            "  {scope}: {} : from {from_f} to {to_f} : register 0x{addr:02X} bit{}-bit{}",
-            field.name,
-            field.shift,
-            field.msb_pos(),
-        );
-    }
 }
 
 #[cfg(test)]
@@ -342,25 +273,5 @@ mod tests {
                                                 // D1L: 0→15 (15 steps), RR: 15→0 (15 steps) → max = 15
         let steps = max_steps_for_fields(0x0F, 0xF0, fields);
         assert_eq!(steps, 15);
-    }
-
-    #[test]
-    fn test_scope_label_op_register() {
-        // 0x80 = KS_AR, slot=0, op_idx=0 → OP1, ch=0 → "CH0 OP1"
-        assert_eq!(scope_label(0x80), "CH0 OP1");
-        // 0x88 = KS_AR, slot=8, op_idx=1 → OP3, ch=0 → "CH0 OP3"
-        assert_eq!(scope_label(0x88), "CH0 OP3");
-        // 0x90 = KS_AR, slot=16, op_idx=2 → OP2, ch=0 → "CH0 OP2"
-        assert_eq!(scope_label(0x90), "CH0 OP2");
-        // 0x98 = KS_AR, slot=24, op_idx=3 → OP4, ch=0 → "CH0 OP4"
-        assert_eq!(scope_label(0x98), "CH0 OP4");
-    }
-
-    #[test]
-    fn test_scope_label_channel_register() {
-        // 0x20 = RL_FB_CON, ch=0 → "CH0"
-        assert_eq!(scope_label(0x20), "CH0");
-        // 0x23 = RL_FB_CON, ch=3 → "CH3"
-        assert_eq!(scope_label(0x23), "CH3");
     }
 }
