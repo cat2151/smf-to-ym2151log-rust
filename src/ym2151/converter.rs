@@ -4,6 +4,7 @@
 
 mod pitch_effects;
 mod register_effects;
+mod register_fields;
 mod waveform;
 
 use crate::error::Result;
