@@ -139,15 +139,24 @@ pub struct RegisterLfoDefinition {
     pub depth: f64,
     /// Oscillation rate in Hz
     pub rate_hz: f64,
-    /// Delay before the LFO starts after the note-on
+    /// Delay before the LFO starts.
+    /// When `key_on_sync` is true (default), the delay is from each note-on.
+    /// When `key_on_sync` is false, the delay is from the beginning of the song.
     #[serde(default)]
     pub delay_seconds: f64,
-    /// Attack time before reaching full depth
+    /// Attack time before reaching full depth.
+    /// When `key_on_sync` is true (default), the attack restarts on each note-on.
+    /// When `key_on_sync` is false, the attack runs once from song start.
     #[serde(default)]
     pub attack_seconds: f64,
     /// Waveform shape
     #[serde(default = "default_lfo_waveform")]
     pub waveform: LfoWaveform,
+    /// When true (default), the LFO phase and attack reset on each note-on (key-on sync).
+    /// When false, the LFO is triggered once at the start of the song and runs continuously
+    /// across all notes without resetting.
+    #[serde(default = "default_key_on_sync")]
+    pub key_on_sync: bool,
 }
 
 /// Register override applied before a note-on to soften envelope transitions
@@ -199,6 +208,10 @@ pub enum LfoWaveform {
 
 fn default_lfo_waveform() -> LfoWaveform {
     LfoWaveform::Triangle
+}
+
+fn default_key_on_sync() -> bool {
+    true
 }
 
 fn default_change_to_next_tone_time() -> f64 {
