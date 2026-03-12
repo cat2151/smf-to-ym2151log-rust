@@ -23,7 +23,8 @@ const DEFAULT_ATTACHMENT = `[
         "RateHz": 4.0,
         "DelaySeconds": 0.1,
         "AttackSeconds": 0.05,
-        "Waveform": "triangle"
+        "Waveform": "triangle",
+        "KeyOnSync": false
       }
     ]
   }
