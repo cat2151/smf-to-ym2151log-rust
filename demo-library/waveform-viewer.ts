@@ -1,25 +1,30 @@
 /**
  * Waveform viewer for pop-noise visualization.
  *
- * Orchestrates the envelope simulator, canvas renderer, and UI controls.
- * Simulates the YM2151 envelope generator (ADSR per operator) and renders
- * a canvas waveform so users can scroll to note boundaries, zoom to a single
- * waveform period, and visually confirm whether pop-noise has been reduced.
+ * Renders the actual PCM audio produced by web-ym2151 so the canvas
+ * faithfully reflects the conversion result. Note-boundary markers show
+ * key-on events for the selected channel, making amplitude discontinuities
+ * (pop-noise) visible.
  *
  * Internal responsibilities are split across:
- *   - envelope-generator.ts  : YM2151 ADSR simulation
- *   - waveform-simulator.ts  : per-channel sample production
- *   - waveform-canvas.ts     : canvas drawing (drawEmpty / drawWaveform)
+ *   - waveform-canvas.ts : canvas drawing (drawEmpty / drawWaveform)
+ *   - shared-demo.ts     : WebYmApi (generateAudioFromJson / freeAudioBuffer)
  */
 
-import { type YmLogEvent, PIXELS_PER_SECOND } from "./ym2151-utils";
-import { type WaveformData, simulateWaveform } from "./waveform-simulator";
+import { type WaveformData } from "./waveform-canvas";
+import type { WebYmApi } from "./shared-demo";
 import { drawEmpty, drawWaveform } from "./waveform-canvas";
 import { downloadWav } from "./wav-exporter";
+import {
+	PIXELS_PER_SECOND,
+	parseHexByte,
+	OPM_SAMPLE_RATE,
+} from "./ym2151-utils";
 
 // --- UI string constants ---
 const MSG_INITIAL = "YM2151 ログを変換するとここに描画します。";
 const MSG_EMPTY = "変換結果がまだありません。";
+const MSG_LOADING = "波形を生成中... (web-ym2151)";
 const MSG_PARSE_ERROR = "ログ JSON を解析できませんでした。";
 
 // --- Public API ---
@@ -39,9 +44,35 @@ export type WaveformViewer = {
 	exportWav: (filename: string) => void;
 };
 
+/**
+ * Extract key-on timestamps for a specific YM2151 channel from a parsed
+ * events array. Used to mark note boundaries on the canvas without running
+ * the audio synthesizer.
+ */
+function extractNoteBoundaries(
+	events: Array<{ time: number; addr: string; data: string }>,
+	ch: number,
+): number[] {
+	const boundaries: number[] = [];
+	for (const ev of events) {
+		const addr = parseHexByte(ev.addr);
+		const data = parseHexByte(ev.data);
+		if (addr === null || data === null) continue;
+		if (addr === 0x08) {
+			const evCh = data & 0x07;
+			const ops = (data >> 3) & 0x0f;
+			if (evCh === ch && ops !== 0) {
+				boundaries.push(ev.time);
+			}
+		}
+	}
+	return boundaries;
+}
+
 export function createWaveformViewer(
 	canvas: HTMLCanvasElement | null,
 	controls: WaveformViewerControls,
+	webYmApiPromise: Promise<WebYmApi>,
 ): WaveformViewer {
 	if (!canvas)
 		return { renderFromJson: () => {}, clear: () => {}, exportWav: () => {} };
@@ -55,8 +86,12 @@ export function createWaveformViewer(
 	const H = canvas.height;
 
 	let waveformData: WaveformData | null = null;
-	let rawEvents: YmLogEvent[] = [];
-	let viewStart = 0; // seconds from start of log
+	// Parsed events array, retained so channel changes can update boundaries
+	// without re-running the synthesizer.
+	let parsedEvents: Array<{ time: number; addr: string; data: string }> = [];
+	// Raw JSON text retained for re-synthesis if needed.
+	let currentJsonText: string | null = null;
+	let viewStart = 0;
 	// Initial zoom=1 matches slider value="0" (2000^0=1) and label "1x" in HTML.
 	let zoom = 1;
 	let selectedChannel = 0;
@@ -97,28 +132,62 @@ export function createWaveformViewer(
 		updatePositionLabel();
 	}
 
-	function rebuildAndRender(): void {
-		if (rawEvents.length === 0) {
+	function updateBoundariesAndRender(): void {
+		if (waveformData) {
+			waveformData.noteBoundaries = extractNoteBoundaries(
+				parsedEvents,
+				selectedChannel,
+			);
+		}
+		render();
+	}
+
+	async function synthesizeAndRender(): Promise<void> {
+		if (!currentJsonText) {
 			waveformData = null;
 			render();
 			return;
 		}
-		waveformData = simulateWaveform(rawEvents, selectedChannel);
-		// Auto-scroll to the first note boundary for the selected channel
-		if (waveformData.noteBoundaries.length > 0) {
-			const firstNote = waveformData.noteBoundaries[0];
-			viewStart = clampViewStart(firstNote - getWindowDurS() * 0.3);
-		} else {
-			viewStart = 0;
+		// Show loading placeholder while waiting for synthesis.
+		drawEmpty(ctx2d, W, H, MSG_LOADING);
+
+		try {
+			const api = await webYmApiPromise;
+			const audioData = api.generateAudioFromJson(currentJsonText);
+			if (!audioData) {
+				waveformData = null;
+				render();
+				return;
+			}
+
+			waveformData = {
+				waveformSamples: audioData.left,
+				sampleRate: OPM_SAMPLE_RATE,
+				durationS: audioData.duration,
+				noteBoundaries: extractNoteBoundaries(parsedEvents, selectedChannel),
+			};
+
+			// Release the WASM-side buffer; the Float32Array copy remains valid.
+			api.freeAudioBuffer();
+
+			// Auto-scroll to the first note boundary for the selected channel.
+			if (waveformData.noteBoundaries.length > 0) {
+				const firstNote = waveformData.noteBoundaries[0];
+				viewStart = clampViewStart(firstNote - getWindowDurS() * 0.3);
+			} else {
+				viewStart = 0;
+			}
+			render();
+		} catch {
+			waveformData = null;
+			render();
 		}
-		render();
 	}
 
 	function setZoom(newZoom: number, anchorFraction = 0.5): void {
 		const oldWindowDur = getWindowDurS();
 		zoom = Math.max(1, Math.min(2000, newZoom));
 		const newWindowDur = getWindowDurS();
-		// Zoom around the anchor point (fraction of canvas width)
 		viewStart = clampViewStart(
 			viewStart + anchorFraction * (oldWindowDur - newWindowDur),
 		);
@@ -151,11 +220,12 @@ export function createWaveformViewer(
 		});
 	}
 
-	// Channel selector
+	// Channel selector: update which channel's key-ons are highlighted.
+	// The waveform itself is always the full mixed audio; no re-synthesis needed.
 	if (channelSelect) {
 		channelSelect.addEventListener("change", () => {
 			selectedChannel = Number(channelSelect.value);
-			rebuildAndRender();
+			updateBoundariesAndRender();
 		});
 	}
 
@@ -230,7 +300,8 @@ export function createWaveformViewer(
 	return {
 		renderFromJson(jsonText) {
 			if (!jsonText || jsonText.trim().length === 0) {
-				rawEvents = [];
+				currentJsonText = null;
+				parsedEvents = [];
 				waveformData = null;
 				drawEmpty(ctx2d, W, H, MSG_EMPTY);
 				return;
@@ -238,19 +309,21 @@ export function createWaveformViewer(
 			try {
 				const parsed = JSON.parse(jsonText) as unknown;
 				if (!parsed || typeof parsed !== "object") {
-					rawEvents = [];
+					currentJsonText = null;
+					parsedEvents = [];
 					waveformData = null;
 					render();
 					return;
 				}
 				const arr = (parsed as { events?: unknown }).events;
 				if (!Array.isArray(arr)) {
-					rawEvents = [];
+					currentJsonText = null;
+					parsedEvents = [];
 					waveformData = null;
 					render();
 					return;
 				}
-				rawEvents = arr
+				parsedEvents = arr
 					.map((e) => {
 						if (!e || typeof e !== "object") return null;
 						const ev = e as { time?: unknown; addr?: unknown; data?: unknown };
@@ -260,16 +333,22 @@ export function createWaveformViewer(
 						if (!Number.isFinite(time) || !addr || !data) return null;
 						return { time, addr, data };
 					})
-					.filter((e): e is YmLogEvent => e !== null);
-				rebuildAndRender();
+					.filter(
+						(e): e is { time: number; addr: string; data: string } =>
+							e !== null,
+					);
+				currentJsonText = jsonText;
+				void synthesizeAndRender();
 			} catch {
-				rawEvents = [];
+				currentJsonText = null;
+				parsedEvents = [];
 				waveformData = null;
 				drawEmpty(ctx2d, W, H, MSG_PARSE_ERROR);
 			}
 		},
 		clear() {
-			rawEvents = [];
+			currentJsonText = null;
+			parsedEvents = [];
 			waveformData = null;
 			drawEmpty(ctx2d, W, H, MSG_INITIAL);
 		},

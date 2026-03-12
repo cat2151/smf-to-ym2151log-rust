@@ -1,8 +1,18 @@
 import init from "smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js";
 
+export type AudioData = {
+	left: Float32Array;
+	right: Float32Array;
+	frames: number;
+	duration: number;
+	frequencyEstimate?: number;
+};
+
 export type WebYmApi = {
 	playAudioWithOverlay: () => void;
 	clearAudioCache: () => void;
+	generateAudioFromJson: (jsonString: string) => AudioData | null;
+	freeAudioBuffer: () => void;
 };
 
 let wasmInitialized = false;
@@ -132,6 +142,16 @@ export function ensureWebYm2151(): Promise<WebYmApi> {
 				resolve({
 					playAudioWithOverlay: audioModule.playAudioWithOverlay,
 					clearAudioCache: audioModule.clearAudioCache,
+					generateAudioFromJson: audioModule.generateAudioFromJson,
+					freeAudioBuffer: () => {
+						// web-ym2151 does not export a public freeBuffer function.
+						// The WASM-level _free_buffer must be called via the global Module
+						// object initialized by ym2151.js to release the internal render buffer.
+						const mod = (
+							window as unknown as { Module?: { _free_buffer?: () => void } }
+						).Module;
+						if (mod?._free_buffer) mod._free_buffer();
+					},
 				});
 			} catch (error) {
 				if (!isActive) return;

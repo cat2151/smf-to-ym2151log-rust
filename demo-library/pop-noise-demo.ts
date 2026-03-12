@@ -80,6 +80,7 @@ const waveformViewer = createWaveformViewer(
 		) as HTMLSelectElement | null,
 		positionLabel: document.getElementById("wv-position"),
 	},
+	ensureWebYm2151(),
 );
 
 function nextRequestId(): number {
