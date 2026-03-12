@@ -1,4 +1,4 @@
-Last updated: 2026-03-12
+Last updated: 2026-03-13
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -330,12 +330,12 @@ cargo audit
   📊 biome.json
   📘 delay-vibrato-demo.ts
   🌐 delay-vibrato.html
-  📘 envelope-generator.ts
   📘 globals.d.ts
   🌐 index.html
   📘 library-demo.ts
   📘 log-visualizer-lfo.ts
   📘 log-visualizer-note-segments.ts
+  📘 log-visualizer-pitch-canvas.ts
   📘 log-visualizer.ts
   📘 mml-support.ts
   📊 package-lock.json
@@ -356,7 +356,6 @@ cargo audit
   📘 vite.config.ts
   📘 wav-exporter.ts
   📘 waveform-canvas.ts
-  📘 waveform-simulator.ts
   📘 waveform-viewer.ts
   📘 ym2151-utils.ts
 📁 generated-docs/
@@ -380,6 +379,9 @@ cargo audit
   📖 187.md
   📖 188.md
   📖 189.md
+  📖 198.md
+  📖 200.md
+  📖 201.md
   📖 22.md
   📖 33.md
   📖 45.md
@@ -412,6 +414,8 @@ cargo audit
     📄 converter.rs
     📁 converter_tests/
       📄 attachments.rs
+      📄 attachments_change_to_next_tone.rs
+      📄 attachments_program_effects.rs
       📄 basic.rs
       📄 channels.rs
       📄 drums.rs
@@ -454,12 +458,8 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/envelope-generator.ts** (108行, 3362バイト)
-  - 関数: kcToFrequency, ampStepPerSample, switch, if
-  - インポート: ./ym2151-utils
-
-**demo-library/globals.d.ts** (5行, 167バイト)
-  - 関数: playAudioWithOverlay, clearAudioCache
+**demo-library/globals.d.ts** (13行, 391バイト)
+  - 関数: playAudioWithOverlay, clearAudioCache, generateAudioFromJson
   - インポート: なし
 
 **demo-library/index.html** (54行, 2405バイト)
@@ -478,15 +478,19 @@ cargo audit
   - 関数: buildNoteSegments, notePitch, computePitchRange, noteYPosition, for, if
   - インポート: なし
 
-**demo-library/log-visualizer.ts** (290行, 8254バイト)
-  - 関数: detectChannel, normalizeEvents, laneColor, createLane, computeTrackWidth, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, setLfoRegisters, if, for
+**demo-library/log-visualizer-pitch-canvas.ts** (107行, 3228バイト)
+  - 関数: renderPitchCanvas, for, while, if
   - インポート: なし
+
+**demo-library/log-visualizer.ts** (335行, 9784バイト)
+  - 関数: detectChannel, normalizeEvents, laneColor, createLane, computeTrackWidth, formatInactiveChannels, createLogVisualizer, renderEmpty, renderFromJson, ensureGlobalLane, setLfoRegisters, if, for
+  - インポート: ./log-visualizer-pitch-canvas
 
 **demo-library/mml-support.ts** (100行, 2258バイト)
   - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (310行, 7788バイト)
+**demo-library/pop-noise-demo.ts** (311行, 7808バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, bootstrap, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -494,7 +498,7 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/portamento-soft-lfo-demo.ts** (334行, 8372バイト)
+**demo-library/portamento-soft-lfo-demo.ts** (335行, 8400バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, extractLfoRegistersFromAttachment, syncLfoRegisters, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, for, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -502,11 +506,11 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/shared-demo.ts** (197行, 4583バイト)
-  - 関数: ensureWasmInitialized, setStatus, setEventCountDisplay, ensureWebYm2151, clearWebYmAudioCache, updateOutput, parseAttachmentField, cleanup, if, catch
+**demo-library/shared-demo.ts** (217行, 5294バイト)
+  - 関数: ensureWasmInitialized, setStatus, setEventCountDisplay, ensureWebYm2151, clearWebYmAudioCache, updateOutput, parseAttachmentField, cleanup, mod, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js
 
-**demo-library/style.css** (298行, 4310バイト)
+**demo-library/style.css** (305行, 4424バイト)
   - 関数: なし
   - インポート: なし
 
@@ -542,19 +546,15 @@ cargo audit
   - 関数: encodeWav, writeAscii, downloadWav, for
   - インポート: なし
 
-**demo-library/waveform-canvas.ts** (152行, 4349バイト)
+**demo-library/waveform-canvas.ts** (160行, 4572バイト)
   - 関数: drawEmpty, drawWaveform, for, if
-  - インポート: ./ym2151-utils, ./waveform-simulator
-
-**demo-library/waveform-simulator.ts** (141行, 3822バイト)
-  - 関数: simulateWaveform, applyOp, for, while, if
   - インポート: ./ym2151-utils
 
-**demo-library/waveform-viewer.ts** (286行, 8318バイト)
-  - 関数: createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, rebuildAndRender, setZoom, endDrag, if, renderFromJson, clear, exportWav
-  - インポート: ./ym2151-utils, ./waveform-simulator, ./waveform-canvas
+**demo-library/waveform-viewer.ts** (365行, 10370バイト)
+  - 関数: extractNoteBoundaries, createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, updateBoundariesAndRender, synthesizeAndRender, setZoom, endDrag, for, if, renderFromJson, clear, exportWav
+  - インポート: ./waveform-canvas, ./shared-demo, ./waveform-canvas
 
-**demo-library/ym2151-utils.ts** (79行, 2455バイト)
+**demo-library/ym2151-utils.ts** (85行, 2647バイト)
   - 関数: parseHexByte
   - インポート: なし
 
@@ -597,8 +597,6 @@ cargo audit
       - setLfoRegisters (demo-library/log-visualizer.ts)
       - extractLfoRegistersFromAttachment ()
       - syncLfoRegisters ()
-  - kcToFrequency (demo-library/envelope-generator.ts)
-    - ampStepPerSample ()
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
@@ -613,10 +611,12 @@ cargo audit
     - notePitch ()
       - computePitchRange ()
       - noteYPosition ()
+  - renderPitchCanvas (demo-library/log-visualizer-pitch-canvas.ts)
   - detectChannel (demo-library/log-visualizer.ts)
     - normalizeEvents ()
       - laneColor ()
       - computeTrackWidth ()
+      - formatInactiveChannels ()
       - renderEmpty ()
       - ensureGlobalLane ()
   - getMmlParser ()
@@ -624,6 +624,7 @@ cargo audit
       - treeToJson ()
       - ensureMmlRuntime ()
   - clearAudioCache ()
+    - generateAudioFromJson ()
   - clearWebYmAudioCache ()
     - cleanup ()
   - buildEventsFromCompact (demo-library/tone-json-attachment.ts)
@@ -632,20 +633,20 @@ cargo audit
   - convertMmlToSmf ()
   - drawEmpty (demo-library/waveform-canvas.ts)
     - drawWaveform ()
-  - simulateWaveform (demo-library/waveform-simulator.ts)
-    - applyOp ()
   - downloadWav ()
     - encodeWav (demo-library/wav-exporter.ts)
       - writeAscii ()
-  - getWindowDurS ()
-    - clampViewStart ()
+  - extractNoteBoundaries (demo-library/waveform-viewer.ts)
+    - getWindowDurS ()
+      - clampViewStart ()
       - updatePositionLabel ()
       - render ()
-      - rebuildAndRender ()
+      - updateBoundariesAndRender ()
+      - synthesizeAndRender ()
       - setZoom ()
-- switch (demo-library/envelope-generator.ts)
 - for (demo-library/log-visualizer-lfo.ts)
-- while (demo-library/waveform-simulator.ts)
+- while (demo-library/log-visualizer-pitch-canvas.ts)
+- mod (demo-library/shared-demo.ts)
 - endDrag (demo-library/waveform-viewer.ts)
 
 
@@ -656,12 +657,12 @@ WASM_USAGE.md
 demo-library/biome.json
 demo-library/delay-vibrato-demo.ts
 demo-library/delay-vibrato.html
-demo-library/envelope-generator.ts
 demo-library/globals.d.ts
 demo-library/index.html
 demo-library/library-demo.ts
 demo-library/log-visualizer-lfo.ts
 demo-library/log-visualizer-note-segments.ts
+demo-library/log-visualizer-pitch-canvas.ts
 demo-library/log-visualizer.ts
 demo-library/mml-support.ts
 demo-library/package-lock.json
@@ -692,4 +693,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-12 07:10:46 JST
+Generated at: 2026-03-13 07:09:06 JST
