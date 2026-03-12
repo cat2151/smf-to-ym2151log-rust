@@ -89,6 +89,35 @@ fn append_register_lfo_for_segment(
 
     let addr_str = format!("0x{:02X}", resolved_addr);
 
+    let mut last_value: Option<u8> = None;
+
+    // For key_on_sync=false, when segment.start_time falls between two grid-aligned
+    // sample times (e.g., after a rest/gap between note segments), the register would
+    // hold a stale value from the end of the previous segment until the next grid point.
+    // Emit the correct LFO value at segment.start_time immediately so the register
+    // is in phase at note-on.
+    if !def.key_on_sync && active_start > lfo_origin {
+        let dist_from_grid = (active_start - lfo_origin) % time_step;
+        if dist_from_grid > TIME_LOOP_EPSILON && dist_from_grid < time_step - TIME_LOOP_EPSILON {
+            let elapsed = active_start - lfo_origin;
+            let attack_ratio = if def.attack_seconds <= 0.0 {
+                1.0
+            } else {
+                (elapsed / def.attack_seconds).clamp(0.0, 1.0)
+            };
+            let phase = (elapsed * def.rate_hz) % 1.0;
+            let waveform_val = lfo_waveform_value(def.waveform, phase);
+            let offset = def.depth * attack_ratio * waveform_val;
+            let value = ((base_value as f64) + offset).round().clamp(0.0, 255.0) as u8;
+            events.push(Ym2151Event {
+                time: active_start,
+                addr: addr_str.clone(),
+                data: format!("0x{:02X}", value),
+            });
+            last_value = Some(value);
+        }
+    }
+
     // For key_on_sync=true the first sample is always at lfo_origin (= active_start).
     // For key_on_sync=false we find the first sample boundary >= active_start that is
     // aligned to lfo_origin so the phase is continuous across note segments.
@@ -98,8 +127,6 @@ fn append_register_lfo_for_segment(
         let n = ((active_start - lfo_origin) / time_step).ceil() as u64;
         lfo_origin + (n as f64) * time_step
     };
-
-    let mut last_value: Option<u8> = None;
 
     while time <= active_stop + f64::EPSILON {
         let elapsed = (time - lfo_origin).max(0.0);
