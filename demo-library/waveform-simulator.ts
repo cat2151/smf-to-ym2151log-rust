@@ -68,6 +68,12 @@ export function simulateWaveform(
 				if (ops !== 0) {
 					for (const gen of envGens) gen.keyOn();
 					noteBoundaries.push(ev.time);
+					// Reset oscillator phase on key-on so the carrier sine starts from 0.
+					// If the previous note's amplitude is non-zero at this moment, the jump
+					// from amplitude×sin(old_phase) to amplitude×sin(0)=0 is the pop-noise
+					// click. When pop-noise mitigation (e.g. AttackContinuationFix) brings
+					// the amplitude to ~0 before key-on, both sides are ~0 and no click occurs.
+					oscPhase = 0;
 				} else {
 					for (const gen of envGens) gen.keyOff();
 				}

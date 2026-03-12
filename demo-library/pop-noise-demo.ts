@@ -28,7 +28,7 @@ const DEFAULT_ATTACHMENT = `[
     "AttackContinuationFix": {
       "Enabled": true,
       "OffsetSeconds": 0.001,
-      "ReleaseRate": 240
+      "ReleaseRate": 255
     }
   }
 ]`;
