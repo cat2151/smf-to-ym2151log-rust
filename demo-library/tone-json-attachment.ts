@@ -137,7 +137,11 @@ export function normalizeAttachmentText(
 								: null;
 						if (toneRegisters !== null) {
 							const events = buildEventsFromCompact(toneRegisters);
-							const { registers: _registers, ...restTone } = toneObj;
+							const {
+								registers: _registers,
+								type: _type,
+								...restTone
+							} = toneObj;
 							mutated = true;
 							return {
 								...entry,
