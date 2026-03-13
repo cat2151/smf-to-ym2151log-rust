@@ -1,10 +1,8 @@
 /**
  * Pop noise detector for YM2151 waveform analysis.
  *
- * Detects potential pop noise by finding zero crossings with large amplitude
- * jumps in the PCM audio.  A zero crossing where the sample-to-sample change
- * magnitude (|sample[i+1] − sample[i]|) exceeds the threshold is flagged as
- * a pop noise candidate.
+ * Detects the most likely pop noise by finding the zero crossing with the
+ * largest amplitude jump in the PCM audio.
  */
 
 export type PopNoiseMarker = {
@@ -15,26 +13,22 @@ export type PopNoiseMarker = {
 };
 
 /**
- * Detect pop noise candidates in PCM samples.
+ * Detect the single most prominent pop noise candidate in PCM samples.
  *
  * Algorithm:
- *   1. List all zero crossings (sign changes between consecutive samples).
+ *   1. Scan all zero crossings (sign changes between consecutive samples).
  *   2. For each zero crossing compute the amplitude jump magnitude.
- *   3. Those whose magnitude ≥ threshold are pop noise candidates.
+ *   3. Return only the one zero crossing with the largest magnitude.
  *
  * @param samples    Normalized PCM samples (Float32Array from web-ym2151).
  * @param sampleRate Sample rate in Hz (e.g. 55930 for OPM).
- * @param threshold  Minimum jump magnitude to flag (default 0.5).
- *                   Normal smooth zero crossings stay well below this level;
- *                   sudden discontinuities from YM2151 attack-continuation
- *                   pop noise typically produce jumps ≥ 0.5.
  */
 export function detectPopNoise(
 	samples: Float32Array,
 	sampleRate: number,
-	threshold = 0.5,
 ): PopNoiseMarker[] {
-	const markers: PopNoiseMarker[] = [];
+	let bestIndex = -1;
+	let bestMagnitude = 0;
 	// Track the last non-zero sample to handle runs of exact zeros.
 	let lastNonZero = 0;
 	for (let i = 0; i + 1 < samples.length; i++) {
@@ -49,17 +43,18 @@ export function detectPopNoise(
 			aEff !== 0 &&
 			((aEff < 0 && b > 0) ||
 				(aEff > 0 && b < 0) ||
-				(aEff !== 0 &&
-					b === 0 &&
+				(b === 0 &&
 					i + 2 < samples.length &&
 					(samples[i + 2] as number) * aEff < 0))
 		) {
 			const magnitude = Math.abs(b - aEff);
-			if (magnitude >= threshold) {
-				markers.push({ time: i / sampleRate, magnitude });
+			if (magnitude > bestMagnitude) {
+				bestMagnitude = magnitude;
+				bestIndex = i;
 			}
 		}
 		if (a !== 0) lastNonZero = a;
 	}
-	return markers;
+	if (bestIndex < 0) return [];
+	return [{ time: bestIndex / sampleRate, magnitude: bestMagnitude }];
 }
