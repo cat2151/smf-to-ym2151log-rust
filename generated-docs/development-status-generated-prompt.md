@@ -1,4 +1,4 @@
-Last updated: 2026-03-13
+Last updated: 2026-03-14
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -237,6 +237,7 @@ Last updated: 2026-03-13
 - demo-library/package-lock.json
 - demo-library/package.json
 - demo-library/pop-noise-demo.ts
+- demo-library/pop-noise-detector.ts
 - demo-library/pop-noise.html
 - demo-library/portamento-soft-lfo-demo.ts
 - demo-library/portamento-soft-lfo.html
@@ -301,6 +302,7 @@ Last updated: 2026-03-13
 - src/ym2151/channel_allocation.rs
 - src/ym2151/converter/pitch_effects.rs
 - src/ym2151/converter/register_effects.rs
+- src/ym2151/converter/register_fields.rs
 - src/ym2151/converter/waveform.rs
 - src/ym2151/converter.rs
 - src/ym2151/converter_tests/attachments.rs
@@ -337,70 +339,6 @@ Last updated: 2026-03-13
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #202](../issue-notes/202.md): Fix adjacent-tone linear interpolation to operate on register sub-fields, not raw bytes
-`ChangeToNextTone` was blending raw YM2151 register bytes, but most operator/channel registers pack multiple independent parameters into a single byte. Interpolating the raw value corrupts both fields simultaneously — e.g. morphing `KS_AR` from `0x1F` (AR=31, KS=0) to `0x40` (AR=0, KS=1) via raw mid...
-ラベル: 
---- issue-notes/202.md の内容 ---
-
-```markdown
-
-```
-
-## [Issue #201](../issue-notes/201.md): 隣接音色線形補間がバグっている
-[issue-notes/201.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/201.md)
-
-...
-ラベル: 
---- issue-notes/201.md の内容 ---
-
-```markdown
-# issue 隣接音色線形補間がバグっている #201
-[issues #201](https://github.com/cat2151/smf-to-ym2151log-rust/issues/201)
-
-- もしかしてレジスタ単位で単純に線形補間しているのか？
-    - そうではなく、1つのレジスタに複数の情報が入っている場合に、
-        - 情報を分割してから線形補間して、
-        - それをレジスタに書き戻すようにせよ
-    - また、当該の要素（レジスタではない）をlistして表示せよ
-        - listの行ごとに、要素名、fromの値、toの値、レジスタaddrと該当するbit、を表示せよ
-        - 例
-            - CH0 OP1
-                - Attack Rate : from 0 to 31 : レジスタ0x80のbit0～bit4
-            - ※chは0～7、OPはaddrの0～3を、見た目のOP1,OP3,OP2,OP4に変換表示
-
-```
-
-## [Issue #200](../issue-notes/200.md): ポップノイズの自動検知を実装する
-[issue-notes/200.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/200.md)
-
-...
-ラベル: 
---- issue-notes/200.md の内容 ---
-
-```markdown
-# issue ポップノイズの自動検知を実装する #200
-[issues #200](https://github.com/cat2151/smf-to-ym2151log-rust/issues/200)
-
-
-
-```
-
-## [Issue #186](../issue-notes/186.md): 音色補間demoで、添付JSON入力で、Tone配下にregistersを書くとエラーになる
-[issue-notes/186.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/186.md)
-
-...
-ラベル: 
---- issue-notes/186.md の内容 ---
-
-```markdown
-# issue 音色補間demoで、添付JSON入力で、Tone配下にregistersを書くとエラーになる #186
-[issues #186](https://github.com/cat2151/smf-to-ym2151log-rust/issues/186)
-
-- userがほしいもの
-    - eventsとregistersに両対応する
-
-```
-
 ## [Issue #180](../issue-notes/180.md): ポップノイズdemoで、デフォルト値がおかしい
 [issue-notes/180.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/180.md)
 
@@ -822,49 +760,6 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
-### issue-notes/186.md
-```md
-{% raw %}
-# issue 音色補間demoで、添付JSON入力で、Tone配下にregistersを書くとエラーになる #186
-[issues #186](https://github.com/cat2151/smf-to-ym2151log-rust/issues/186)
-
-- userがほしいもの
-    - eventsとregistersに両対応する
-
-{% endraw %}
-```
-
-### issue-notes/200.md
-```md
-{% raw %}
-# issue ポップノイズの自動検知を実装する #200
-[issues #200](https://github.com/cat2151/smf-to-ym2151log-rust/issues/200)
-
-
-
-{% endraw %}
-```
-
-### issue-notes/201.md
-```md
-{% raw %}
-# issue 隣接音色線形補間がバグっている #201
-[issues #201](https://github.com/cat2151/smf-to-ym2151log-rust/issues/201)
-
-- もしかしてレジスタ単位で単純に線形補間しているのか？
-    - そうではなく、1つのレジスタに複数の情報が入っている場合に、
-        - 情報を分割してから線形補間して、
-        - それをレジスタに書き戻すようにせよ
-    - また、当該の要素（レジスタではない）をlistして表示せよ
-        - listの行ごとに、要素名、fromの値、toの値、レジスタaddrと該当するbit、を表示せよ
-        - 例
-            - CH0 OP1
-                - Attack Rate : from 0 to 31 : レジスタ0x80のbit0～bit4
-            - ※chは0～7、OPはaddrの0～3を、見た目のOP1,OP3,OP2,OP4に変換表示
-
-{% endraw %}
-```
-
 ### issue-notes/33.md
 ```md
 {% raw %}
@@ -1037,35 +932,41 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-9f99a4b Update issue #201 with detailed bug description
-c956b87 Merge pull request #199 from cat2151/copilot/fix-waveform-viewer-wav-export
-e7df664 行数が多すぎてcontext windowsを食いつぶしている可能性があるため削減
-071d156 Replace self-made sine waveform simulator with actual web-ym2151 rendered audio
-166c782 Fix oscPhase sampling order and 'Three' bug count in issue note
-41d3998 Fix waveform viewer to reflect conversion result: oscPhase reset + correct ReleaseRate
-f0332a7 Add issue note for #201 [auto]
-1d584e4 Add issue note for #200 [auto]
-5d9f954 Initial plan
-e146c94 Add issue note for #198 [auto]
+8aeb36d Merge pull request #204 from cat2151/copilot/implement-pop-noise-detection
+b3bfd75 detectPopNoise: replace threshold filter with top-1 by magnitude
+58c1ac4 fix zero-crossing detection for exact-zero samples; draw pop markers after waveform
+3125ef0 implement pop noise auto-detection in waveform viewer (#200)
+f76562f Initial plan
+baf30f4 Add notes for implementing auto-detection of pop noise
+fd548b4 Merge pull request #203 from cat2151/copilot/fix-registers-error-json-input
+7ecad41 Fix: exclude type from restTone so normalized Tone always has type: YM2151 tone
+52618ef Fix: handle Tone.registers in normalizeAttachmentText (issue #186)
+be9c583 Initial plan
 
 ### 変更されたファイル:
-.github/copilot-instructions.md
 demo-library/envelope-generator.ts
 demo-library/globals.d.ts
 demo-library/pop-noise-demo.ts
-demo-library/portamento-soft-lfo-demo.ts
+demo-library/pop-noise-detector.ts
+demo-library/pop-noise.html
 demo-library/shared-demo.ts
+demo-library/tone-json-attachment.ts
 demo-library/waveform-canvas.ts
 demo-library/waveform-simulator.ts
 demo-library/waveform-viewer.ts
 demo-library/ym2151-utils.ts
+generated-docs/development-status-generated-prompt.md
+generated-docs/development-status.md
+generated-docs/project-overview-generated-prompt.md
+generated-docs/project-overview.md
 issue-notes/198.md
 issue-notes/200.md
 issue-notes/201.md
-src/lib.rs
+src/ym2151/converter.rs
 src/ym2151/converter/register_effects.rs
-src/ym2151/converter_tests/lfo.rs
+src/ym2151/converter/register_fields.rs
+src/ym2151/converter_tests/attachments_change_to_next_tone.rs
 
 
 ---
-Generated at: 2026-03-13 07:09:06 JST
+Generated at: 2026-03-14 07:11:37 JST

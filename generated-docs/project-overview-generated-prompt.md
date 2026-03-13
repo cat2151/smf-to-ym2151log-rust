@@ -1,4 +1,4 @@
-Last updated: 2026-03-13
+Last updated: 2026-03-14
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -341,6 +341,7 @@ cargo audit
   📊 package-lock.json
   📊 package.json
   📘 pop-noise-demo.ts
+  📘 pop-noise-detector.ts
   🌐 pop-noise.html
   📘 portamento-soft-lfo-demo.ts
   🌐 portamento-soft-lfo.html
@@ -410,6 +411,7 @@ cargo audit
     📁 converter/
       📄 pitch_effects.rs
       📄 register_effects.rs
+      📄 register_fields.rs
       📄 waveform.rs
     📄 converter.rs
     📁 converter_tests/
@@ -494,7 +496,11 @@ cargo audit
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, bootstrap, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/pop-noise.html** (84行, 3375バイト)
+**demo-library/pop-noise-detector.ts** (61行, 1972バイト)
+  - 関数: detectPopNoise, for, if
+  - インポート: なし
+
+**demo-library/pop-noise.html** (85行, 3451バイト)
   - 関数: なし
   - インポート: なし
 
@@ -522,7 +528,7 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/tone-json-attachment.ts** (174行, 4250バイト)
+**demo-library/tone-json-attachment.ts** (203行, 5046バイト)
   - 関数: buildEventsFromCompact, serializeWithStatus, normalizeAttachmentText, if, for, catch
   - インポート: ./shared-demo
 
@@ -546,11 +552,11 @@ cargo audit
   - 関数: encodeWav, writeAscii, downloadWav, for
   - インポート: なし
 
-**demo-library/waveform-canvas.ts** (160行, 4572バイト)
+**demo-library/waveform-canvas.ts** (192行, 5650バイト)
   - 関数: drawEmpty, drawWaveform, for, if
-  - インポート: ./ym2151-utils
+  - インポート: ./ym2151-utils, ./pop-noise-detector
 
-**demo-library/waveform-viewer.ts** (365行, 10370バイト)
+**demo-library/waveform-viewer.ts** (367行, 10495バイト)
   - 関数: extractNoteBoundaries, createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, updateBoundariesAndRender, synthesizeAndRender, setZoom, endDrag, for, if, renderFromJson, clear, exportWav
   - インポート: ./waveform-canvas, ./shared-demo, ./waveform-canvas
 
@@ -623,6 +629,7 @@ cargo audit
     - getParseTreeJsonToSmf ()
       - treeToJson ()
       - ensureMmlRuntime ()
+  - detectPopNoise (demo-library/pop-noise-detector.ts)
   - clearAudioCache ()
     - generateAudioFromJson ()
   - clearWebYmAudioCache ()
@@ -668,6 +675,7 @@ demo-library/mml-support.ts
 demo-library/package-lock.json
 demo-library/package.json
 demo-library/pop-noise-demo.ts
+demo-library/pop-noise-detector.ts
 demo-library/pop-noise.html
 demo-library/portamento-soft-lfo-demo.ts
 demo-library/portamento-soft-lfo.html
@@ -680,7 +688,6 @@ demo-library/tone-json-demo.ts
 demo-library/tone-json-mml.ts
 demo-library/tone-json.html
 demo-library/tsconfig.json
-demo-library/vite.config.ts
 googled947dc864c270e07.html
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
@@ -693,4 +700,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-13 07:09:06 JST
+Generated at: 2026-03-14 07:11:37 JST

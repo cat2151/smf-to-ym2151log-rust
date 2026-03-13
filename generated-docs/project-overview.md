@@ -1,21 +1,45 @@
-Last updated: 2026-03-13
+Last updated: 2026-03-14
 
 # Project Overview
 
 ## プロジェクト概要
-- Standard MIDI Files (SMF) をYM2151 FM音源チップのレジスタ書き込みログ（JSON形式）に変換するRustライブラリです。
-- ネイティブアプリケーションとして、またWebAssembly (WASM) を介してブラウザでの利用をサポートしています。
-- 和音数ベースの静的チャンネル割り当て、ドラムチャンネル優先、およびプログラムチェンジによるカスタム音色適用機能を備えています。
+- Standard MIDI Files (SMF) をYM2151 FM音源チップのレジスタ書き込みログ（JSON形式）に変換するRust製のツールおよびライブラリです。
+- ネイティブアプリケーションとして、またはWebAssembly (WASM) ライブラリとしてブラウザ上で動作し、高度なチャンネル割り当て戦略に対応します。
+- カスタム音色定義や2パス処理アーキテクチャ、充実したテストによる堅牢性が特徴です。
 
 ## 技術スタック
-- フロントエンド: HTML, CSS, TypeScript (WASMライブラリのデモUI開発に利用), Vite (デモアプリケーションのビルドツール), WebAssembly (Rustコードをブラウザで実行可能にする技術)
-- 音楽・オーディオ: Standard MIDI Files (SMF) (入力フォーマット), YM2151 FM音源チップ (ターゲットとなる音源), JSON形式 (YM2151レジスタ書き込みログの出力フォーマット)
-- 開発ツール: Rust (主要な開発言語), Cargo (Rustのビルドシステムおよびパッケージマネージャー), wasm-pack (RustからWebAssemblyパッケージを生成するツール), git (バージョン管理)
-- テスト: cargo test (ユニットテスト、統合テストの実行), cargo tarpaulin (テストカバレッジレポート生成)
-- ビルドツール: Cargo (Rustプロジェクトのビルド), wasm-pack (WASMビルド), Vite (TypeScriptデモプロジェクトのビルド)
-- 言語機能: Rustの型安全性 (堅牢なコード記述を支援), 高パフォーマンス (ネイティブコンパイルによる高速な処理)
-- 自動化・CI/CD: (特記事項なし - プロジェクト情報からは直接確認できません)
-- 開発標準: cargo fmt (コードフォーマットの自動適用), cargo clippy (コード品質・潜在的バグの検出), cargo audit (依存関係のセキュリティ脆弱性チェック)
+- フロントエンド: 
+  - **TypeScript (TS)**: Webデモのロジック開発に使用されるJavaScriptの型付きスーパーセット。
+  - **HTML**: Webデモのページ構造を定義。
+  - **CSS**: Webデモの視覚的なスタイルを提供。
+  - **WebAssembly (WASM)**: Rustで書かれたコアロジックをWebブラウザで実行可能にする技術。
+  - **Vite**: Webデモの高速な開発とビルドを可能にするフロントエンドビルドツール。
+- 音楽・オーディオ: 
+  - **Standard MIDI Files (SMF)**: 入力となる標準的なMIDIファイル形式 (Format 0および1をサポート)。
+  - **YM2151 FM音源チップ**: 出力されるレジスタ書き込みログの対象となるヤマハ製FM音源チップ。
+  - **JSON**: YM2151レジスタ書き込みログや中間イベント、カスタム音色定義に使用されるデータ交換フォーマット。
+- 開発ツール: 
+  - **Rust**: プロジェクトの主要なプログラミング言語。型安全性とパフォーマンスを重視。
+  - **Cargo**: Rustプロジェクトのビルドシステムおよびパッケージマネージャー。
+  - **wasm-pack**: RustコードをWebAssemblyにビルドし、npmパッケージとして利用可能にするツール。
+  - **Git**: ソースコードのバージョン管理システム。
+  - **Biome**: JavaScript/TypeScriptコードのフォーマッター兼リンター。
+- テスト: 
+  - **cargo test**: Rustの組み込みテストフレームワークによるユニットテストおよび統合テスト。
+  - **cargo tarpaulin**: Rustコードのテストカバレッジレポート生成ツール。
+- ビルドツール: 
+  - **Cargo**: Rustアプリケーションおよびライブラリのビルド。
+  - **wasm-pack**: Rust for WASMのビルド。
+  - **Vite**: `demo-library` のビルド。
+- 言語機能: 
+  - **Rustの型システム**: コンパイル時の堅牢性とバグの早期発見に貢献。
+  - **Rustのパフォーマンス**: ネイティブコンパイルによる高速な処理能力。
+- 自動化・CI/CD: 
+  - **GitHub Actions (Implicit)**: `shields.io` バッジから推測されるCI/CD環境。`cargo test`, `cargo fmt --check`, `cargo clippy`, `cargo audit` などのコマンドが自動化パイプラインで利用されている可能性。
+- 開発標準: 
+  - **cargo fmt**: Rustコードの自動フォーマットツール。
+  - **cargo clippy**: Rustコードのlintチェックツール。
+  - **cargo audit**: Rustプロジェクトの依存関係のセキュリティ脆弱性チェックツール。
 
 ## ファイル階層ツリー
 ```
@@ -43,6 +67,7 @@ Last updated: 2026-03-13
   📊 package-lock.json
   📊 package.json
   📘 pop-noise-demo.ts
+  📘 pop-noise-detector.ts
   🌐 pop-noise.html
   📘 portamento-soft-lfo-demo.ts
   🌐 portamento-soft-lfo.html
@@ -112,6 +137,7 @@ Last updated: 2026-03-13
     📁 converter/
       📄 pitch_effects.rs
       📄 register_effects.rs
+      📄 register_fields.rs
       📄 waveform.rs
     📄 converter.rs
     📁 converter_tests/
@@ -153,238 +179,180 @@ Last updated: 2026-03-13
 ```
 
 ## ファイル詳細説明
+プロジェクトは主にRustで書かれたコアロジック (`src/` ディレクトリ) と、Webブラウザ上で動作するデモ (`demo-library/` ディレクトリ) で構成されています。
 
-*   **README.ja.md**: プロジェクトの日本語版概要ドキュメント。
-*   **README.md**: プロジェクトの英語版概要ドキュメント。
-*   **WASM_USAGE.md**: WebAssembly (WASM) としてこのライブラリを使用する方法を説明するドキュメント。
-*   **Cargo.toml**: Rustプロジェクトの設定ファイル。依存関係、パッケージ情報、ビルド設定などを定義。
-*   **Cargo.lock**: ビルドに使用された全ての依存ライブラリの正確なバージョンを記録。
-*   **LICENSE**: プロジェクトのライセンス情報。
-*   **_config.yml**: GitHub Pagesなどのサイト設定ファイル。
-*   **src/error.rs**: プロジェクト全体のエラー処理に関する定義。
-*   **src/lib.rs**: Rustライブラリのエントリポイント。外部から呼び出される主要な機能を含む。
-*   **src/main.rs**: コマンドラインアプリケーションのエントリポイント。MIDIファイルの変換を実行。
-*   **src/midi/**: MIDIファイル解析に関連するモジュール群。
-    *   **src/midi/events.rs**: MIDIイベントの定義。
-    *   **src/midi/mod.rs**: MIDIモジュールのルート。
-    *   **src/midi/parser.rs**: Standard MIDI Files (SMF) をパースするロジック。
-    *   **src/midi/utils.rs**: MIDI関連のユーティリティ関数。
-    *   **src/midi/utils_tests.rs**: `utils.rs` の単体テスト。
-*   **src/wasm.rs**: RustコードをWebAssemblyにバインドするためのロジック。
-*   **src/ym2151/**: YM2151レジスタログ変換に関連するモジュール群。
-    *   **src/ym2151/channel_allocation.rs**: YM2151のチャンネル割り当て戦略に関するロジック。
-    *   **src/ym2151/converter.rs**: MIDIイベントをYM2151レジスタログに変換する主要なロジック。
-    *   **src/ym2151/converter/**: `converter.rs` で使用される変換関連のサブモジュール。
-        *   **src/ym2151/converter/pitch_effects.rs**: ピッチに関するエフェクト処理。
-        *   **src/ym2151/converter/register_effects.rs**: レジスタ値に関するエフェクト処理。
-        *   **src/ym2151/converter/waveform.rs**: 波形生成に関する処理。
-    *   **src/ym2151/converter_tests/**: `converter.rs` および関連モジュールの統合テスト。様々な変換シナリオを検証。
-    *   **src/ym2151/event_processor.rs**: イベントを処理し、YM2151ログイベントに変換するロジック。
-    *   **src/ym2151/event_processor_tests.rs**: `event_processor.rs` の単体テスト。
-    *   **src/ym2151/events.rs**: YM2151レジスタログのイベント定義。
-    *   **src/ym2151/init.rs**: YM2151の初期化設定に関するロジック。
-    *   **src/ym2151/mod.rs**: YM2151モジュールのルート。
-    *   **src/ym2151/note_table.rs**: MIDIノートとYM2151の周波数関係を管理するテーブル。
-    *   **src/ym2151/tempo_map.rs**: テンポ変化を管理するマップ。
-    *   **src/ym2151/tone.rs**: YM2151の音色に関する定義。
-*   **tests/**: プロジェクト全体の統合テストおよびテスト用データ。
-    *   **tests/create_test_midi.py**: テスト用MIDIファイルを生成するPythonスクリプト。
-    *   **tests/integration_conversion.rs**: 変換プロセスの統合テスト。
-    *   **tests/integration_midi.rs**: MIDIパースに関する統合テスト。
-    *   **tests/integration_multichannel.rs**: マルチチャンネルMIDIの統合テスト。
-    *   **tests/integration_program_change.rs**: プログラムチェンジ機能の統合テスト。
-    *   **tests/integration_wasm.rs**: WebAssemblyバインディングの統合テスト。
-    *   **tests/test_data/**: 統合テストで使用されるMIDIファイル群。
-*   **tones/**: MIDIプログラムチェンジに対応するYM2151カスタム音色定義（JSON形式）を格納。
-    *   **tones/000.json**: プログラム000番のカスタム音色データ。
-    *   **tones/README.md**: 音色ファイル形式に関する説明ドキュメント。
-*   **demo-library/**: WebAssembly版ライブラリの機能を示すためのデモアプリケーションのソースコード。
-    *   **demo-library/biome.json**: Biome (コードフォーマッター/リンター) の設定ファイル。
-    *   **demo-library/*.ts**: デモページのスクリプトファイル。WASMライブラリの呼び出し、UI更新、視覚化、オーディオ再生、MMLサポートなどの機能を提供する。
-    *   **demo-library/*.html**: 各デモのHTMLページ。
-    *   **demo-library/globals.d.ts**: グローバルな型定義ファイル。
-    *   **demo-library/package.json**: デモアプリケーションのNode.js/npmパッケージ設定ファイル。
-    *   **demo-library/package-lock.json**: デモアプリケーションの依存関係のロックファイル。
-    *   **demo-library/style.css**: デモアプリケーションのスタイルシート。
-    *   **demo-library/tsconfig.json**: TypeScriptコンパイラの設定ファイル。
-    *   **demo-library/vite.config.ts**: Viteビルドツールの設定ファイル。
-    *   **demo-library/wav-exporter.ts**: WAV形式でオーディオデータをエクスポートする機能。
-    *   **demo-library/waveform-canvas.ts**: 波形を描画するためのCanvasコンポーネント。
-    *   **demo-library/waveform-viewer.ts**: 波形を視覚的に表示・操作するビューア。
-    *   **demo-library/ym2151-utils.ts**: YM2151関連のユーティリティ関数（デモ用）。
-*   **generated-docs/**: `cargo doc` などで生成されるAPIドキュメントの出力先（通常は公開されない）。
-*   **googled947dc864c270e07.html**: Googleサイト検証用ファイル。
-*   **issue-notes/**: 開発中の課題や調査結果に関するメモ（来訪者向けには通常非公開）。
+**Rustコア機能関連 (`src/`):**
+-   `src/lib.rs`: Rustライブラリのエントリポイント。プロジェクト全体の変換ロジックを統合し、外部クレートから利用可能なAPIを提供します。
+-   `src/main.rs`: コマンドラインアプリケーションのエントリポイント。MIDIファイルのパスを受け取り、YM2151ログに変換する処理を実行します。
+-   `src/error.rs`: プロジェクト全体で使用されるカスタムエラー型を定義し、エラーハンドリングを統一します。
+-   `src/midi/parser.rs`: Standard MIDI Files (SMF) を解析し、MIDIイベントの時系列データを抽出する主要なパーサーロジックを実装しています。
+-   `src/midi/events.rs`: MIDIファイルから抽出される様々なイベント（ノートオン/オフ、テンポチェンジなど）のデータ構造を定義します。
+-   `src/ym2151/converter.rs`: MIDIイベントの中間表現をYM2151レジスタ書き込みログに変換する主要なロジックを実装しています。2パス処理の「パスB」に該当します。
+-   `src/ym2151/channel_allocation.rs`: YM2151の限られた8チャンネルをMIDIチャンネルの和音数に基づいて静的に割り当て、ドラムチャンネル優先のルールを適用するロジックを実装しています。
+-   `src/ym2151/tone.rs`: YM2151の音色（ボイス）定義を管理します。MIDIプログラムチェンジイベントに応じて外部JSONファイル (`tones/`) からカスタム音色をロードする機能を提供します。
+-   `src/ym2151/event_processor.rs`: YM2151のイベントを処理し、レジスタ書き込みのシーケンスを生成するロジックが含まれています。
+-   `src/wasm.rs`: WebAssembly (WASM) のバインディングを提供し、Rustで書かれたコア変換ロジックをJavaScriptから呼び出せるようにします。
+
+**Webデモ関連 (`demo-library/`):**
+-   `demo-library/*.html`: 各デモページ（例: `index.html`, `delay-vibrato.html`）のHTML構造を定義し、WebAssemblyモジュールのロードやUI要素を配置します。
+-   `demo-library/library-demo.ts`: WebブラウザでRustライブラリ (`smf_to_ym2151log`) を使用する基本的なデモロジックを提供します。
+-   `demo-library/log-visualizer.ts`: YM2151レジスタログを時間軸に沿って視覚的に表示するためのコンポーネントを実装しています。チャンネルごとのノートやレジスタの変化をグラフィカルに表現します。
+-   `demo-library/mml-support.ts`: MML (Music Macro Language) からStandard MIDI File (SMF) へ変換する機能を提供し、デモでMML入力からの変換を可能にします。
+-   `demo-library/shared-demo.ts`: 複数のWebデモ間で共通して使用されるユーティリティ関数やWASM初期化ロジックを含んでいます。
+-   `demo-library/wav-exporter.ts`: 生成されたYM2151のオーディオデータをWAV形式のファイルとしてエクスポートする機能を提供します。
+-   `demo-library/waveform-viewer.ts`: YM2151ログから合成された音波の波形を視覚化し、再生位置やズーム機能を提供するコンポーネントです。
+-   `demo-library/style.css`: デモページのルック＆フィールを定義するスタイルシートです。
+-   `demo-library/package.json`, `tsconfig.json`, `vite.config.ts`: WebデモのTypeScriptプロジェクト設定、依存関係、ビルド設定を定義します。
+
+**設定・ドキュメント・テスト等:**
+-   `Cargo.toml`: Rustプロジェクトの依存関係、メタデータ、ビルド設定を定義するファイル。
+-   `README.md`, `README.ja.md`: プロジェクトの概要、目的、使い方、機能などを説明するドキュメント（英語・日本語）。
+-   `WASM_USAGE.md`: WebAssembly利用に関する詳細なドキュメント。
+-   `tones/`: MIDIプログラムチェンジに対応するカスタムYM2151音色定義をJSON形式で格納するディレクトリ。
+-   `tests/`: プロジェクトの統合テストおよびテストデータ (`test_data/`) を格納するディレクトリ。
 
 ## 関数詳細説明
+本プロジェクトの主要な関数群は以下の通りです。Rustのコア変換ロジックとWebデモの主要な機能に関連するものを中心に説明します。
 
-*   **computeHash**: 与えられたデータからハッシュ値を計算する関数。
-*   **nextRequestId**: 新しいリクエストIDを生成し、一意性を保つための関数。
-*   **isLatestRequest**: 特定のリクエストIDが現在の最新リクエストであるかを判定する関数。
-*   **updateOutputWithState**: UI上の出力表示を、現在のアプリケーション状態に基づいて更新する関数。
-*   **updatePlayButtonState**: 再生ボタンの表示状態（有効/無効など）を更新する関数。
-*   **initializeWasm**: WebAssemblyモジュールを初期化し、Rustで書かれたコア機能を利用可能にする関数。
-*   **readAttachmentBytes**: 添付ファイルや設定データの内容をバイト列として読み込む関数。
-*   **runConversion**: MIDIからYM2151ログへの変換処理全体を実行する関数。
-*   **handlePlay**: オーディオ再生開始のリクエストを処理し、必要な変換や準備を行う関数。
-*   **setupAttachmentEditor**: カスタム設定（音色など）を編集するためのUI要素を設定する関数。
-*   **setupMmlInput**: MML（Music Macro Language）形式の入力を受け付けるUI要素を設定する関数。
-*   **setupMidiInput**: MIDIファイル入力を受け付けるUI要素を設定する関数。
-*   **bootstrapWebYm**: Webブラウザ環境でYM2151エミュレーションをブートストラップする関数。
-*   **main**: アプリケーションの主要なエントリーポイント関数。
-*   **playAudioWithOverlay**: 特定のUIオーバーレイと共に音声を再生する関数。
-*   **clearAudioCache**: 以前生成されたオーディオデータをキャッシュからクリアする関数。
-*   **generateAudioFromJson**: JSON形式のYM2151ログデータからオーディオデータを生成する関数。
-*   **initWasm**: WebAssemblyモジュールを初期化し、結果をUIに表示する関数。
-*   **displayResult**: 変換や処理の結果をユーザーインターフェースに表示する関数。
-*   **showError**: 発生したエラーメッセージをユーザーに表示する関数。
-*   **setupFileInput**: ファイル選択用のUIコンポーネントを設定する関数。
-*   **resolveRegisterForChannel**: 特定のYM2151チャンネルに対応するレジスタアドレスを解決する関数。
-*   **collectLfoEvents**: LFO (Low Frequency Oscillator) に関連するイベントを収集する関数。
-*   **renderLfoLane**: LFOの活動を視覚的に表示するレーンを描画する関数。
-*   **buildNoteSegments**: MIDIノートイベントから視覚化用のノートセグメントデータを構築する関数。
-*   **notePitch**: 特定のノートイベントのピッチ情報を計算する関数。
-*   **computePitchRange**: 視覚化するピッチの範囲を計算する関数。
-*   **noteYPosition**: ノートの表示位置（Y座標）を計算する関数。
-*   **renderPitchCanvas**: ピッチ情報を表示するためのCanvas要素に描画を行う関数。
-*   **detectChannel**: オーディオイベントのチャンネルを検出する関数。
-*   **normalizeEvents**: イベントデータを標準化された形式に整形する関数。
-*   **laneColor**: 視覚化レーンの色を決定する関数。
-*   **createLane**: 視覚化用の新しいレーン要素を作成する関数。
-*   **computeTrackWidth**: 視覚化トラックの幅を計算する関数。
-*   **formatInactiveChannels**: 使用されていないチャンネルの表示を整形する関数。
-*   **createLogVisualizer**: YM2151ログを視覚化するためのコンポーネントを初期化する関数。
-*   **renderEmpty**: 空の（データがない）状態の視覚化表示をレンダリングする関数。
-*   **renderFromJson**: JSONデータからログビジュアライザーをレンダリングする関数。
-*   **ensureGlobalLane**: 視覚化に必要なグローバルなレーンが確実に存在するようにする関数。
-*   **setLfoRegisters**: LFO関連のレジスタ値を設定する関数。
-*   **setupMmlToSmf**: MMLからSMFへの変換機能のセットアップを行う関数。
-*   **ensureWasmInitialized**: WebAssemblyモジュールが確実に初期化されているかをチェックし、必要に応じて初期化する関数。
-*   **setStatus**: アプリケーションの現在のステータスをUIに表示する関数。
-*   **setEventCountDisplay**: 処理されたイベント数をUIに表示する関数。
-*   **ensureWebYm2151**: Webブラウザ向けのYM2151エミュレータが利用可能であることを確認する関数。
-*   **clearWebYmAudioCache**: Webブラウザ版YM2151のオーディオキャッシュをクリアする関数。
-*   **updateOutput**: UI上の出力エリアの内容を更新する関数。
-*   **parseAttachmentField**: 添付ファイルとして入力されたフィールドの内容を解析する関数。
-*   **cleanup**: 不要なリソースを解放するクリーンアップ処理を行う関数。
-*   **mod**: 剰余（モジュロ）演算を実行する関数。
-*   **setupPlayButton**: オーディオ再生用のボタンを設定する関数。
-*   **setupWavExportButton**: 生成されたオーディオをWAV形式でエクスポートするためのボタンを設定する関数。
-*   **bootstrap**: アプリケーションの初期設定と起動処理を行う関数。
-*   **extractLfoRegistersFromAttachment**: 添付データからLFOレジスタの設定値を抽出する関数。
-*   **syncLfoRegisters**: LFOレジスタの設定値を同期させる関数。
-*   **buildEventsFromCompact**: コンパクトなデータ形式からYM2151イベントを構築する関数。
-*   **serializeWithStatus**: 処理ステータスを含めてデータをシリアライズ（直列化）する関数。
-*   **normalizeAttachmentText**: 添付ファイルとして扱われるテキストデータを正規化する関数。
-*   **getMmlParser**: MMLを解析するためのパーサーインスタンスを取得する関数。
-*   **getParseTreeJsonToSmf**: MMLのパースツリーJSONからStandard MIDI Fileデータを生成する関数。
-*   **treeToJson**: 抽象構文木のようなツリー構造をJSON形式に変換する関数。
-*   **ensureMmlRuntime**: MML処理に必要なランタイム環境が整っていることを確認する関数。
-*   **convertMmlToSmf**: MML形式の入力をStandard MIDI File形式に変換する関数。
-*   **drawEmpty**: Canvas上に何も描画されていない状態を描写する関数。
-*   **drawWaveform**: Canvas上に波形データを描画する関数。
-*   **encodeWav**: 生のオーディオデータをWAVファイル形式にエンコードする関数。
-*   **writeAscii**: ASCII文字列をバイト配列として書き込む関数。
-*   **downloadWav**: 生成されたWAVファイルをユーザーのデバイスにダウンロードさせる関数。
-*   **extractNoteBoundaries**: オーディオログからノートイベントの開始・終了時間などの境界情報を抽出する関数。
-*   **createWaveformViewer**: 波形表示ビューアのインスタンスを作成する関数。
-*   **getWindowDurS**: 現在表示中のウィンドウの持続時間（秒単位）を取得する関数。
-*   **clampViewStart**: 波形ビューの開始位置が有効な範囲に収まるように調整する関数。
-*   **updatePositionLabel**: 波形ビューの現在位置を示すラベルを更新する関数。
-*   **render**: 波形ビューアの描画処理全体を実行する関数。
-*   **updateBoundariesAndRender**: 境界情報を更新し、それに基づいて波形ビューを再描画する関数。
-*   **synthesizeAndRender**: YM2151ログから音声を合成し、波形ビューにレンダリングする関数。
-*   **setZoom**: 波形ビューのズームレベルを設定する関数。
-*   **endDrag**: ユーザーが波形ビューをドラッグする操作を終了した際に呼び出される関数。
-*   **parseHexByte**: 16進数文字列をバイト値にパース（解析）する関数。
+**Rustコア変換ロジック関連:**
+-   **`smf_to_ym2151log::convert_midi_to_ym2151` (概念的):**
+    -   役割: MIDIファイルをYM2151レジスタ書き込みログに変換する、プロジェクトの中心的な処理。
+    -   引数: MIDIファイルのバイナリデータまたはパス、変換オプション（例：音色データ）。
+    -   戻り値: YM2151レジスタ書き込みログのJSON文字列またはエラー。
+    -   機能: MIDI解析、チャンネル割り当て、イベント変換、YM2151レジスタ値の生成を行います。
+-   **`midi::parser::parse_smf(midi_data: &[u8])`:**
+    -   役割: Standard MIDI File (SMF) のバイナリデータを解析し、構造化されたMIDIイベントのリストを生成します。
+    -   引数: MIDIファイルのバイトスライス。
+    -   戻り値: パースされたMIDIイベントの中間表現またはエラー。
+    -   機能: MIDIヘッダ、トラックチャンクを読み取り、各MIDIイベント（ノートオン/オフ、プログラムチェンジ、テンポなど）を時系列順に抽出します。
+-   **`ym2151::converter::convert_events_to_ym2151_log(midi_events: Vec<MidiEvent>, ...)`:**
+    -   役割: パースされたMIDIイベントの中間表現を、YM2151 FM音源チップのレジスタ書き込みログ（JSON形式）に変換します。
+    -   引数: MIDIイベントのリスト、チャンネル割り当て情報、音色情報など。
+    -   戻り値: YM2151レジスタ書き込みログのJSON表現またはエラー。
+    -   機能: MIDIイベントをYM2151の物理的なレジスタ操作にマッピングし、音色適用、ピッチ計算、エフェクト処理などを行います。
+-   **`ym2151::channel_allocation::allocate_channels(midi_tracks: &[MidiTrack])`:**
+    -   役割: MIDIファイル内の各MIDIチャンネルの和音数（同時発音数）を分析し、YM2151の利用可能な8チャンネルに静的に割り当てます。
+    -   引数: MIDIトラックのリスト。
+    -   戻り値: 各MIDIチャンネルへのYM2151チャンネル割り当て情報。
+    -   機能: 最大和音数に基づいてYM2151チャンネルを割り当て、ドラムチャンネル（MIDI ch9）を優先的に割り当てるロジックを含みます。
+-   **`ym2151::tone::load_tone(program_number: u8, custom_tones: &[ToneDefinition])`:**
+    -   役割: 指定されたプログラム番号（0-127）に対応するYM2151音色をロードします。カスタム音色ファイルが存在する場合はそれを優先します。
+    -   引数: MIDIプログラム番号、カスタム音色の定義リスト。
+    -   戻り値: YM2151音色のデータ構造。
+    -   機能: `tones/` ディレクトリからJSONファイルを読み込み、音色のFMパラメータを設定します。
+-   **`wasm::convert(midi_bytes: &[u8], attachment_json: &str)`:**
+    -   役割: WebAssembly経由でJavaScriptから呼び出されるエントリポイント。MIDIバイト列とアタッチメントJSONを受け取り、YM2151ログJSONを返します。
+    -   引数: MIDIファイルの内容をバイト配列、アタッチメントデータ（プログラムチェンジ用の音色定義など）をJSON文字列。
+    -   戻り値: 変換されたYM2151ログのJSON文字列。
+    -   機能: 内部のRust変換ロジックを呼び出し、Webブラウザ環境で利用可能なインターフェースを提供します。
+
+**Webデモ機能関連 (`demo-library/`):**
+-   **`demo-library/log-visualizer.ts::createLogVisualizer(container_element: HTMLElement)`:**
+    -   役割: YM2151レジスタログを表示するためのUIコンポーネントを初期化し、指定されたHTML要素内に配置します。
+    -   引数: 視覚化コンポーネントを埋め込むHTML要素。
+    -   戻り値: ログ視覚化オブジェクトのインスタンス。
+    -   機能: ログデータに基づいてタイムライン、ノートイベント、レジスタ値の変化などをグラフィカルに描画します。
+-   **`demo-library/mml-support.ts::setupMmlToSmf(mml_input_element: HTMLTextAreaElement, ...)`:**
+    -   役割: MML (Music Macro Language) をSMF (Standard MIDI File) に変換する機能のセットアップをデモページで行います。
+    -   引数: MML入力用のテキストエリア、変換結果を表示する要素など。
+    -   戻り値: なし。
+    -   機能: MMLパーサーをロードし、ユーザーがMMLを入力すると自動的にSMFに変換して利用できるようにします。
+-   **`demo-library/wav-exporter.ts::downloadWav(audio_data: Float32Array, sample_rate: number, filename: string)`:**
+    -   役割: 生成された生のオーディオデータをWAVファイル形式にエンコードし、ユーザーにダウンロードさせます。
+    -   引数: オーディオデータ（Float32Array）、サンプルレート、ファイル名。
+    -   戻り値: なし。
+    -   機能: オーディオバッファをWAVヘッダと共にバイナリ形式に変換し、ブラウザのダウンロード機能を通じてファイルとして提供します。
+-   **`demo-library/waveform-viewer.ts::synthesizeAndRender(ym2151_log_json: string, ...)`:**
+    -   役割: YM2151ログのJSONデータから音波を合成し、その波形をキャンバス上に描画します。
+    -   引数: YM2151ログのJSON文字列、表示範囲、ズームレベルなど。
+    -   戻り値: なし。
+    -   機能: YM2151のレジスタ操作をシミュレートしてオーディオサンプルを生成し、`waveform-canvas` を使用して波形として描画します。
 
 ## 関数呼び出し階層ツリー
 ```
 - if (demo-library/delay-vibrato-demo.ts)
-  - computeHash (demo-library/delay-vibrato-demo.ts)
-    - nextRequestId ()
-      - isLatestRequest ()
-      - updateOutputWithState ()
-      - updatePlayButtonState ()
-      - initializeWasm ()
-      - readAttachmentBytes ()
-      - runConversion ()
-      - handlePlay ()
-      - setupAttachmentEditor ()
-      - setupMmlInput ()
-      - setupMidiInput ()
-      - bootstrapWebYm ()
-      - main ()
-      - catch ()
-      - playAudioWithOverlay ()
-      - createLogVisualizer ()
-      - renderFromJson ()
-      - setupMmlToSmf ()
-      - ensureWasmInitialized ()
-      - setStatus ()
-      - setEventCountDisplay ()
-      - ensureWebYm2151 ()
-      - updateOutput ()
-      - parseAttachmentField ()
-      - setupPlayButton ()
-      - setupWavExportButton ()
-      - bootstrap ()
-      - createWaveformViewer ()
-      - exportWav ()
-      - setLfoRegisters (demo-library/log-visualizer.ts)
-      - extractLfoRegistersFromAttachment ()
-      - syncLfoRegisters ()
-  - initWasm (demo-library/library-demo.ts)
-    - displayResult ()
-      - showError ()
-      - setupFileInput ()
-      - clear ()
-  - resolveRegisterForChannel (demo-library/log-visualizer-lfo.ts)
-    - collectLfoEvents ()
-      - renderLfoLane ()
-      - createLane ()
-      - parseHexByte ()
-  - buildNoteSegments (demo-library/log-visualizer-note-segments.ts)
-    - notePitch ()
-      - computePitchRange ()
-      - noteYPosition ()
-  - renderPitchCanvas (demo-library/log-visualizer-pitch-canvas.ts)
-  - detectChannel (demo-library/log-visualizer.ts)
-    - normalizeEvents ()
-      - laneColor ()
-      - computeTrackWidth ()
-      - formatInactiveChannels ()
-      - renderEmpty ()
-      - ensureGlobalLane ()
-  - getMmlParser ()
-    - getParseTreeJsonToSmf ()
-      - treeToJson ()
-      - ensureMmlRuntime ()
-  - clearAudioCache ()
-    - generateAudioFromJson ()
-  - clearWebYmAudioCache ()
-    - cleanup ()
-  - buildEventsFromCompact (demo-library/tone-json-attachment.ts)
-    - serializeWithStatus ()
-      - normalizeAttachmentText ()
-  - convertMmlToSmf ()
-  - drawEmpty (demo-library/waveform-canvas.ts)
-    - drawWaveform ()
-  - downloadWav ()
-    - encodeWav (demo-library/wav-exporter.ts)
-      - writeAscii ()
-  - extractNoteBoundaries (demo-library/waveform-viewer.ts)
-    - getWindowDurS ()
-      - clampViewStart ()
-      - updatePositionLabel ()
-      - render ()
-      - updateBoundariesAndRender ()
-      - synthesizeAndRender ()
-      - setZoom ()
-- for (demo-library/log-visualizer-lfo.ts)
-- while (demo-library/log-visualizer-pitch-canvas.ts)
-- mod (demo-library/shared-demo.ts)
-- endDrag (demo-library/waveform-viewer.ts)
+  - computeHash()
+    - nextRequestId()
+    - isLatestRequest()
+    - updateOutputWithState()
+    - updatePlayButtonState()
+    - initializeWasm()
+    - readAttachmentBytes()
+    - runConversion()
+      - handlePlay()
+      - playAudioWithOverlay()
+      - createLogVisualizer()
+        - renderFromJson()
+      - setupAttachmentEditor()
+      - setupMmlInput()
+        - setupMmlToSmf()
+      - setupMidiInput()
+      - bootstrapWebYm()
+      - main()
+      - catch()
+      - ensureWasmInitialized()
+      - setStatus()
+      - setEventCountDisplay()
+      - ensureWebYm2151()
+      - updateOutput()
+      - parseAttachmentField()
+      - setupPlayButton()
+      - setupWavExportButton()
+      - bootstrap()
+      - createWaveformViewer()
+        - exportWav()
+      - setLfoRegisters()
+      - extractLfoRegistersFromAttachment()
+      - syncLfoRegisters()
+- initWasm(demo-library/library-demo.ts)
+  - displayResult()
+    - showError()
+    - setupFileInput()
+    - clear()
+- resolveRegisterForChannel(demo-library/log-visualizer-lfo.ts)
+  - collectLfoEvents()
+    - renderLfoLane()
+      - createLane()
+      - parseHexByte()
+- buildNoteSegments(demo-library/log-visualizer-note-segments.ts)
+  - notePitch()
+    - computePitchRange()
+    - noteYPosition()
+- renderPitchCanvas(demo-library/log-visualizer-pitch-canvas.ts)
+- detectChannel(demo-library/log-visualizer.ts)
+  - normalizeEvents()
+    - laneColor()
+    - computeTrackWidth()
+    - formatInactiveChannels()
+    - renderEmpty()
+    - ensureGlobalLane()
+- getMmlParser()
+  - getParseTreeJsonToSmf()
+    - treeToJson()
+    - ensureMmlRuntime()
+- detectPopNoise(demo-library/pop-noise-detector.ts)
+- clearAudioCache()
+  - generateAudioFromJson()
+- clearWebYmAudioCache()
+  - cleanup()
+- buildEventsFromCompact(demo-library/tone-json-attachment.ts)
+  - serializeWithStatus()
+    - normalizeAttachmentText()
+- convertMmlToSmf()
+- drawEmpty(demo-library/waveform-canvas.ts)
+  - drawWaveform()
+- downloadWav()
+  - encodeWav(demo-library/wav-exporter.ts)
+    - writeAscii()
+- extractNoteBoundaries(demo-library/waveform-viewer.ts)
+  - getWindowDurS()
+    - clampViewStart()
+    - updatePositionLabel()
+    - render()
+    - updateBoundariesAndRender()
+    - synthesizeAndRender()
+    - setZoom()
+- endDrag(demo-library/waveform-viewer.ts)
 
 ---
-Generated at: 2026-03-13 07:09:43 JST
+Generated at: 2026-03-14 07:12:16 JST

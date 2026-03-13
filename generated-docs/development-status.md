@@ -1,57 +1,54 @@
-Last updated: 2026-03-13
+Last updated: 2026-03-14
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #202](../issue-notes/202.md) と [Issue #201](../issue-notes/201.md) は、隣接音色線形補間がレジスタのサブフィールドではなく生バイトに作用しているため、パックされたパラメータが破損するという重大なバグを指摘しています。
-- [Issue #200](../issue-notes/200.md) は、音質向上に不可欠なポップノイズの自動検知機能の実装を求めています。
-- [Issue #186](../issue-notes/186.md) は、音色補間デモにおいて、添付JSON入力で`events`と`registers`の両方をサポートするよう改善を提案しています。
+- [Issue #180](../issue-notes/180.md): ポップノイズデモのデフォルト値が適切でないため、挙動確認と調整が必要です。
+- [Issue #177](../issue-notes/177.md): 添付JSON機能のドッグフーディング（実践的な利用検証）が計画されており、その動作確認と改善が求められています。
+- [Issue #83](../issue-notes/83.md): デフォルト音色データの不足と、ブラウザでのMML演奏とランダム音色の実現方法について整理が必要です。
 
 ## 次の一手候補
-1.  [Issue #202](../issue-notes/202.md): YM2151レジスタ補間バグの修正に向けた影響分析
-    -   最初の小さな一歩: YM2151のレジスタマップと`src/ym2151/converter/register_effects.rs`を分析し、複数の独立したパラメータをパックしている全レジスタを特定し、そのビットフィールド構造と現在の補間ロジックでの扱いを文書化する。
-    -   Agent実行プロンプ:
-        ```
-        対象ファイル: `src/ym2151/converter/register_effects.rs`, `src/ym2151/tone.rs`
+1. ポップノイズデモのデフォルト値修正と検証 ([Issue #180](../issue-notes/180.md))
+   - 最初の小さな一歩: `demo-library/pop-noise-demo.ts` と `demo-library/pop-noise-detector.ts` を確認し、デモが意図した通りに動作し、ポップノイズ検出が適切に行われるようにデフォルト値を調整する。
+   - Agent実行プロンプト:
+     ```
+     対象ファイル: demo-library/pop-noise-demo.ts, demo-library/pop-noise-detector.ts, issue-notes/180.md
 
-        実行内容: `src/ym2151/converter/register_effects.rs` 内の `ChangeToNextTone` 構造体と関連する補間ロジックを分析し、特に複数の独立したパラメータをパックしている可能性のあるYM2151レジスタ（例: 0x80-0x9F, 0xA0-0xBF, 0xC0-0xDF, 0xE0-0xFF などのオペレーター設定レジスタ）を特定してください。
-        これらのレジスタについて、以下の情報をMarkdown形式でリストアップしてください:
-        1.  レジスタアドレス (例: 0x80)
-        2.  パックされているパラメータ名 (例: Attack Rate, Key Scale)
-        3.  各パラメータが使用するビット範囲
-        4.  現在の `ChangeToNextTone` がこれらのレジスタをどのように処理しているか（現在の補間方法）。
-        5.  `src/ym2151/tone.rs` に定義されている `Tone` 構造体内のレジスタ表現が、このビットフィールドとどのように対応しているか。
+     実行内容: `issue-notes/180.md` に記載されているポップノイズデモのデフォルト値に関する問題点を解決するため、`demo-library/pop-noise-demo.ts` 内の初期設定値（例: `detector.detectionThreshold` など）が適切か分析してください。また、`demo-library/pop-noise-detector.ts` の検出ロジックと連携し、デモが直感的に理解できるよう、推奨されるデフォルト値の変更案を提示してください。
 
-        確認事項: YM2151のレジスタマップ（外部知識）と照らし合わせ、どのレジスタがビットパックされているかを正確に確認してください。`ChangeToNextTone` の `apply` メソッドまたは類似のロジックがどのようにレジスタ値を扱っているか注意深く分析してください。
+     確認事項: 最近のコミット (`b3bfd75`, `58c1ac4`, `3125ef0`) でのポップノイズ検出ロジックの変更が、デフォルト値の選定に与える影響を確認してください。
 
-        期待する出力: 識別されたレジスタとパラメータのリスト、ビット範囲、現在の補間方法、および `Tone` 構造体との対応関係を記述したMarkdown形式の分析レポート。
-        ```
+     期待する出力: `demo-library/pop-noise-demo.ts` の具体的なコード変更案（新しいデフォルト値の設定）をmarkdown形式で出力してください。
+     ```
 
-2.  [Issue #186](../issue-notes/186.md): 音色補間デモにおける`registers`フィールドのサポート実装準備
-    -   最初の小さな一歩: `demo-library/tone-json-attachment.ts`内のJSONパースロジックを詳細に分析し、`events`フィールドの処理に加え、`registers`フィールドが存在する場合にその内容を適切に読み込み、`Tone`オブジェクトに反映させるために必要なコード変更箇所を特定する。
-    -   Agent実行プロンプト:
-        ```
-        対象ファイル: `demo-library/tone-json-attachment.ts`, `src/ym2151/tone.rs` (参考用)
+2. 添付JSON機能の動作検証と改善点の特定 ([Issue #177](../issue-notes/177.md))
+   - 最初の小さな一歩: 添付JSONが意図通りにトーンに適用されるか、`demo-library/tone-json-demo.ts` や `demo-library/tone-json-attachment.ts` を使って基本的なケースと最近修正された `Tone.registers` を含むケースで手動で検証し、問題があれば特定する。
+   - Agent実行プロンプト:
+     ```
+     対象ファイル: demo-library/tone-json-attachment.ts, src/ym2151/converter.rs, src/ym2151/converter/register_effects.rs, src/ym2151/converter/register_fields.rs, issue-notes/177.md
 
-        実行内容: `demo-library/tone-json-attachment.ts` 内の、JSONファイルをパースして`Tone`オブジェクトを生成するロジックを分析してください。特に、`events`フィールドの処理方法を確認し、`events`だけでなく、`registers`というトップレベルのフィールドが存在する場合に、その内容（`{ [addr: string]: number }`形式と想定）を正しくパースして`Tone`オブジェクトに反映させるための修正点を洗い出してください。`src/ym2151/tone.rs`の`Tone`構造体の定義を参考に、Rust側の期待するデータ構造も考慮に入れてください。
+     実行内容: `issue-notes/177.md` に基づき、添付JSONまわりのドッグフーディング（実践的な検証）計画を策定し、具体的なテストシナリオをリストアップしてください。特に、最近 `Tone.registers` の正規化修正 (`52618ef`) が行われた点を考慮し、`demo-library/tone-json-attachment.ts` が `src/ym2151/converter` 内のレジスタ変換ロジックと適切に連携しているか検証するためのシナリオを含めてください。
 
-        確認事項: 既存の`events`処理と競合しないこと、`registers`フィールドがオプションであること、キーが文字列のレジスタアドレス（`"0xXX"`）で値が数値（0-255）であることを考慮してください。
+     確認事項: 既存の `src/ym2151/converter_tests/attachments_program_effects.rs` や `src/ym2151/converter_tests/attachments_change_to_next_tone.rs` といったテストが、現在の `demo-library` の実装と整合性が取れているか確認してください。
 
-        期待する出力: `demo-library/tone-json-attachment.ts` に追加または変更が必要なコードスニペットと、そのロジックを説明するMarkdown形式の修正案。
-        ```
+     期待する出力: 添付JSON機能の検証計画と、実行すべき具体的なテストケース（簡単なMMLやJSONデータ例を含む）をmarkdown形式で出力してください。また、検証で特に注意すべき点や、予期される課題も記述してください。
+     ```
 
-3.  [Issue #200](../issue-notes/200.md): ポップノイズデモのデフォルト値改善と自動検知の初期調査
-    -   最初の小さな一歩: `demo-library/pop-noise-demo.ts`と`demo-library/pop-noise.html`をレビューし、ポップノイズに影響を与える可能性のある既存のデフォルト値を特定し、Issue #180 も考慮してより適切な初期値や範囲を提案する。また、ポップノイズ検出のための簡単なロギング機能追加の可能性を検討する。
-    -   Agent実行プロンプト:
-        ```
-        対象ファイル: `demo-library/pop-noise-demo.ts`, `demo-library/pop-noise.html`
+3. デフォルト音色データの管理とロードマップ策定 ([Issue #83](../issue-notes/83.md))
+   - 最初の小さな一歩: `issue-notes/83.md`, `issue-notes/22.md`, `issue-notes/33.md` の内容を再確認し、現在の `tones/` ディレクトリのファイル一覧 (`tones/000.json`, `tones/README.md`) と照らし合わせて、最も優先度の高いデフォルト音色データ（例: GM互換の000.json）の作成に着手するか、そのための準備を行う。
+   - Agent実行プロンプト:
+     ```
+     対象ファイル: issue-notes/83.md, issue-notes/22.md, issue-notes/33.md, tones/000.json, tones/README.md, src/ym2151/tone.rs
 
-        実行内容: `demo-library/pop-noise-demo.ts` の現在のデフォルト設定（例: LFO値、エンベロープ設定など、ポップノイズに影響を与える可能性のあるパラメータ）を分析し、[Issue #180](../issue-notes/180.md) で指摘されている「デフォルト値がおかしい」点を改善するための具体的な修正案を提示してください。また、ポップノイズの自動検知（[Issue #200](../issue-notes/200.md)）に向けた最初のステップとして、現在のデモに簡単なロギング機能（例: 特定のレジスタ値の変化やエンベロープ状態のコンソール出力）を追加する可能性について検討し、その実装の最初の小さな一歩を記述してください。
+     実行内容: 複数のIssueで言及されている音色データの不足 ([Issue #83](../issue-notes/83.md), [Issue #22](../issue-notes/22.md)) と、`ym2151-tone-editor` との連携による読み込み優先順位の仕様 ([Issue #33](../issue-notes/33.md)) について、現状を整理し、今後の開発ロードマップを提案してください。具体的には、
+     1. 現在不足しているデフォルト音色データ（0-127）のうち、最低限必要となる音色（例: piano, guitar, drumsなど）をリストアップし、その作成優先順位を付けてください。
+     2. `ym2151-tone-editor` との連携 ([Issue #33](../issue-notes/33.md)) を考慮した場合の `tones/` ディレクトリの管理戦略について提案してください（例: シンボリックリンクの利用、生成データの配置場所など）。
+     3. `tones/000.json` のような既存のファイルを参考に、`ym2151-tone-editor` で作成されたjsonファイルをプロジェクトに組み込む具体的な手順案を記述してください。
 
-        確認事項: デフォルト値の変更がユーザーエクスペリエンスを向上させること、ロギング機能がパフォーマンスに大きな影響を与えないことを確認してください。
+     確認事項: 音色データの構造が `src/ym2151/tone.rs` で定義されている構造と一致しているか、また `tones/000.json` が有効なJSON形式であることを確認してください。
 
-        期待する出力: `demo-library/pop-noise-demo.ts` のデフォルト値を修正するための具体的なコード変更提案と、ポップノイズ検知の最初のステップとしてのロギング機能追加に関するMarkdown形式の提案。
-        ```
+     期待する出力: 音色データ管理に関するロードマップ、デフォルト音色データの作成優先順位リスト、`ym2151-tone-editor` との連携手順案をmarkdown形式で出力してください。
+     ```
 
 ---
-Generated at: 2026-03-13 07:09:26 JST
+Generated at: 2026-03-14 07:11:58 JST
