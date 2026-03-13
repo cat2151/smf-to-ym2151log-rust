@@ -6,6 +6,12 @@
  */
 
 import { PIXELS_PER_SECOND } from "./ym2151-utils";
+import type { PopNoiseMarker } from "./pop-noise-detector";
+
+// Pop noise marker visual constants
+const POP_NOISE_MARKER_COLOR = "rgba(220, 0, 0, 0.8)";
+const POP_NOISE_LABEL_COLOR = "rgba(180, 0, 0, 0.9)";
+const POP_NOISE_LABEL_Y = 25;
 
 export type WaveformData = {
 	/** PCM waveform samples (left channel from web-ym2151 real synthesis). */
@@ -14,6 +20,8 @@ export type WaveformData = {
 	durationS: number;
 	/** Timestamps (seconds) of key-on events for the selected channel. */
 	noteBoundaries: number[];
+	/** Pop noise candidates detected by zero-crossing amplitude analysis. */
+	popNoiseMarkers: PopNoiseMarker[];
 };
 
 /** Render a placeholder message on the canvas (no data loaded yet). */
@@ -88,6 +96,26 @@ export function drawWaveform(
 		ctx.fillText(`key-on ${(t * 1000).toFixed(1)}ms`, x + 3, 11);
 	}
 
+	// Pop noise markers (zero crossings with large amplitude jumps)
+	for (const marker of data.popNoiseMarkers) {
+		const t = marker.time;
+		if (t < viewStart - 0.001 || t > viewEnd + 0.001) continue;
+		const x = Math.round((t - viewStart) * pixelsPerSec);
+		ctx.strokeStyle = POP_NOISE_MARKER_COLOR;
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.moveTo(x, 0);
+		ctx.lineTo(x, height);
+		ctx.stroke();
+		ctx.fillStyle = POP_NOISE_LABEL_COLOR;
+		ctx.font = "10px monospace";
+		ctx.fillText(
+			`pop ${(marker.magnitude * 100).toFixed(0)}%`,
+			x + 3,
+			POP_NOISE_LABEL_Y,
+		);
+	}
+
 	// Compute sample range for visible window (with edge padding for anti-aliasing)
 	const viewStartSample = viewStart * data.sampleRate;
 	const startSample = Math.max(0, Math.floor(viewStartSample) - 1);
@@ -156,4 +184,8 @@ export function drawWaveform(
 	ctx.fillStyle = "#555";
 	ctx.font = "10px sans-serif";
 	ctx.fillText("波形", 24, height - 24);
+	ctx.fillStyle = POP_NOISE_MARKER_COLOR;
+	ctx.fillRect(70, height - 28, 14, 3);
+	ctx.fillStyle = "#555";
+	ctx.fillText("ポップノイズ", 88, height - 24);
 }
