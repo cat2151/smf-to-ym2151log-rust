@@ -20,6 +20,7 @@ import {
 	parseHexByte,
 	OPM_SAMPLE_RATE,
 } from "./ym2151-utils";
+import { detectPopNoise } from "./pop-noise-detector";
 
 // --- UI string constants ---
 const MSG_INITIAL = "YM2151 ログを変換するとここに描画します。";
@@ -165,6 +166,7 @@ export function createWaveformViewer(
 				sampleRate: OPM_SAMPLE_RATE,
 				durationS: audioData.duration,
 				noteBoundaries: extractNoteBoundaries(parsedEvents, selectedChannel),
+				popNoiseMarkers: detectPopNoise(audioData.left, OPM_SAMPLE_RATE),
 			};
 
 			// Release the WASM-side buffer; the Float32Array copy remains valid.
