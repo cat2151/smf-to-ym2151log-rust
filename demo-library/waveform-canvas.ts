@@ -96,26 +96,6 @@ export function drawWaveform(
 		ctx.fillText(`key-on ${(t * 1000).toFixed(1)}ms`, x + 3, 11);
 	}
 
-	// Pop noise markers (zero crossings with large amplitude jumps)
-	for (const marker of data.popNoiseMarkers) {
-		const t = marker.time;
-		if (t < viewStart - 0.001 || t > viewEnd + 0.001) continue;
-		const x = Math.round((t - viewStart) * pixelsPerSec);
-		ctx.strokeStyle = POP_NOISE_MARKER_COLOR;
-		ctx.lineWidth = 2;
-		ctx.beginPath();
-		ctx.moveTo(x, 0);
-		ctx.lineTo(x, height);
-		ctx.stroke();
-		ctx.fillStyle = POP_NOISE_LABEL_COLOR;
-		ctx.font = "10px monospace";
-		ctx.fillText(
-			`pop ${(marker.magnitude * 100).toFixed(0)}%`,
-			x + 3,
-			POP_NOISE_LABEL_Y,
-		);
-	}
-
 	// Compute sample range for visible window (with edge padding for anti-aliasing)
 	const viewStartSample = viewStart * data.sampleRate;
 	const startSample = Math.max(0, Math.floor(viewStartSample) - 1);
@@ -167,6 +147,26 @@ export function drawWaveform(
 		}
 	}
 	ctx.stroke();
+
+	// Pop noise markers drawn after waveform so they always overlay it.
+	for (const marker of data.popNoiseMarkers) {
+		const t = marker.time;
+		if (t < viewStart - 0.001 || t > viewEnd + 0.001) continue;
+		const x = Math.round((t - viewStart) * pixelsPerSec);
+		ctx.strokeStyle = POP_NOISE_MARKER_COLOR;
+		ctx.lineWidth = 2;
+		ctx.beginPath();
+		ctx.moveTo(x, 0);
+		ctx.lineTo(x, height);
+		ctx.stroke();
+		ctx.fillStyle = POP_NOISE_LABEL_COLOR;
+		ctx.font = "10px monospace";
+		ctx.fillText(
+			`pop ${(marker.magnitude * 100).toFixed(0)}%`,
+			x + 3,
+			POP_NOISE_LABEL_Y,
+		);
+	}
 
 	// Time-axis labels
 	const labelCount = Math.min(8, Math.floor(width / 80));

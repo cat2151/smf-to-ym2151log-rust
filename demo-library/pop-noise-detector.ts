@@ -35,16 +35,31 @@ export function detectPopNoise(
 	threshold = 0.5,
 ): PopNoiseMarker[] {
 	const markers: PopNoiseMarker[] = [];
+	// Track the last non-zero sample to handle runs of exact zeros.
+	let lastNonZero = 0;
 	for (let i = 0; i + 1 < samples.length; i++) {
 		const a = samples[i] as number;
 		const b = samples[i + 1] as number;
-		// Zero crossing: consecutive samples have opposite non-zero signs.
-		if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
-			const magnitude = Math.abs(b - a);
+		// Use the last non-zero value when a sample is exactly 0 so that
+		// discontinuities landing on an exact zero are still detected.
+		const aEff = a !== 0 ? a : lastNonZero;
+		// Zero crossing: transition from one side of zero to the other.
+		// aEff===0 means we are still in a leading silence; skip until signal starts.
+		if (
+			aEff !== 0 &&
+			((aEff < 0 && b > 0) ||
+				(aEff > 0 && b < 0) ||
+				(aEff !== 0 &&
+					b === 0 &&
+					i + 2 < samples.length &&
+					(samples[i + 2] as number) * aEff < 0))
+		) {
+			const magnitude = Math.abs(b - aEff);
 			if (magnitude >= threshold) {
 				markers.push({ time: i / sampleRate, magnitude });
 			}
 		}
+		if (a !== 0) lastNonZero = a;
 	}
 	return markers;
 }
