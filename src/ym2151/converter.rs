@@ -313,7 +313,9 @@ pub fn convert_to_ym2151_log_with_options(
         }
     }
 
-    ym2151_events.sort_by(sort_events);
+    // Sort by time; use a stable sort so that events inserted in a deliberate order
+    // (e.g. register writes before key-off at the same timestamp) keep that order.
+    ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
 
     // Apply looping linear tone interpolation toward the adjacent program tone.
     // This is independent of note segments and runs for the full song duration.
@@ -331,43 +333,13 @@ pub fn convert_to_ym2151_log_with_options(
             &mut ym2151_events,
         );
         // Re-sort to interleave newly generated events
-        ym2151_events.sort_by(sort_events);
+        ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
     }
 
     Ok(Ym2151Log {
         event_count: ym2151_events.len(),
         events: ym2151_events,
     })
-}
-
-/// Sort comparator for YM2151 events.
-///
-/// Primary key: time (ascending).
-/// Secondary key: at equal time > 0.0, key-on/off writes (addr 0x08) come after other register
-/// writes.  This ensures register state (e.g., envelope parameters) is set before key events are
-/// processed at runtime (e.g., PopNoiseEnvelope apply_time).
-///
-/// Exception: at time == 0.0 (initialization), the comparator returns `Equal` so the stable
-/// sort preserves insertion order.  The initialization code intentionally writes the "turn off
-/// all channels" key-offs first (before channel register init), so they must not be reordered.
-fn sort_events(a: &Ym2151Event, b: &Ym2151Event) -> Ordering {
-    match a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal) {
-        Ordering::Equal => {
-            // At initialization time (t=0.0) preserve insertion order; key-offs were pushed
-            // first on purpose to silence all channels before register init writes arrive.
-            if a.time == 0.0 {
-                return Ordering::Equal;
-            }
-            let a_is_key = a.addr == "0x08";
-            let b_is_key = b.addr == "0x08";
-            match (a_is_key, b_is_key) {
-                (false, true) => Ordering::Less,
-                (true, false) => Ordering::Greater,
-                _ => Ordering::Equal,
-            }
-        }
-        other => other,
-    }
 }
 
 /// Save YM2151 log to JSON file

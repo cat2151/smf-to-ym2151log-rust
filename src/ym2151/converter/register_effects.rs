@@ -216,13 +216,20 @@ pub(super) fn append_pop_noise_envelope_events(
         // envelope has time to decay under the overridden (faster-release) registers
         // before the next key-on.  Only back-to-back notes have a key-off exactly at
         // segment.start_time; skip when the channel was already silent before apply_time.
+        //
+        // We remove the key-off and re-push it to the *end* of the vector (i.e., after
+        // the register overrides that were just pushed above).  A stable sort_by(time)
+        // then preserves this insertion order within apply_time, so register writes
+        // always precede the key-off without needing a custom sort comparator.
         if any_override {
-            if let Some(existing_key_off) = events.iter_mut().find(|e| {
+            if let Some(idx) = events.iter().position(|e| {
                 e.addr == "0x08"
                     && e.data == channel_key_off_data
                     && (e.time - segment.start_time).abs() < TIME_LOOP_EPSILON
             }) {
-                existing_key_off.time = apply_time;
+                let mut key_off = events.remove(idx);
+                key_off.time = apply_time;
+                events.push(key_off);
             }
         }
     }
