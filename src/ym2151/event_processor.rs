@@ -8,7 +8,7 @@ use crate::ym2151::{
     apply_tone_to_channel, default_tone_events, load_tone_for_program, ChannelAllocation,
     ToneDefinition, Ym2151Event,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 /// Tracks a note-on event for later vibrato processing
 #[derive(Debug, Clone)]
@@ -96,26 +96,46 @@ pub fn process_note_on(
     let time_seconds = ticks_to_seconds_with_tempo_map(ticks, ctx.ticks_per_beat, ctx.tempo_map);
     let (kc, kf) = midi_to_kc_kf(note);
 
-    // Set KC (Key Code)
-    events.push(Ym2151Event {
-        time: time_seconds,
-        addr: format!("0x{:02X}", 0x28 + ym2151_channel),
-        data: format!("0x{:02X}", kc),
-    });
+    // Use BTreeMap to make intra-timestamp ordering explicit:
+    // KC (sub_index=0) and KF (sub_index=1) must precede key-ON (sub_index=2)
+    // so the pitch registers are set before the note is triggered.
+    // Relying on Vec push order + stable sort would make this intent implicit and fragile.
+    let time_bits = time_seconds.to_bits();
+    let mut ordered: BTreeMap<(u64, u64), Ym2151Event> = BTreeMap::new();
 
-    // Set KF (Key Fraction)
-    events.push(Ym2151Event {
-        time: time_seconds,
-        addr: format!("0x{:02X}", 0x30 + ym2151_channel),
-        data: format!("0x{:02X}", kf),
-    });
+    // Set KC (Key Code) first
+    ordered.insert(
+        (time_bits, 0),
+        Ym2151Event {
+            time: time_seconds,
+            addr: format!("0x{:02X}", 0x28 + ym2151_channel),
+            data: format!("0x{:02X}", kc),
+        },
+    );
 
-    // Key ON (0x78 = all operators on)
-    events.push(Ym2151Event {
-        time: time_seconds,
-        addr: "0x08".to_string(),
-        data: format!("0x{:02X}", 0x78 | ym2151_channel),
-    });
+    // Set KF (Key Fraction) second
+    ordered.insert(
+        (time_bits, 1),
+        Ym2151Event {
+            time: time_seconds,
+            addr: format!("0x{:02X}", 0x30 + ym2151_channel),
+            data: format!("0x{:02X}", kf),
+        },
+    );
+
+    // Key ON last (after pitch registers are set)
+    ordered.insert(
+        (time_bits, 2),
+        Ym2151Event {
+            time: time_seconds,
+            addr: "0x08".to_string(),
+            data: format!("0x{:02X}", 0x78 | ym2151_channel),
+        },
+    );
+
+    for (_, event) in ordered {
+        events.push(event);
+    }
 
     ctx.active_notes.insert((ym2151_channel, note));
     if let Some(active_map) = ctx.vibrato_active_notes.as_deref_mut() {

@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use crate::midi::{midi_note_to_frequency, midi_note_with_offset_to_kc_kf};
 use crate::ym2151::{NoteSegment, Ym2151Event};
 
+use super::event_accumulator::EventAccumulator;
 use super::waveform::triangle_wave;
 
 const DELAY_VIBRATO_DELAY_SECONDS: f64 = 0.2;
@@ -17,7 +18,7 @@ const DELAY_VIBRATO_RATE_HZ: f64 = 6.0;
 const VIBRATO_RELEASE_TAIL_SECONDS: f64 = 0.5;
 const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
 
-pub(super) fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut Vec<Ym2151Event>) {
+pub(super) fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut EventAccumulator) {
     if segments.is_empty() {
         return;
     }
@@ -52,7 +53,7 @@ pub(super) fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut
     }
 }
 
-pub(super) fn append_portamento_events(segments: &[NoteSegment], events: &mut Vec<Ym2151Event>) {
+pub(super) fn append_portamento_events(segments: &[NoteSegment], events: &mut EventAccumulator) {
     if segments.is_empty() {
         return;
     }
@@ -99,7 +100,7 @@ fn append_portamento_glide(
     ym2151_channel: u8,
     start_time: f64,
     stop_time: f64,
-    events: &mut Vec<Ym2151Event>,
+    events: &mut EventAccumulator,
 ) {
     if prev_note == next_note {
         return;
@@ -153,7 +154,7 @@ fn append_portamento_glide(
 fn append_vibrato_for_segment(
     segment: &NoteSegment,
     stop_time: f64,
-    events: &mut Vec<Ym2151Event>,
+    events: &mut EventAccumulator,
 ) {
     let vibrato_start = segment.start_time + DELAY_VIBRATO_DELAY_SECONDS;
     if stop_time <= vibrato_start {
