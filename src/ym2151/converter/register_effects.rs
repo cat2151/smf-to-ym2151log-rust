@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, HashMap};
 use crate::ym2151::{NoteSegment, ToneDefinition, Ym2151Event};
 use crate::{AttackContinuationFix, PopNoiseEnvelope, ProgramAttachment, RegisterLfoDefinition};
 
+use super::event_accumulator::EventAccumulator;
 use super::register_fields::{get_register_fields, interpolate_fields, max_steps_for_fields};
 use super::waveform::lfo_waveform_value;
 
@@ -19,7 +20,7 @@ pub(super) fn append_register_lfo_events(
     lfo_defs: &[RegisterLfoDefinition],
     segments: &[NoteSegment],
     cache: &RegisterStateCache,
-    events: &mut Vec<Ym2151Event>,
+    events: &mut EventAccumulator,
 ) {
     if lfo_defs.is_empty() || segments.is_empty() {
         return;
@@ -52,7 +53,7 @@ fn append_register_lfo_for_segment(
     segment: &NoteSegment,
     resolved_addr: u8,
     base_value: u8,
-    events: &mut Vec<Ym2151Event>,
+    events: &mut EventAccumulator,
 ) {
     if def.rate_hz <= 0.0 || def.depth.abs() < f64::EPSILON {
         return;
@@ -176,7 +177,7 @@ pub(super) fn append_pop_noise_envelope_events(
     config: &PopNoiseEnvelope,
     segments: &[NoteSegment],
     cache: &RegisterStateCache,
-    events: &mut Vec<Ym2151Event>,
+    events: &mut EventAccumulator,
 ) {
     if !config.enabled || config.registers.is_empty() || segments.is_empty() {
         return;
@@ -251,12 +252,11 @@ pub(super) fn append_pop_noise_envelope_events(
         // Only back-to-back notes have a key-off exactly at segment.start_time;
         // skip when the channel was already silent before apply_time.
         if any_override {
-            if let Some(idx) = events.iter().position(|e| {
+            if let Some(mut key_off) = events.remove_matching(|e| {
                 e.addr == "0x08"
                     && e.data == channel_key_off_data
                     && (e.time - segment.start_time).abs() < TIME_LOOP_EPSILON
             }) {
-                let mut key_off = events.remove(idx);
                 key_off.time = apply_time;
                 // Tail insertion: key-off sub_index falls after all register overrides at apply_time
                 insert_at_tail_of_time(&mut new_events, &mut counters, key_off);
@@ -264,11 +264,11 @@ pub(super) fn append_pop_noise_envelope_events(
         }
     }
 
-    // Drain map in (time_bits, sub_index) order and push to events Vec.
+    // Drain local map in (time_bits, sub_index) order into the accumulator.
     // The sub_index values are discarded after this point; their only role was to enforce
-    // ordering within the local map. The stable sort_by(time) in converter.rs merges
-    // these events with others; within the same timestamp the relative push order
-    // (register overrides before key-off) is preserved by the stable sort.
+    // ordering within the local map.  The EventAccumulator inserts each drained event at
+    // the tail of its timestamp bucket, preserving the intended ordering
+    // (register overrides before key-off) relative to any already-accumulated events.
     for (_, event) in new_events {
         events.push(event);
     }
@@ -278,7 +278,7 @@ pub(super) fn append_attack_continuation_fix_events(
     config: &AttackContinuationFix,
     segments: &[NoteSegment],
     cache: &RegisterStateCache,
-    events: &mut Vec<Ym2151Event>,
+    events: &mut EventAccumulator,
 ) {
     if !config.enabled || segments.is_empty() {
         return;
@@ -362,11 +362,11 @@ pub(super) fn append_attack_continuation_fix_events(
         }
     }
 
-    // Drain map in (time_bits, sub_index) order and push to events Vec.
+    // Drain local map in (time_bits, sub_index) order into the accumulator.
     // The sub_index values are discarded after this point; their only role was to enforce
-    // ordering within the local map. The stable sort_by(time) in converter.rs merges
-    // these events with others; within the same timestamp the relative push order
-    // (register overrides before key-off) is preserved by the stable sort.
+    // ordering within the local map.  The EventAccumulator inserts each drained event at
+    // the tail of its timestamp bucket, preserving the intended ordering
+    // (register overrides before key-off) relative to any already-accumulated events.
     for (_, event) in new_events {
         events.push(event);
     }
@@ -376,7 +376,14 @@ pub(super) struct RegisterStateCache {
     by_addr: HashMap<u8, Vec<(f64, u8)>>,
 }
 
-pub(super) fn build_register_state_cache(events: &[Ym2151Event]) -> RegisterStateCache {
+/// Build a register state cache from an iterator of events in time order.
+///
+/// Callers should pass `accumulator.iter()` so events are visited in the same
+/// deterministic `(time, sub_index)` order that the accumulator provides.
+/// Because the iterator is already time-ordered, no internal sort is required.
+pub(super) fn build_register_state_cache<'a>(
+    events: impl Iterator<Item = &'a Ym2151Event>,
+) -> RegisterStateCache {
     let mut by_addr: HashMap<u8, Vec<(f64, u8)>> = HashMap::new();
 
     for e in events {
@@ -389,10 +396,8 @@ pub(super) fn build_register_state_cache(events: &[Ym2151Event]) -> RegisterStat
         by_addr.entry(addr).or_default().push((e.time, value));
     }
 
-    for values in by_addr.values_mut() {
-        values.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal));
-    }
-
+    // Events from the accumulator iterator are already in time order,
+    // so no post-collection sort is needed.
     RegisterStateCache { by_addr }
 }
 
@@ -428,7 +433,7 @@ pub(super) fn append_change_to_next_tone_events(
     tones: &HashMap<u8, ToneDefinition>,
     used_channels: &[u8],
     song_end_time: f64,
-    events: &mut Vec<Ym2151Event>,
+    events: &mut EventAccumulator,
 ) {
     if song_end_time <= 0.0 || used_channels.is_empty() {
         return;

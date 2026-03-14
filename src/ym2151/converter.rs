@@ -2,6 +2,7 @@
 //!
 //! Converts MIDI events to YM2151 register write events.
 
+mod event_accumulator;
 mod pitch_effects;
 mod register_effects;
 mod register_fields;
@@ -15,12 +16,12 @@ use crate::ym2151::{
     Ym2151Log,
 };
 use crate::ConversionOptions;
+use event_accumulator::EventAccumulator;
 use pitch_effects::{append_delay_vibrato_events, append_portamento_events};
 use register_effects::{
     append_attack_continuation_fix_events, append_change_to_next_tone_events,
     append_pop_noise_envelope_events, append_register_lfo_events, build_register_state_cache,
 };
-use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Write;
@@ -59,7 +60,7 @@ pub fn convert_to_ym2151_log_with_options(
 ) -> Result<Ym2151Log> {
     let ticks_per_beat = midi_data.ticks_per_beat;
 
-    let mut ym2151_events = Vec::new();
+    let mut acc = EventAccumulator::new();
 
     // Build tempo map from MIDI events
     let tempo_map = build_tempo_map(midi_data);
@@ -79,7 +80,7 @@ pub fn convert_to_ym2151_log_with_options(
     // Register 0x08 is the Key ON/OFF register
     // Writing channel number turns off that channel
     for ch in 0..8 {
-        ym2151_events.push(Ym2151Event {
+        acc.push(Ym2151Event {
             time: 0.0,
             addr: "0x08".to_string(),
             data: format!("0x{:02X}", ch),
@@ -107,7 +108,7 @@ pub fn convert_to_ym2151_log_with_options(
 
     // Initialize all used YM2151 channels with default parameters
     for &ch in &used_ym2151_channels {
-        ym2151_events.extend(initialize_channel_events(ch, 0.0));
+        acc.extend(initialize_channel_events(ch, 0.0));
     }
 
     // Apply initial tone (program 0) from attachment if available.
@@ -115,7 +116,7 @@ pub fn convert_to_ym2151_log_with_options(
     // does not contain an explicit Program Change event.
     if let Some(initial_tone) = options.tones.get(&0) {
         for &ch in &used_ym2151_channels {
-            ym2151_events.extend(apply_tone_to_channel(initial_tone, ch, 0.0));
+            acc.extend(apply_tone_to_channel(initial_tone, ch, 0.0));
         }
     }
 
@@ -172,7 +173,7 @@ pub fn convert_to_ym2151_log_with_options(
 
         for event in &midi_data.events {
             let events = process_event(event, &mut ctx);
-            ym2151_events.extend(events);
+            acc.extend(events);
         }
     }
 
@@ -194,40 +195,35 @@ pub fn convert_to_ym2151_log_with_options(
     }
 
     if options.delay_vibrato {
-        append_delay_vibrato_events(&vibrato_segments, &mut ym2151_events);
+        append_delay_vibrato_events(&vibrato_segments, &mut acc);
     }
 
     if options.portamento {
-        append_portamento_events(&vibrato_segments, &mut ym2151_events);
+        append_portamento_events(&vibrato_segments, &mut acc);
     }
 
     let need_pre_note_events =
         options.pop_noise_envelope.is_some() || options.attack_continuation_fix.is_some();
     let need_register_cache = !options.software_lfo.is_empty() || need_pre_note_events;
     let register_cache = if need_register_cache {
-        Some(build_register_state_cache(&ym2151_events))
+        Some(build_register_state_cache(acc.iter()))
     } else {
         None
     };
 
     if !options.software_lfo.is_empty() {
         if let Some(cache) = register_cache.as_ref() {
-            append_register_lfo_events(
-                &options.software_lfo,
-                &vibrato_segments,
-                cache,
-                &mut ym2151_events,
-            );
+            append_register_lfo_events(&options.software_lfo, &vibrato_segments, cache, &mut acc);
         }
     }
 
     if let (Some(config), Some(cache)) = (&options.pop_noise_envelope, register_cache.as_ref()) {
-        append_pop_noise_envelope_events(config, &vibrato_segments, cache, &mut ym2151_events);
+        append_pop_noise_envelope_events(config, &vibrato_segments, cache, &mut acc);
     }
 
     if let (Some(config), Some(cache)) = (&options.attack_continuation_fix, register_cache.as_ref())
     {
-        append_attack_continuation_fix_events(config, &vibrato_segments, cache, &mut ym2151_events);
+        append_attack_continuation_fix_events(config, &vibrato_segments, cache, &mut acc);
     }
 
     // Apply per-program effects from new array format.
@@ -257,7 +253,7 @@ pub fn convert_to_ym2151_log_with_options(
             || pa.attack_continuation_fix.is_some()
     });
     let per_program_cache = if need_per_program_cache {
-        Some(build_register_state_cache(&ym2151_events))
+        Some(build_register_state_cache(acc.iter()))
     } else {
         None
     };
@@ -279,43 +275,29 @@ pub fn convert_to_ym2151_log_with_options(
         };
 
         if pa.delay_vibrato {
-            append_delay_vibrato_events(program_segments, &mut ym2151_events);
+            append_delay_vibrato_events(program_segments, &mut acc);
         }
 
         if pa.portamento {
-            append_portamento_events(program_segments, &mut ym2151_events);
+            append_portamento_events(program_segments, &mut acc);
         }
 
         if !pa.software_lfo.is_empty() {
             if let Some(cache) = per_program_cache.as_ref() {
-                append_register_lfo_events(
-                    &pa.software_lfo,
-                    program_segments,
-                    cache,
-                    &mut ym2151_events,
-                );
+                append_register_lfo_events(&pa.software_lfo, program_segments, cache, &mut acc);
             }
         }
 
         if let (Some(config), Some(cache)) = (&pa.pop_noise_envelope, per_program_cache.as_ref()) {
-            append_pop_noise_envelope_events(config, program_segments, cache, &mut ym2151_events);
+            append_pop_noise_envelope_events(config, program_segments, cache, &mut acc);
         }
 
         if let (Some(config), Some(cache)) =
             (&pa.attack_continuation_fix, per_program_cache.as_ref())
         {
-            append_attack_continuation_fix_events(
-                config,
-                program_segments,
-                cache,
-                &mut ym2151_events,
-            );
+            append_attack_continuation_fix_events(config, program_segments, cache, &mut acc);
         }
     }
-
-    // Sort by time; use a stable sort so that events inserted in a deliberate order
-    // (e.g. register writes before key-off at the same timestamp) keep that order.
-    ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
 
     // Apply looping linear tone interpolation toward the adjacent program tone.
     // This is independent of note segments and runs for the full song duration.
@@ -330,15 +312,13 @@ pub fn convert_to_ym2151_log_with_options(
             &options.tones,
             &used_ym2151_channels,
             song_end_time,
-            &mut ym2151_events,
+            &mut acc,
         );
-        // Re-sort to interleave newly generated events
-        ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
     }
 
     Ok(Ym2151Log {
-        event_count: ym2151_events.len(),
-        events: ym2151_events,
+        event_count: acc.iter().count(),
+        events: acc.into_vec(),
     })
 }
 
