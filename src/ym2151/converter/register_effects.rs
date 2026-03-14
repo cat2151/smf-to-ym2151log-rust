@@ -1,12 +1,12 @@
 //! Register-side effects
 //!
-//! Provides software LFO, pop-noise envelope, and attack continuation fix implementations.
+//! Provides software LFO, pop-noise envelope, and tone interpolation implementations.
 
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, HashMap};
 
 use crate::ym2151::{NoteSegment, ToneDefinition, Ym2151Event};
-use crate::{AttackContinuationFix, PopNoiseEnvelope, ProgramAttachment, RegisterLfoDefinition};
+use crate::{PopNoiseEnvelope, ProgramAttachment, RegisterLfoDefinition};
 
 use super::event_accumulator::EventAccumulator;
 use super::register_fields::{get_register_fields, interpolate_fields, max_steps_for_fields};
@@ -261,104 +261,6 @@ pub(super) fn append_pop_noise_envelope_events(
                 // Tail insertion: key-off sub_index falls after all register overrides at apply_time
                 insert_at_tail_of_time(&mut new_events, &mut counters, key_off);
             }
-        }
-    }
-
-    // Drain local map in (time_bits, sub_index) order into the accumulator.
-    // The sub_index values are discarded after this point; their only role was to enforce
-    // ordering within the local map.  The EventAccumulator inserts each drained event at
-    // the tail of its timestamp bucket, preserving the intended ordering
-    // (register overrides before key-off) relative to any already-accumulated events.
-    for (_, event) in new_events {
-        events.push(event);
-    }
-}
-
-pub(super) fn append_attack_continuation_fix_events(
-    config: &AttackContinuationFix,
-    segments: &[NoteSegment],
-    cache: &RegisterStateCache,
-    events: &mut EventAccumulator,
-) {
-    if !config.enabled || segments.is_empty() {
-        return;
-    }
-
-    let override_release = config.release_rate;
-    let offset = config.offset_seconds.max(0.0);
-
-    let mut ordered_segments = segments.to_vec();
-    ordered_segments.sort_by(|a, b| {
-        a.start_time
-            .partial_cmp(&b.start_time)
-            .unwrap_or(Ordering::Equal)
-    });
-
-    // Local map: key = (time_as_u64_bits, sub_index_within_same_time), value = event.
-    // The composite key makes ordering intent explicit at insertion time:
-    // "insert at tail" means this event comes after all previously inserted events
-    // at the same timestamp, with no reliance on Vec push order.
-    // `counters` tracks the next sub_index per time bucket for O(1) tail insertion.
-    let mut new_events: BTreeMap<(u64, u64), Ym2151Event> = BTreeMap::new();
-    let mut counters: HashMap<u64, u64> = HashMap::new();
-
-    for segment in ordered_segments {
-        if segment.start_time <= offset || offset <= RESTORE_BEFORE_NOTE_EPSILON {
-            continue;
-        }
-        let pre_time = segment.start_time - offset;
-        let restore_time = (segment.start_time - RESTORE_BEFORE_NOTE_EPSILON).max(0.0);
-
-        let mut release_registers = Vec::new();
-        for op in 0..4 {
-            let base_reg = 0xE0u8 + (op * 8);
-            let resolved = resolve_register_for_channel(base_reg, segment.ym2151_channel);
-            if let Some(base_value) = cache.latest_value(resolved, pre_time) {
-                if base_value != override_release {
-                    release_registers.push((resolved, base_value));
-                }
-            }
-        }
-
-        if release_registers.is_empty() {
-            continue;
-        }
-
-        // Register overrides go first at pre_time (tail insertion, sub_index 0, 1, …)
-        for (addr, _) in &release_registers {
-            insert_at_tail_of_time(
-                &mut new_events,
-                &mut counters,
-                Ym2151Event {
-                    time: pre_time,
-                    addr: format!("0x{:02X}", *addr),
-                    data: format!("0x{:02X}", override_release),
-                },
-            );
-        }
-
-        // Key-off is inserted after the register overrides at pre_time
-        insert_at_tail_of_time(
-            &mut new_events,
-            &mut counters,
-            Ym2151Event {
-                time: pre_time,
-                addr: "0x08".to_string(),
-                data: format!("0x{:02X}", segment.ym2151_channel),
-            },
-        );
-
-        // Restore register values at restore_time (before the next note-on)
-        for (addr, base_value) in &release_registers {
-            insert_at_tail_of_time(
-                &mut new_events,
-                &mut counters,
-                Ym2151Event {
-                    time: restore_time,
-                    addr: format!("0x{:02X}", *addr),
-                    data: format!("0x{:02X}", *base_value),
-                },
-            );
         }
     }
 

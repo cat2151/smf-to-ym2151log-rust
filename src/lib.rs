@@ -77,9 +77,6 @@ pub struct ProgramAttachment {
     /// Optional pre-note envelope overrides to reduce pop noise for this program
     #[serde(rename = "PopNoiseEnvelope", default)]
     pub pop_noise_envelope: Option<PopNoiseEnvelope>,
-    /// Optional release-rate reset to avoid attack continuation for this program
-    #[serde(rename = "AttackContinuationFix", default)]
-    pub attack_continuation_fix: Option<AttackContinuationFix>,
     /// Optional software LFO definitions for this program
     #[serde(rename = "SoftwareLfo", default)]
     pub software_lfo: Vec<RegisterLfoDefinition>,
@@ -113,9 +110,6 @@ pub struct ConversionOptions {
     /// Optional pre-note envelope overrides to reduce pop noise
     #[serde(rename = "PopNoiseEnvelope", default)]
     pub pop_noise_envelope: Option<PopNoiseEnvelope>,
-    /// Optional release-rate reset to avoid attack continuation
-    #[serde(rename = "AttackContinuationFix", default)]
-    pub attack_continuation_fix: Option<AttackContinuationFix>,
     /// Optional software LFO definitions that modulate tone registers
     #[serde(rename = "SoftwareLfo", default)]
     pub software_lfo: Vec<RegisterLfoDefinition>,
@@ -184,21 +178,6 @@ pub struct PopNoiseEnvelope {
     pub registers: Vec<RegisterOverride>,
 }
 
-/// Attack continuation guard settings (forces a short release before note-on)
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct AttackContinuationFix {
-    /// Whether to apply attack continuation guard
-    #[serde(default)]
-    pub enabled: bool,
-    /// How far before note-on to send the release-rate override + key-off
-    #[serde(default = "default_pre_note_offset")]
-    pub offset_seconds: f64,
-    /// Release rate value to apply during the forced key-off
-    #[serde(deserialize_with = "deserialize_u8_hex_or_dec")]
-    pub release_rate: u8,
-}
-
 /// Supported software LFO waveforms
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -220,29 +199,6 @@ fn default_change_to_next_tone_time() -> f64 {
 
 fn default_pre_note_offset() -> f64 {
     0.001
-}
-
-fn deserialize_u8_hex_or_dec<'de, D>(deserializer: D) -> std::result::Result<u8, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    use serde::de::Error;
-
-    let value: serde_json::Value = serde::Deserialize::deserialize(deserializer)?;
-    match value {
-        serde_json::Value::Number(n) => n
-            .as_u64()
-            .and_then(|v| u8::try_from(v).ok())
-            .ok_or_else(|| D::Error::custom("expected u8 numeric value")),
-        serde_json::Value::String(s) => {
-            if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
-                u8::from_str_radix(hex, 16).map_err(D::Error::custom)
-            } else {
-                s.parse::<u8>().map_err(D::Error::custom)
-            }
-        }
-        _ => Err(D::Error::custom("expected number or string")),
-    }
 }
 
 impl ConversionOptions {

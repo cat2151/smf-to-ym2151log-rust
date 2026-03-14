@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pop Noise / Attack Continuation Demo | SMF to YM2151</title>
+  <title>Pop Noise Demo | SMF to YM2151</title>
 </head>
 <body>
   <a class="nav-link" href="./index.html">← ライブラリデモに戻る</a>
-  <h1>ポップノイズ / アタック継続 対策デモ（別ページ）</h1>
+  <h1>ポップノイズ対策デモ（別ページ）</h1>
   <p class="lead">
-    キーオン直前にエンベロープを一時的に変更する <code>PopNoiseEnvelope</code> と、
-    リリースを短くしてキーオフを挟む <code>AttackContinuationFix</code> を添付 JSON で試せます。
+    キーオン直前にエンベロープを一時的に変更する <code>PopNoiseEnvelope</code> を添付 JSON で試せます。
   </p>
 
   <section class="demo-section">
@@ -26,7 +25,7 @@
   <section class="demo-section">
     <h2>2. 添付 JSON を編集</h2>
     <p class="note">JSON を編集すると 400ms デバウンス後に自動で再変換されます。</p>
-    <label for="attachment-json">PopNoiseEnvelope / AttackContinuationFix を含む添付 JSON 入力</label>
+    <label for="attachment-json">PopNoiseEnvelope を含む添付 JSON 入力</label>
     <textarea id="attachment-json" class="code-input" rows="5" spellcheck="false"></textarea>
     <div class="status" id="attachment-status"></div>
   </section>

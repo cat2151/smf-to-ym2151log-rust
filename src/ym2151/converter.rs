@@ -19,8 +19,8 @@ use crate::ConversionOptions;
 use event_accumulator::EventAccumulator;
 use pitch_effects::{append_delay_vibrato_events, append_portamento_events};
 use register_effects::{
-    append_attack_continuation_fix_events, append_change_to_next_tone_events,
-    append_pop_noise_envelope_events, append_register_lfo_events, build_register_state_cache,
+    append_change_to_next_tone_events, append_pop_noise_envelope_events,
+    append_register_lfo_events, build_register_state_cache,
 };
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -135,13 +135,11 @@ pub fn convert_to_ym2151_log_with_options(
         || options.portamento
         || !options.software_lfo.is_empty()
         || options.pop_noise_envelope.is_some()
-        || options.attack_continuation_fix.is_some()
         || options.program_attachments.iter().any(|pa| {
             pa.delay_vibrato
                 || pa.portamento
                 || !pa.software_lfo.is_empty()
                 || pa.pop_noise_envelope.is_some()
-                || pa.attack_continuation_fix.is_some()
         });
     let mut vibrato_active_notes = if need_note_segments {
         Some(HashMap::new())
@@ -202,8 +200,7 @@ pub fn convert_to_ym2151_log_with_options(
         append_portamento_events(&vibrato_segments, &mut acc);
     }
 
-    let need_pre_note_events =
-        options.pop_noise_envelope.is_some() || options.attack_continuation_fix.is_some();
+    let need_pre_note_events = options.pop_noise_envelope.is_some();
     let need_register_cache = !options.software_lfo.is_empty() || need_pre_note_events;
     let register_cache = if need_register_cache {
         Some(build_register_state_cache(acc.iter()))
@@ -221,11 +218,6 @@ pub fn convert_to_ym2151_log_with_options(
         append_pop_noise_envelope_events(config, &vibrato_segments, cache, &mut acc);
     }
 
-    if let (Some(config), Some(cache)) = (&options.attack_continuation_fix, register_cache.as_ref())
-    {
-        append_attack_continuation_fix_events(config, &vibrato_segments, cache, &mut acc);
-    }
-
     // Apply per-program effects from new array format.
     // Pre-group note segments by program once to avoid O(attachments × segments) scanning.
     let needs_per_program_effects = options.program_attachments.iter().any(|pa| {
@@ -233,7 +225,6 @@ pub fn convert_to_ym2151_log_with_options(
             || pa.portamento
             || !pa.software_lfo.is_empty()
             || pa.pop_noise_envelope.is_some()
-            || pa.attack_continuation_fix.is_some()
     });
     let segments_by_program: HashMap<u8, Vec<NoteSegment>> = if needs_per_program_effects {
         let mut map: HashMap<u8, Vec<NoteSegment>> = HashMap::new();
@@ -247,11 +238,10 @@ pub fn convert_to_ym2151_log_with_options(
 
     // Build the register state cache once (from events before per-program effects)
     // so that all program attachments share the same baseline register state.
-    let need_per_program_cache = options.program_attachments.iter().any(|pa| {
-        !pa.software_lfo.is_empty()
-            || pa.pop_noise_envelope.is_some()
-            || pa.attack_continuation_fix.is_some()
-    });
+    let need_per_program_cache = options
+        .program_attachments
+        .iter()
+        .any(|pa| !pa.software_lfo.is_empty() || pa.pop_noise_envelope.is_some());
     let per_program_cache = if need_per_program_cache {
         Some(build_register_state_cache(acc.iter()))
     } else {
@@ -263,8 +253,7 @@ pub fn convert_to_ym2151_log_with_options(
         let has_effects = pa.delay_vibrato
             || pa.portamento
             || !pa.software_lfo.is_empty()
-            || pa.pop_noise_envelope.is_some()
-            || pa.attack_continuation_fix.is_some();
+            || pa.pop_noise_envelope.is_some();
         if !has_effects {
             continue;
         }
@@ -290,12 +279,6 @@ pub fn convert_to_ym2151_log_with_options(
 
         if let (Some(config), Some(cache)) = (&pa.pop_noise_envelope, per_program_cache.as_ref()) {
             append_pop_noise_envelope_events(config, program_segments, cache, &mut acc);
-        }
-
-        if let (Some(config), Some(cache)) =
-            (&pa.attack_continuation_fix, per_program_cache.as_ref())
-        {
-            append_attack_continuation_fix_events(config, program_segments, cache, &mut acc);
         }
     }
 

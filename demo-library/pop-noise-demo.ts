@@ -18,21 +18,13 @@ const DEFAULT_ATTACHMENT = `[
     "ProgramChange": 0,
     "PopNoiseEnvelope": {
       "Enabled": true,
-      "OffsetSeconds": 0.001,
+      "OffsetSeconds": 0.002,
       "Registers": [
-        { "BaseRegister": "0x80", "Value": "0x0A" },
-        { "BaseRegister": "0xA0", "Value": "0x04" },
-        { "BaseRegister": "0xA8", "Value": "0x04" },
-        { "BaseRegister": "0xE0", "Value": "0x0E" },
-        { "BaseRegister": "0xE8", "Value": "0x0E" },
-        { "BaseRegister": "0xF0", "Value": "0x0E" },
-        { "BaseRegister": "0xF8", "Value": "0x0E" }
+        { "BaseRegister": "0xE0", "Value": "0x0F" },
+        { "BaseRegister": "0xE8", "Value": "0x0F" },
+        { "BaseRegister": "0xF0", "Value": "0x0F" },
+        { "BaseRegister": "0xF8", "Value": "0x0F" }
       ]
-    },
-    "AttackContinuationFix": {
-      "Enabled": false,
-      "OffsetSeconds": 0.001,
-      "ReleaseRate": 255
     }
   }
 ]`;
@@ -121,7 +113,7 @@ function readAttachmentBytes(): Uint8Array | null {
 	return parseAttachmentField(
 		attachmentField,
 		attachmentStatus,
-		"添付 JSON は空です (ポップノイズ/アタック継続対策なし)",
+		"添付 JSON は空です (ポップノイズ対策なし)",
 		"添付 JSON を適用します",
 	);
 }

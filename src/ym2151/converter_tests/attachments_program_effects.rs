@@ -83,8 +83,7 @@ fn test_program_attachment_delay_vibrato_applies_only_to_matching_program() {
 
 #[test]
 fn test_program_attachment_no_effects_entry_produces_no_extra_events() {
-    // A ProgramAttachment with all effect flags at their defaults (no delay_vibrato,
-    // portamento, software_lfo, pop_noise_envelope, or attack_continuation_fix) must
+    // A ProgramAttachment with no effect-related fields enabled must
     // not crash and must not generate any vibrato/LFO/etc events.
     let midi_data = MidiData {
         ticks_per_beat: 480,
