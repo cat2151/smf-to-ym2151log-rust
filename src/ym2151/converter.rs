@@ -343,11 +343,21 @@ pub fn convert_to_ym2151_log_with_options(
 /// Sort comparator for YM2151 events.
 ///
 /// Primary key: time (ascending).
-/// Secondary key: at equal time, key-on/off writes (addr 0x08) come after other register writes.
-/// This ensures register state (e.g., envelope parameters) is set before key events are processed.
+/// Secondary key: at equal time > 0.0, key-on/off writes (addr 0x08) come after other register
+/// writes.  This ensures register state (e.g., envelope parameters) is set before key events are
+/// processed at runtime (e.g., PopNoiseEnvelope apply_time).
+///
+/// Exception: at time == 0.0 (initialization), the comparator returns `Equal` so the stable
+/// sort preserves insertion order.  The initialization code intentionally writes the "turn off
+/// all channels" key-offs first (before channel register init), so they must not be reordered.
 fn sort_events(a: &Ym2151Event, b: &Ym2151Event) -> Ordering {
     match a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal) {
         Ordering::Equal => {
+            // At initialization time (t=0.0) preserve insertion order; key-offs were pushed
+            // first on purpose to silence all channels before register init writes arrive.
+            if a.time == 0.0 {
+                return Ordering::Equal;
+            }
             let a_is_key = a.addr == "0x08";
             let b_is_key = b.addr == "0x08";
             match (a_is_key, b_is_key) {
