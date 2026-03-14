@@ -294,6 +294,14 @@ pub(super) fn append_attack_continuation_fix_events(
             .unwrap_or(Ordering::Equal)
     });
 
+    // Local map: key = (time_as_u64_bits, sub_index_within_same_time), value = event.
+    // The composite key makes ordering intent explicit at insertion time:
+    // "insert at tail" means this event comes after all previously inserted events
+    // at the same timestamp, with no reliance on Vec push order.
+    // `counters` tracks the next sub_index per time bucket for O(1) tail insertion.
+    let mut new_events: BTreeMap<(u64, u64), Ym2151Event> = BTreeMap::new();
+    let mut counters: HashMap<u64, u64> = HashMap::new();
+
     for segment in ordered_segments {
         if segment.start_time <= offset || offset <= RESTORE_BEFORE_NOTE_EPSILON {
             continue;
@@ -316,27 +324,51 @@ pub(super) fn append_attack_continuation_fix_events(
             continue;
         }
 
+        // Register overrides go first at pre_time (tail insertion, sub_index 0, 1, …)
         for (addr, _) in &release_registers {
-            events.push(Ym2151Event {
+            insert_at_tail_of_time(
+                &mut new_events,
+                &mut counters,
+                Ym2151Event {
+                    time: pre_time,
+                    addr: format!("0x{:02X}", *addr),
+                    data: format!("0x{:02X}", override_release),
+                },
+            );
+        }
+
+        // Key-off is inserted after the register overrides at pre_time
+        insert_at_tail_of_time(
+            &mut new_events,
+            &mut counters,
+            Ym2151Event {
                 time: pre_time,
-                addr: format!("0x{:02X}", *addr),
-                data: format!("0x{:02X}", override_release),
-            });
-        }
+                addr: "0x08".to_string(),
+                data: format!("0x{:02X}", segment.ym2151_channel),
+            },
+        );
 
-        events.push(Ym2151Event {
-            time: pre_time,
-            addr: "0x08".to_string(),
-            data: format!("0x{:02X}", segment.ym2151_channel),
-        });
-
+        // Restore register values at restore_time (before the next note-on)
         for (addr, base_value) in &release_registers {
-            events.push(Ym2151Event {
-                time: restore_time,
-                addr: format!("0x{:02X}", *addr),
-                data: format!("0x{:02X}", *base_value),
-            });
+            insert_at_tail_of_time(
+                &mut new_events,
+                &mut counters,
+                Ym2151Event {
+                    time: restore_time,
+                    addr: format!("0x{:02X}", *addr),
+                    data: format!("0x{:02X}", *base_value),
+                },
+            );
         }
+    }
+
+    // Drain map in (time_bits, sub_index) order and push to events Vec.
+    // The sub_index values are discarded after this point; their only role was to enforce
+    // ordering within the local map. The stable sort_by(time) in converter.rs merges
+    // these events with others; within the same timestamp the relative push order
+    // (register overrides before key-off) is preserved by the stable sort.
+    for (_, event) in new_events {
+        events.push(event);
     }
 }
 
