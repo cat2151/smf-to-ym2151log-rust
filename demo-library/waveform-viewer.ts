@@ -22,6 +22,11 @@ import {
 } from "./ym2151-utils";
 import { detectPopNoise } from "./pop-noise-detector";
 
+// --- Constants ---
+
+/** Normalize waveform peak amplitude to this fraction of the display range. */
+const NORMALIZE_AMPLITUDE = 0.95;
+
 // --- UI string constants ---
 const MSG_INITIAL = "YM2151 ログを変換するとここに描画します。";
 const MSG_EMPTY = "変換結果がまだありません。";
@@ -68,6 +73,29 @@ function extractNoteBoundaries(
 		}
 	}
 	return boundaries;
+}
+
+/**
+ * Scale PCM samples so the peak absolute value equals targetPeak.
+ * Returns a new Float32Array with scaled values, or the original array
+ * unchanged if the audio is silent (peak === 0).
+ */
+function normalizeAmplitude(
+	samples: Float32Array,
+	targetPeak: number,
+): Float32Array {
+	let peak = 0;
+	for (let i = 0; i < samples.length; i++) {
+		const abs = Math.abs(samples[i]);
+		if (abs > peak) peak = abs;
+	}
+	if (peak === 0) return samples;
+	const scale = targetPeak / peak;
+	const normalized = new Float32Array(samples.length);
+	for (let i = 0; i < samples.length; i++) {
+		normalized[i] = samples[i] * scale;
+	}
+	return normalized;
 }
 
 export function createWaveformViewer(
@@ -162,7 +190,10 @@ export function createWaveformViewer(
 			}
 
 			waveformData = {
-				waveformSamples: audioData.left,
+				waveformSamples: normalizeAmplitude(
+					audioData.left,
+					NORMALIZE_AMPLITUDE,
+				),
 				sampleRate: OPM_SAMPLE_RATE,
 				durationS: audioData.duration,
 				noteBoundaries: extractNoteBoundaries(parsedEvents, selectedChannel),
