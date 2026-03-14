@@ -35,9 +35,18 @@ impl EventAccumulator {
 
     /// Insert `event` after all previously inserted events at the same timestamp.
     ///
+    /// # Panics (debug builds only)
+    /// Panics if `event.time` is not finite and non-negative.  IEEE 754 bit
+    /// representation only sorts identically to the float value for such inputs.
+    ///
     /// Callers express "this event must come after X" simply by calling `push`
     /// after X has been pushed, rather than relying on an external sort step.
     pub(in crate::ym2151::converter) fn push(&mut self, event: Ym2151Event) {
+        debug_assert!(
+            event.time.is_finite() && event.time >= 0.0,
+            "Event time must be finite and non-negative (got {})",
+            event.time
+        );
         let time_bits = event.time.to_bits();
         let sub_index = self.counters.entry(time_bits).or_insert(0);
         self.map.insert((time_bits, *sub_index), event);
