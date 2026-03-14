@@ -1,6 +1,6 @@
 //! Register-side effects
 //!
-//! Provides software LFO, pop-noise envelope, and attack continuation fix implementations.
+//! Provides software LFO, pop-noise envelope, and tone interpolation implementations.
 
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, HashMap};
