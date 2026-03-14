@@ -3,7 +3,7 @@
 //! Provides software LFO, pop-noise envelope, and attack continuation fix implementations.
 
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use crate::ym2151::{NoteSegment, ToneDefinition, Ym2151Event};
 use crate::{AttackContinuationFix, PopNoiseEnvelope, ProgramAttachment, RegisterLfoDefinition};
@@ -155,6 +155,23 @@ fn append_register_lfo_for_segment(
     }
 }
 
+/// Inserts an event at the tail of its time bucket in the map.
+/// `counters` tracks the next sub_index per time bucket, giving O(1) insertion.
+/// Callers choose tail insertion to express "this event comes last within this timestamp".
+///
+/// `event.time` must be finite and non-negative; IEEE 754 bit representation then sorts
+/// identically to the float value, making `u64` a valid BTreeMap key for time ordering.
+fn insert_at_tail_of_time(
+    map: &mut BTreeMap<(u64, u64), Ym2151Event>,
+    counters: &mut HashMap<u64, u64>,
+    event: Ym2151Event,
+) {
+    let time_bits = event.time.to_bits();
+    let sub_index = counters.entry(time_bits).or_insert(0);
+    map.insert((time_bits, *sub_index), event);
+    *sub_index += 1;
+}
+
 pub(super) fn append_pop_noise_envelope_events(
     config: &PopNoiseEnvelope,
     segments: &[NoteSegment],
@@ -173,6 +190,14 @@ pub(super) fn append_pop_noise_envelope_events(
     });
 
     let offset = config.offset_seconds.max(0.0);
+
+    // Local map: key = (time_as_u64_bits, sub_index_within_same_time), value = event.
+    // The composite key makes ordering intent explicit at insertion time:
+    // "insert at tail" means this event comes after all previously inserted events
+    // at the same timestamp, with no reliance on Vec push order.
+    // `counters` tracks the next sub_index per time bucket for O(1) tail insertion.
+    let mut new_events: BTreeMap<(u64, u64), Ym2151Event> = BTreeMap::new();
+    let mut counters: HashMap<u64, u64> = HashMap::new();
 
     for segment in ordered_segments {
         if segment.start_time <= offset || offset <= RESTORE_BEFORE_NOTE_EPSILON {
@@ -199,32 +224,53 @@ pub(super) fn append_pop_noise_envelope_events(
             }
 
             let addr_str = format!("0x{:02X}", resolved_addr);
-            events.push(Ym2151Event {
-                time: apply_time,
-                addr: addr_str.clone(),
-                data: format!("0x{:02X}", override_value),
-            });
-            events.push(Ym2151Event {
-                time: restore_time,
-                addr: addr_str,
-                data: format!("0x{:02X}", base_value),
-            });
+            // Register overrides go first at apply_time (tail insertion, sub_index 0, 1, …)
+            insert_at_tail_of_time(
+                &mut new_events,
+                &mut counters,
+                Ym2151Event {
+                    time: apply_time,
+                    addr: addr_str.clone(),
+                    data: format!("0x{:02X}", override_value),
+                },
+            );
+            // Restore to the base value at restore_time (segment.start_time)
+            insert_at_tail_of_time(
+                &mut new_events,
+                &mut counters,
+                Ym2151Event {
+                    time: restore_time,
+                    addr: addr_str,
+                    data: format!("0x{:02X}", base_value),
+                },
+            );
             any_override = true;
         }
 
-        // Move the existing key-off at segment.start_time to apply_time so the
-        // envelope has time to decay under the overridden (faster-release) registers
-        // before the next key-on.  Only back-to-back notes have a key-off exactly at
-        // segment.start_time; skip when the channel was already silent before apply_time.
+        // Move the existing key-off to apply_time, inserted *after* the register overrides.
+        // Only back-to-back notes have a key-off exactly at segment.start_time;
+        // skip when the channel was already silent before apply_time.
         if any_override {
-            if let Some(existing_key_off) = events.iter_mut().find(|e| {
+            if let Some(idx) = events.iter().position(|e| {
                 e.addr == "0x08"
                     && e.data == channel_key_off_data
                     && (e.time - segment.start_time).abs() < TIME_LOOP_EPSILON
             }) {
-                existing_key_off.time = apply_time;
+                let mut key_off = events.remove(idx);
+                key_off.time = apply_time;
+                // Tail insertion: key-off sub_index falls after all register overrides at apply_time
+                insert_at_tail_of_time(&mut new_events, &mut counters, key_off);
             }
         }
+    }
+
+    // Drain map in (time_bits, sub_index) order and push to events Vec.
+    // The sub_index values are discarded after this point; their only role was to enforce
+    // ordering within the local map. The stable sort_by(time) in converter.rs merges
+    // these events with others; within the same timestamp the relative push order
+    // (register overrides before key-off) is preserved by the stable sort.
+    for (_, event) in new_events {
+        events.push(event);
     }
 }
 

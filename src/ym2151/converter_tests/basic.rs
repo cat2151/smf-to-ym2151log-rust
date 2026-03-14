@@ -198,3 +198,46 @@ fn test_key_off_register_format() {
     // 0x00 = all operators off, channel 0
     assert_eq!(key_off.data, "0x00");
 }
+
+#[test]
+fn test_init_key_offs_precede_register_writes_at_time_zero() {
+    // The 8 initialization key-off events (one per YM2151 channel, addr=0x08) at t=0.0 must
+    // come *before* any other register writes at t=0.0.  They silence all channels up-front so
+    // that the subsequent register initialization writes take effect on a quiet chip.
+    // Note: a NoteOn at tick=0 also places a key-on (0x08) at t=0.0, but *after* register writes
+    // — that ordering is intentional and tested separately.
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![MidiEvent::NoteOn {
+            ticks: 0,
+            channel: 0,
+            note: 60,
+            velocity: 100,
+        }],
+    };
+
+    let result = convert_to_ym2151_log(&midi_data).unwrap();
+
+    // The first 8 t=0.0 events must all be initialization key-offs (0x08).
+    // They are emitted before any register writes and must not be reordered.
+    let first_8_t0: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.time == 0.0)
+        .take(8)
+        .collect();
+
+    assert_eq!(
+        first_8_t0.len(),
+        8,
+        "There should be at least 8 events at t=0.0 (initialization key-offs)"
+    );
+    for (i, e) in first_8_t0.iter().enumerate() {
+        assert_eq!(
+            e.addr, "0x08",
+            "Event {i} at t=0.0 should be a key-off (0x08) initialization write, got addr={}",
+            e.addr
+        );
+    }
+}

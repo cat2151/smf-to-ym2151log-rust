@@ -313,6 +313,8 @@ pub fn convert_to_ym2151_log_with_options(
         }
     }
 
+    // Sort by time; use a stable sort so that events inserted in a deliberate order
+    // (e.g. register writes before key-off at the same timestamp) keep that order.
     ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
 
     // Apply looping linear tone interpolation toward the adjacent program tone.

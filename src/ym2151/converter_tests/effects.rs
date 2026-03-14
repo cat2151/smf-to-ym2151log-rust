@@ -139,6 +139,29 @@ fn test_pop_noise_envelope_adds_pre_note_overrides() {
         key_off_at_note_start.is_none(),
         "Key-off should have been moved away from segment.start_time"
     );
+
+    // At apply_time (= segment.start_time - offset_seconds = 0.5 - 0.001 ≈ 0.499) the
+    // register override must come before the key-off in the sorted output.
+    // This ensures the envelope begins decaying with the overridden (faster-release) registers
+    // from the very first sample after key-off.
+    // The window (0.498, 0.5) captures apply_time while excluding the segment.start_time events.
+    let apply_time_events: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| e.time > 0.498 && e.time < 0.5)
+        .collect();
+    let key_off_idx = apply_time_events
+        .iter()
+        .position(|e| e.addr == "0x08")
+        .expect("Key-off must be present at apply_time");
+    let reg_override_idx = apply_time_events
+        .iter()
+        .position(|e| e.addr == "0xA0" && e.data == "0x02")
+        .expect("Register override must be present at apply_time");
+    assert!(
+        reg_override_idx < key_off_idx,
+        "Register override must appear before key-off at the same timestamp"
+    );
 }
 
 #[test]
