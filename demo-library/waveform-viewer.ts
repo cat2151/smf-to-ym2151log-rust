@@ -77,8 +77,8 @@ function extractNoteBoundaries(
 
 /**
  * Scale PCM samples so the peak absolute value equals targetPeak.
- * Returns a new Float32Array; original is not modified.
- * If the peak is zero (silence), the original array is returned unchanged.
+ * Returns a new Float32Array with scaled values, or the original array
+ * unchanged if the audio is silent (peak === 0).
  */
 function normalizeAmplitude(
 	samples: Float32Array,
