@@ -1,4 +1,4 @@
-Last updated: 2026-03-14
+Last updated: 2026-03-15
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -278,6 +278,11 @@ Last updated: 2026-03-14
 - issue-notes/198.md
 - issue-notes/200.md
 - issue-notes/201.md
+- issue-notes/208.md
+- issue-notes/209.md
+- issue-notes/211.md
+- issue-notes/212.md
+- issue-notes/213.md
 - issue-notes/22.md
 - issue-notes/33.md
 - issue-notes/45.md
@@ -300,6 +305,7 @@ Last updated: 2026-03-14
 - src/midi/utils_tests.rs
 - src/wasm.rs
 - src/ym2151/channel_allocation.rs
+- src/ym2151/converter/event_accumulator.rs
 - src/ym2151/converter/pitch_effects.rs
 - src/ym2151/converter/register_effects.rs
 - src/ym2151/converter/register_fields.rs
@@ -339,16 +345,46 @@ Last updated: 2026-03-14
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #180](../issue-notes/180.md): ポップノイズdemoで、デフォルト値がおかしい
-[issue-notes/180.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/180.md)
+## [Issue #213](../issue-notes/213.md): ポップノイズdemoに、ランダム音色ボタンをつけて、いろいろな音色での検証をしやすくする
+[issue-notes/213.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/213.md)
 
 ...
 ラベル: 
---- issue-notes/180.md の内容 ---
+--- issue-notes/213.md の内容 ---
 
 ```markdown
-# issue ポップノイズdemoで、デフォルト値がおかしい #180
-[issues #180](https://github.com/cat2151/smf-to-ym2151log-rust/issues/180)
+# issue ポップノイズdemoに、ランダム音色ボタンをつけて、いろいろな音色での検証をしやすくする #213
+[issues #213](https://github.com/cat2151/smf-to-ym2151log-rust/issues/213)
+
+
+
+```
+
+## [Issue #212](../issue-notes/212.md): ポップノイズの波形ビュアの「前のノート」ボタンが動作しない
+[issue-notes/212.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/212.md)
+
+...
+ラベル: 
+--- issue-notes/212.md の内容 ---
+
+```markdown
+# issue ポップノイズの波形ビュアの「前のノート」ボタンが動作しない #212
+[issues #212](https://github.com/cat2151/smf-to-ym2151log-rust/issues/212)
+
+
+
+```
+
+## [Issue #208](../issue-notes/208.md): 隣接音色線形補間デモのデフォルトの音色2つは、web-ym2151のランダム音色関数を利用して生成する
+[issue-notes/208.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/208.md)
+
+...
+ラベル: 
+--- issue-notes/208.md の内容 ---
+
+```markdown
+# issue 隣接音色線形補間デモのデフォルトの音色2つは、web-ym2151のランダム音色関数を利用して生成する #208
+[issues #208](https://github.com/cat2151/smf-to-ym2151log-rust/issues/208)
 
 
 
@@ -421,6 +457,49 @@ Last updated: 2026-03-14
 ```
 
 ## ドキュメントで言及されているファイルの内容
+### .github/actions-tmp/issue-notes/12.md
+```md
+{% raw %}
+# issue project-summary を他projectから使いやすくする #12
+[issues #12](https://github.com/cat2151/github-actions/issues/12)
+
+# 保留、別projectでの検証待ちのもの
+- promptsをcall側ymlで指定可能にする
+  - 保留の理由
+    - YAGNI原則
+      - 現状の共通workflow側のpromptsで問題ないうちは、保留とする
+        - そのままで使える可能性が高い見込み
+      - 検証が必要
+      - 別promptsを実際に書く必要が出たときに、追加実装をする
+# 課題、 docs/ をメンテする
+- 対象は、 daily-summary-setup.md
+- call-daily-project-summary.yml の導入手順を書く
+- どうする？
+  - 次の日次バッチでagent用promptを生成させる
+- 結果
+  - 生成させた
+  - 導入手順をメンテさせた
+  - 人力でさらにメンテした
+  - これでOKと判断する。
+  - あとは必要に応じてissue起票すればよい、今すぐのissue起票は不要（YAGNI原則）、と判断する
+
+# closeとする
+
+{% endraw %}
+```
+
+### .github/actions-tmp/issue-notes/13.md
+```md
+{% raw %}
+# issue issue-note を他projectから使いやすくする #13
+[issues #13](https://github.com/cat2151/github-actions/issues/13)
+
+- docs
+    - call導入手順を書く
+
+{% endraw %}
+```
+
 ### .github/actions-tmp/issue-notes/2.md
 ```md
 {% raw %}
@@ -738,6 +817,85 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
+### .github/actions-tmp/issue-notes/8.md
+```md
+{% raw %}
+# issue 関数コールグラフhtmlビジュアライズ生成の対象ソースファイルを、呼び出し元ymlで指定できるようにする #8
+[issues #8](https://github.com/cat2151/github-actions/issues/8)
+
+# これまでの課題
+- 以下が決め打ちになっていた
+```
+  const allowedFiles = [
+    'src/main.js',
+    'src/mml2json.js',
+    'src/play.js'
+  ];
+```
+
+# 対策
+- 呼び出し元ymlで指定できるようにする
+
+# agent
+- agentにやらせることができれば楽なので、初手agentを試した
+- 失敗
+    - ハルシネーションしてscriptを大量破壊した
+- 分析
+    - 修正対象scriptはagentが生成したもの
+    - 低品質な生成結果でありソースが巨大
+    - ハルシネーションで破壊されやすいソース
+    - AIの生成したソースは、必ずしもAIフレンドリーではない
+
+# 人力リファクタリング
+- 低品質コードを、最低限agentが扱えて、ハルシネーションによる大量破壊を防止できる内容、にする
+- 手短にやる
+    - そもそもビジュアライズは、agentに雑に指示してやらせたもので、
+    - 今後別のビジュアライザを選ぶ可能性も高い
+    - 今ここで手間をかけすぎてコンコルド効果（サンクコストバイアス）を増やすのは、project群をトータルで俯瞰して見たとき、損
+- 対象
+    - allowedFiles のあるソース
+        - callgraph-utils.cjs
+            - たかだか300行未満のソースである
+            - この程度でハルシネーションされるのは予想外
+            - やむなし、リファクタリングでソース分割を進める
+
+# agentに修正させる
+## prompt
+```
+allowedFilesを引数で受け取るようにしたいです。
+ないならエラー。
+最終的に呼び出し元すべてに波及して修正したいです。
+
+呼び出し元をたどってエントリポイントも見つけて、
+エントリポイントにおいては、
+引数で受け取ったjsonファイル名 allowedFiles.js から
+jsonファイル allowedFiles.jsonの内容をreadして
+変数 allowedFilesに格納、
+後続処理に引き渡す、としたいです。
+
+まずplanしてください。
+planにおいては、修正対象のソースファイル名と関数名を、呼び出し元を遡ってすべて特定し、listしてください。
+```
+
+# 修正が順調にできた
+- コマンドライン引数から受け取る作りになっていなかったので、そこだけ指示して修正させた
+- yml側は人力で修正した
+
+# 他のリポジトリから呼び出した場合にバグらないよう修正する
+- 気付いた
+    - 共通ワークフローとして他のリポジトリから使った場合はバグるはず。
+        - ymlから、共通ワークフロー側リポジトリのcheckoutが漏れているので。
+- 他のyml同様に修正する
+- あわせて全体にymlをリファクタリングし、修正しやすくし、今後のyml読み書きの学びにしやすくする
+
+# local WSL + act : test green
+
+# closeとする
+- もし生成されたhtmlがNGの場合は、別issueとするつもり
+
+{% endraw %}
+```
+
 ### issue-notes/177.md
 ```md
 {% raw %}
@@ -749,11 +907,33 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
-### issue-notes/180.md
+### issue-notes/208.md
 ```md
 {% raw %}
-# issue ポップノイズdemoで、デフォルト値がおかしい #180
-[issues #180](https://github.com/cat2151/smf-to-ym2151log-rust/issues/180)
+# issue 隣接音色線形補間デモのデフォルトの音色2つは、web-ym2151のランダム音色関数を利用して生成する #208
+[issues #208](https://github.com/cat2151/smf-to-ym2151log-rust/issues/208)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/212.md
+```md
+{% raw %}
+# issue ポップノイズの波形ビュアの「前のノート」ボタンが動作しない #212
+[issues #212](https://github.com/cat2151/smf-to-ym2151log-rust/issues/212)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/213.md
+```md
+{% raw %}
+# issue ポップノイズdemoに、ランダム音色ボタンをつけて、いろいろな音色での検証をしやすくする #213
+[issues #213](https://github.com/cat2151/smf-to-ym2151log-rust/issues/213)
 
 
 
@@ -932,41 +1112,34 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-8aeb36d Merge pull request #204 from cat2151/copilot/implement-pop-noise-detection
-b3bfd75 detectPopNoise: replace threshold filter with top-1 by magnitude
-58c1ac4 fix zero-crossing detection for exact-zero samples; draw pop markers after waveform
-3125ef0 implement pop noise auto-detection in waveform viewer (#200)
-f76562f Initial plan
-baf30f4 Add notes for implementing auto-detection of pop noise
-fd548b4 Merge pull request #203 from cat2151/copilot/fix-registers-error-json-input
-7ecad41 Fix: exclude type from restTone so normalized Tone always has type: YM2151 tone
-52618ef Fix: handle Tone.registers in normalizeAttachmentText (issue #186)
-be9c583 Initial plan
+90fe4f8 Merge pull request #214 from cat2151/copilot/fix-initial-value-of-pop-noise
+26fe439 Fix doc comment and test comment per reviewer feedback
+334cb27 Fix pop noise initial values and remove AttackContinuationFix
+e29c161 Initial plan
+29ac433 Merge pull request #210 from cat2151/copilot/pr-207-refresh-map-architecture
+938b360 Add issue note for #213 [auto]
+f593584 Add issue note for #212 [auto]
+a58a50e 修正ポップノイズ対策の初期値と削除処理
+3659acf Add issue note for #211 [auto]
+ad234a0 Add debug_assert for finite/non-negative time in EventAccumulator::push
 
 ### 変更されたファイル:
-demo-library/envelope-generator.ts
-demo-library/globals.d.ts
 demo-library/pop-noise-demo.ts
-demo-library/pop-noise-detector.ts
 demo-library/pop-noise.html
-demo-library/shared-demo.ts
-demo-library/tone-json-attachment.ts
-demo-library/waveform-canvas.ts
-demo-library/waveform-simulator.ts
-demo-library/waveform-viewer.ts
-demo-library/ym2151-utils.ts
-generated-docs/development-status-generated-prompt.md
-generated-docs/development-status.md
-generated-docs/project-overview-generated-prompt.md
-generated-docs/project-overview.md
-issue-notes/198.md
-issue-notes/200.md
-issue-notes/201.md
+issue-notes/209.md
+issue-notes/211.md
+issue-notes/212.md
+issue-notes/213.md
+src/lib.rs
 src/ym2151/converter.rs
+src/ym2151/converter/event_accumulator.rs
+src/ym2151/converter/pitch_effects.rs
 src/ym2151/converter/register_effects.rs
-src/ym2151/converter/register_fields.rs
-src/ym2151/converter_tests/attachments_change_to_next_tone.rs
+src/ym2151/converter_tests.rs
+src/ym2151/converter_tests/attachments_program_effects.rs
+src/ym2151/converter_tests/effects.rs
+src/ym2151/event_processor.rs
 
 
 ---
-Generated at: 2026-03-14 07:11:37 JST
+Generated at: 2026-03-15 07:08:52 JST

@@ -1,54 +1,54 @@
-Last updated: 2026-03-14
+Last updated: 2026-03-15
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #180](../issue-notes/180.md): ポップノイズデモのデフォルト値が適切でないため、挙動確認と調整が必要です。
-- [Issue #177](../issue-notes/177.md): 添付JSON機能のドッグフーディング（実践的な利用検証）が計画されており、その動作確認と改善が求められています。
-- [Issue #83](../issue-notes/83.md): デフォルト音色データの不足と、ブラウザでのMML演奏とランダム音色の実現方法について整理が必要です。
+- ポップノイズ関連の機能改善として、[Issue #213](../issue-notes/213.md)でランダム音色ボタンの追加、[Issue #212](../issue-notes/212.md)で波形ビュアの「前のノート」ボタンの修正が課題となっています。
+- 音色データの扱いについては、[Issue #208](../issue-notes/208.md)で隣接音色補間デモのデフォルト音色をランダム生成すること、[Issue #33](../issue-notes/33.md)でYM2151 Tone Editorの出力優先度、[Issue #22](../issue-notes/22.md)でデフォルト音色データの配置が未解決です。
+- その他、[Issue #177](../issue-notes/177.md)で添付JSONのドッグフーディング、[Issue #83](../issue-notes/83.md)で音色データ全体の整理が求められています。
 
 ## 次の一手候補
-1. ポップノイズデモのデフォルト値修正と検証 ([Issue #180](../issue-notes/180.md))
-   - 最初の小さな一歩: `demo-library/pop-noise-demo.ts` と `demo-library/pop-noise-detector.ts` を確認し、デモが意図した通りに動作し、ポップノイズ検出が適切に行われるようにデフォルト値を調整する。
+1. [Issue #212](../issue-notes/212.md) ポップノイズの波形ビュアの「前のノート」ボタンが動作しない
+   - 最初の小さな一歩: `demo-library/pop-noise-demo.ts` 内で「前のノート」ボタンのクリックイベントハンドラを特定し、関連する波形データ更新ロジックにデバッグログを追加して原因を調査する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: demo-library/pop-noise-demo.ts, demo-library/pop-noise-detector.ts, issue-notes/180.md
+     対象ファイル: demo-library/pop-noise-demo.ts, demo-library/waveform-viewer.ts
 
-     実行内容: `issue-notes/180.md` に記載されているポップノイズデモのデフォルト値に関する問題点を解決するため、`demo-library/pop-noise-demo.ts` 内の初期設定値（例: `detector.detectionThreshold` など）が適切か分析してください。また、`demo-library/pop-noise-detector.ts` の検出ロジックと連携し、デモが直感的に理解できるよう、推奨されるデフォルト値の変更案を提示してください。
+     実行内容: `demo-library/pop-noise-demo.ts` において、「前のノート」ボタンのクリックイベントハンドラを特定し、関連する `waveform-viewer.ts` の `showPreviousNote` または類似の関数呼び出し箇所を分析してください。特に、ノートインデックスの更新ロジックと波形データの取得・描画フローに焦点を当て、問題箇所を特定するためのデバッグログ（`console.log`）をコードに追加してください。
 
-     確認事項: 最近のコミット (`b3bfd75`, `58c1ac4`, `3125ef0`) でのポップノイズ検出ロジックの変更が、デフォルト値の選定に与える影響を確認してください。
+     確認事項: 「前のノート」ボタンが `pop-noise-demo.html` でどのように定義され、`pop-noise-demo.ts` でどのようにイベントリスナーがアタッチされているかを確認してください。また、`waveform-viewer.ts` が期待通りにノートデータを扱っているか、そのインターフェースと利用方法を把握してください。
 
-     期待する出力: `demo-library/pop-noise-demo.ts` の具体的なコード変更案（新しいデフォルト値の設定）をmarkdown形式で出力してください。
+     期待する出力: `demo-library/pop-noise-demo.ts` と `demo-library/waveform-viewer.ts` の修正案をMarkdown形式で提示してください。修正案には、デバッグログの追加箇所と、修正が必要となると思われるロジックの具体的な変更内容を含めてください。
      ```
 
-2. 添付JSON機能の動作検証と改善点の特定 ([Issue #177](../issue-notes/177.md))
-   - 最初の小さな一歩: 添付JSONが意図通りにトーンに適用されるか、`demo-library/tone-json-demo.ts` や `demo-library/tone-json-attachment.ts` を使って基本的なケースと最近修正された `Tone.registers` を含むケースで手動で検証し、問題があれば特定する。
+2. [Issue #213](../issue-notes/213.md) ポップノイズdemoに、ランダム音色ボタンをつけて、いろいろな音色での検証をしやすくする
+   - 最初の小さな一歩: `demo-library/pop-noise-demo.html` に「ランダム音色」ボタンを追加し、`demo-library/pop-noise-demo.ts` にそのボタンのクリックイベントハンドラを仮実装する。このハンドラ内で、現在の音色設定を一時的にランダムな値に置き換える処理（ダミーで良い）を追加する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: demo-library/tone-json-attachment.ts, src/ym2151/converter.rs, src/ym2151/converter/register_effects.rs, src/ym2151/converter/register_fields.rs, issue-notes/177.md
+     対象ファイル: demo-library/pop-noise-demo.html, demo-library/pop-noise-demo.ts, demo-library/shared-demo.ts
 
-     実行内容: `issue-notes/177.md` に基づき、添付JSONまわりのドッグフーディング（実践的な検証）計画を策定し、具体的なテストシナリオをリストアップしてください。特に、最近 `Tone.registers` の正規化修正 (`52618ef`) が行われた点を考慮し、`demo-library/tone-json-attachment.ts` が `src/ym2151/converter` 内のレジスタ変換ロジックと適切に連携しているか検証するためのシナリオを含めてください。
+     実行内容:
+     1. `demo-library/pop-noise-demo.html` に「ランダム音色」ボタンを追加してください。
+     2. `demo-library/pop-noise-demo.ts` に、追加したボタンに対応するクリックイベントリスナーを実装してください。
+     3. クリックイベントハンドラ内で、`shared-demo.ts` に存在する可能性のあるランダム音色生成機能、またはそれに類する既存の音色設定関数を調査し、それを利用して現在の音色をランダムなものに更新する処理を追加してください。もし直接的な機能が見つからなければ、仮のランダムな音色データを生成し、デモに適用するロジックを記述してください。
 
-     確認事項: 既存の `src/ym2151/converter_tests/attachments_program_effects.rs` や `src/ym2151/converter_tests/attachments_change_to_next_tone.rs` といったテストが、現在の `demo-library` の実装と整合性が取れているか確認してください。
+     確認事項: `demo-library` 内で既にランダムな音色を生成するためのヘルパー関数やパターンが存在しないか、`shared-demo.ts` や他のデモファイル (`tone-json-demo.ts` など) を確認してください。また、既存の音色変更処理 (`updateTone` のようなもの) がどのように実装されているかを理解してください。
 
-     期待する出力: 添付JSON機能の検証計画と、実行すべき具体的なテストケース（簡単なMMLやJSONデータ例を含む）をmarkdown形式で出力してください。また、検証で特に注意すべき点や、予期される課題も記述してください。
+     期待する出力: `demo-library/pop-noise-demo.html` と `demo-library/pop-noise-demo.ts` の変更内容をMarkdown形式で提示してください。HTMLにはボタンの追加箇所、TSファイルにはイベントハンドラとランダム音色適用ロジックのコードを含めてください。
      ```
 
-3. デフォルト音色データの管理とロードマップ策定 ([Issue #83](../issue-notes/83.md))
-   - 最初の小さな一歩: `issue-notes/83.md`, `issue-notes/22.md`, `issue-notes/33.md` の内容を再確認し、現在の `tones/` ディレクトリのファイル一覧 (`tones/000.json`, `tones/README.md`) と照らし合わせて、最も優先度の高いデフォルト音色データ（例: GM互換の000.json）の作成に着手するか、そのための準備を行う。
+3. [Issue #208](../issue-notes/208.md) 隣接音色線形補間デモのデフォルトの音色2つは、web-ym2151のランダム音色関数を利用して生成する
+   - 最初の小さな一歩: `demo-library/tone-interpolation-demo.ts` を開き、デフォルトの音色データを設定している箇所を特定する。ここに、ランダム音色を生成する関数を呼び出すためのプレースホルダーを追加する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: issue-notes/83.md, issue-notes/22.md, issue-notes/33.md, tones/000.json, tones/README.md, src/ym2151/tone.rs
+     対象ファイル: demo-library/tone-interpolation-demo.ts, demo-library/tone-json-attachment.ts, src/ym2151/tone.rs
 
-     実行内容: 複数のIssueで言及されている音色データの不足 ([Issue #83](../issue-notes/83.md), [Issue #22](../issue-notes/22.md)) と、`ym2151-tone-editor` との連携による読み込み優先順位の仕様 ([Issue #33](../issue-notes/33.md)) について、現状を整理し、今後の開発ロードマップを提案してください。具体的には、
-     1. 現在不足しているデフォルト音色データ（0-127）のうち、最低限必要となる音色（例: piano, guitar, drumsなど）をリストアップし、その作成優先順位を付けてください。
-     2. `ym2151-tone-editor` との連携 ([Issue #33](../issue-notes/33.md)) を考慮した場合の `tones/` ディレクトリの管理戦略について提案してください（例: シンボリックリンクの利用、生成データの配置場所など）。
-     3. `tones/000.json` のような既存のファイルを参考に、`ym2151-tone-editor` で作成されたjsonファイルをプロジェクトに組み込む具体的な手順案を記述してください。
+     実行内容: `demo-library/tone-interpolation-demo.ts` 内で、デモ開始時に使用される2つのデフォルト音色を定義している箇所を特定してください。これらの音色が`web-ym2151`のランダム音色関数（または`tone-json-attachment.ts`等、利用可能な既存のランダム音色生成ロジック）によって生成されるように、既存の音色定義を置き換える変更を検討してください。具体的には、音色生成ロジックの呼び出しと、生成された音色データをデモに適用する部分の実装案を記述してください。
 
-     確認事項: 音色データの構造が `src/ym2151/tone.rs` で定義されている構造と一致しているか、また `tones/000.json` が有効なJSON形式であることを確認してください。
+     確認事項: `demo-library` 内でランダム音色を生成する既存のヘルパー関数や、`tone.rs` が定義する音色構造体との互換性を確認してください。デモが音色データをどのように受け取り、適用しているかを理解してください。
 
-     期待する出力: 音色データ管理に関するロードマップ、デフォルト音色データの作成優先順位リスト、`ym2151-tone-editor` との連携手順案をmarkdown形式で出力してください。
+     期待する出力: `demo-library/tone-interpolation-demo.ts` の修正案をMarkdown形式で提示してください。変更内容には、デフォルト音色定義箇所と、ランダム音色生成関数呼び出し、および生成された音色をデモに組み込むコードを含めてください。
      ```
 
 ---
-Generated at: 2026-03-14 07:11:58 JST
+Generated at: 2026-03-15 07:09:10 JST

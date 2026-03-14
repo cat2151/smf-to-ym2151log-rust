@@ -1,4 +1,4 @@
-Last updated: 2026-03-14
+Last updated: 2026-03-15
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -383,6 +383,11 @@ cargo audit
   📖 198.md
   📖 200.md
   📖 201.md
+  📖 208.md
+  📖 209.md
+  📖 211.md
+  📖 212.md
+  📖 213.md
   📖 22.md
   📖 33.md
   📖 45.md
@@ -409,6 +414,7 @@ cargo audit
   📁 ym2151/
     📄 channel_allocation.rs
     📁 converter/
+      📄 event_accumulator.rs
       📄 pitch_effects.rs
       📄 register_effects.rs
       📄 register_fields.rs
@@ -492,7 +498,7 @@ cargo audit
   - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (311行, 7808バイト)
+**demo-library/pop-noise-demo.ts** (307行, 7743バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, bootstrap, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
@@ -500,7 +506,7 @@ cargo audit
   - 関数: detectPopNoise, for, if
   - インポート: なし
 
-**demo-library/pop-noise.html** (85行, 3451バイト)
+**demo-library/pop-noise.html** (85行, 3442バイト)
   - 関数: なし
   - インポート: なし
 
@@ -512,7 +518,7 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/shared-demo.ts** (217行, 5294バイト)
+**demo-library/shared-demo.ts** (226行, 5608バイト)
   - 関数: ensureWasmInitialized, setStatus, setEventCountDisplay, ensureWebYm2151, clearWebYmAudioCache, updateOutput, parseAttachmentField, cleanup, mod, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js
 
@@ -556,8 +562,8 @@ cargo audit
   - 関数: drawEmpty, drawWaveform, for, if
   - インポート: ./ym2151-utils, ./pop-noise-detector
 
-**demo-library/waveform-viewer.ts** (367行, 10495バイト)
-  - 関数: extractNoteBoundaries, createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, updateBoundariesAndRender, synthesizeAndRender, setZoom, endDrag, for, if, renderFromJson, clear, exportWav
+**demo-library/waveform-viewer.ts** (398行, 11336バイト)
+  - 関数: extractNoteBoundaries, normalizeAmplitude, createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, updateBoundariesAndRender, synthesizeAndRender, setZoom, endDrag, for, if, renderFromJson, clear, exportWav
   - インポート: ./waveform-canvas, ./shared-demo, ./waveform-canvas
 
 **demo-library/ym2151-utils.ts** (85行, 2647バイト)
@@ -644,7 +650,8 @@ cargo audit
     - encodeWav (demo-library/wav-exporter.ts)
       - writeAscii ()
   - extractNoteBoundaries (demo-library/waveform-viewer.ts)
-    - getWindowDurS ()
+    - normalizeAmplitude ()
+      - getWindowDurS ()
       - clampViewStart ()
       - updatePositionLabel ()
       - render ()
@@ -700,4 +707,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-14 07:11:37 JST
+Generated at: 2026-03-15 07:08:51 JST
