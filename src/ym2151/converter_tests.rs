@@ -8,8 +8,8 @@ pub use super::{convert_to_ym2151_log, convert_to_ym2151_log_with_options};
 pub use crate::midi::{midi_to_kc_kf, MidiData, MidiEvent};
 pub use crate::ym2151::{ToneDefinition, Ym2151Event};
 pub use crate::{
-    AttackContinuationFix, ConversionOptions, LfoWaveform, PopNoiseEnvelope, ProgramAttachment,
-    RegisterLfoDefinition, RegisterOverride,
+    ConversionOptions, LfoWaveform, PopNoiseEnvelope, ProgramAttachment, RegisterLfoDefinition,
+    RegisterOverride,
 };
 
 #[path = "converter_tests/attachments.rs"]
