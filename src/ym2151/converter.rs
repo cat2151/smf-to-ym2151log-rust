@@ -313,7 +313,7 @@ pub fn convert_to_ym2151_log_with_options(
         }
     }
 
-    ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
+    ym2151_events.sort_by(sort_events);
 
     // Apply looping linear tone interpolation toward the adjacent program tone.
     // This is independent of note segments and runs for the full song duration.
@@ -331,13 +331,33 @@ pub fn convert_to_ym2151_log_with_options(
             &mut ym2151_events,
         );
         // Re-sort to interleave newly generated events
-        ym2151_events.sort_by(|a, b| a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal));
+        ym2151_events.sort_by(sort_events);
     }
 
     Ok(Ym2151Log {
         event_count: ym2151_events.len(),
         events: ym2151_events,
     })
+}
+
+/// Sort comparator for YM2151 events.
+///
+/// Primary key: time (ascending).
+/// Secondary key: at equal time, key-on/off writes (addr 0x08) come after other register writes.
+/// This ensures register state (e.g., envelope parameters) is set before key events are processed.
+fn sort_events(a: &Ym2151Event, b: &Ym2151Event) -> Ordering {
+    match a.time.partial_cmp(&b.time).unwrap_or(Ordering::Equal) {
+        Ordering::Equal => {
+            let a_is_key = a.addr == "0x08";
+            let b_is_key = b.addr == "0x08";
+            match (a_is_key, b_is_key) {
+                (false, true) => Ordering::Less,
+                (true, false) => Ordering::Greater,
+                _ => Ordering::Equal,
+            }
+        }
+        other => other,
+    }
 }
 
 /// Save YM2151 log to JSON file

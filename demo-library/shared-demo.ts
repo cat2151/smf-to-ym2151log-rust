@@ -174,14 +174,23 @@ export function clearWebYmAudioCache(): void {
 		});
 }
 
+/**
+ * Write converted JSON text to the output element and optional hidden editor.
+ * `conversionOutput` may be a `<textarea>` (uses `.value`) or any other element
+ * such as `<pre>` (uses `.textContent`).
+ */
 export function updateOutput(
 	text: string,
-	conversionOutput: HTMLPreElement | null,
+	conversionOutput: HTMLElement | null,
 	jsonEditor: HTMLTextAreaElement | null,
 	onAfter?: () => void,
 ): void {
 	if (conversionOutput) {
-		conversionOutput.textContent = text;
+		if (conversionOutput instanceof HTMLTextAreaElement) {
+			conversionOutput.value = text;
+		} else {
+			conversionOutput.textContent = text;
+		}
 	}
 	if (jsonEditor) {
 		jsonEditor.value = text;

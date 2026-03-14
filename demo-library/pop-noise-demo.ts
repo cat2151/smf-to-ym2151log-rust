@@ -22,11 +22,15 @@ const DEFAULT_ATTACHMENT = `[
       "Registers": [
         { "BaseRegister": "0x80", "Value": "0x0A" },
         { "BaseRegister": "0xA0", "Value": "0x04" },
-        { "BaseRegister": "0xA8", "Value": "0x04" }
+        { "BaseRegister": "0xA8", "Value": "0x04" },
+        { "BaseRegister": "0xE0", "Value": "0x0E" },
+        { "BaseRegister": "0xE8", "Value": "0x0E" },
+        { "BaseRegister": "0xF0", "Value": "0x0E" },
+        { "BaseRegister": "0xF8", "Value": "0x0E" }
       ]
     },
     "AttackContinuationFix": {
-      "Enabled": true,
+      "Enabled": false,
       "OffsetSeconds": 0.001,
       "ReleaseRate": 255
     }
@@ -46,7 +50,7 @@ const attachmentField = document.getElementById(
 ) as HTMLTextAreaElement | null;
 const conversionOutput = document.getElementById(
 	"conversion-output",
-) as HTMLPreElement | null;
+) as HTMLTextAreaElement | null;
 const conversionStatus = document.getElementById("conversion-status");
 const attachmentStatus = document.getElementById("attachment-status");
 const fileStatus = document.getElementById("file-status");
