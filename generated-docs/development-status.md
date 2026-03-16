@@ -1,54 +1,62 @@
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
 # Development Status
 
 ## 現在のIssues
-- ポップノイズ関連の機能改善として、[Issue #213](../issue-notes/213.md)でランダム音色ボタンの追加、[Issue #212](../issue-notes/212.md)で波形ビュアの「前のノート」ボタンの修正が課題となっています。
-- 音色データの扱いについては、[Issue #208](../issue-notes/208.md)で隣接音色補間デモのデフォルト音色をランダム生成すること、[Issue #33](../issue-notes/33.md)でYM2151 Tone Editorの出力優先度、[Issue #22](../issue-notes/22.md)でデフォルト音色データの配置が未解決です。
-- その他、[Issue #177](../issue-notes/177.md)で添付JSONのドッグフーディング、[Issue #83](../issue-notes/83.md)で音色データ全体の整理が求められています。
+- ポップノイズデモのランダム音色機能 [Issue #213] の追加が進んでおり、ランダムなYM2151音色の生成ロジックが実装され、デモにボタンが追加されました。
+- 添付JSONのドッグフーディング [Issue #177] と音色データの整理 [Issue #83] が依然として課題であり、特にデフォルト音色データ [Issue #22] の不足が和音SMFのテストを阻害しています。
+- YM2151トーンエディタの出力JSONを優先的に読み込む仮仕様 [Issue #33] に関する検討も必要です。
 
 ## 次の一手候補
-1. [Issue #212](../issue-notes/212.md) ポップノイズの波形ビュアの「前のノート」ボタンが動作しない
-   - 最初の小さな一歩: `demo-library/pop-noise-demo.ts` 内で「前のノート」ボタンのクリックイベントハンドラを特定し、関連する波形データ更新ロジックにデバッグログを追加して原因を調査する。
+1. ポップノイズデモのランダム音色機能の品質向上とテスト [Issue #213]
+   - 最初の小さな一歩: `demo-library/pop-noise-demo.ts` の `generateRandomToneEvents()` 関数が生成するレジスタ値の範囲が、意図した通りの効果（例: ポップノイズの発生しやすい/しにくい音色など）を生むか、YM2151レジスタ仕様に基づいてコードレビューで確認し、必要に応じてコメントを追加する。
+   - Agent実行プロンプ:
+     ```
+     対象ファイル: `demo-library/pop-noise-demo.ts`
+
+     実行内容: `demo-library/pop-noise-demo.ts` 内の `generateRandomToneEvents()` 関数について、生成されるYM2151レジスタ値の妥当性を分析し、特に以下の観点からコードレビューを行ってください：
+     1. TL (Total Level): 0-64の範囲がYM2151の音量として適切か。
+     2. AR (Attack Rate): 16-31の範囲が発音速度として適切か。
+     3. RR (Release Rate): 1-15の範囲がリリース速度として適切か。
+     4. これらのランダム値が、ポップノイズの発生条件を多様に検証できる音色バリエーションを生成するのに役立つか。
+     分析結果に基づき、必要であれば関数のコメントに生成値の意図や期待される効果に関する説明を追加してください。
+
+     確認事項: YM2151のレジスタ仕様、特にTL, AR, RRの範囲とそれぞれの音響的効果について理解していることを前提とします。
+
+     期待する出力: コードレビューコメントとして、`generateRandomToneEvents()` 関数に追加すべき説明（または修正案）をmarkdown形式で出力してください。ファイルの直接的な変更は行いません。
+     ```
+
+2. デフォルトYM2151音色データの不足状況の把握と次フェーズの計画 [Issue #83, #22]
+   - 最初の小さな一歩: `tones/` ディレクトリ内の既存JSONファイルの一覧と、期待される`000.json`から`127.json`までの不足しているファイル名をリストアップする。
    - Agent実行プロンプト:
      ```
-     対象ファイル: demo-library/pop-noise-demo.ts, demo-library/waveform-viewer.ts
+     対象ファイル: `tones/` ディレクトリ内の全 `.json` ファイル
 
-     実行内容: `demo-library/pop-noise-demo.ts` において、「前のノート」ボタンのクリックイベントハンドラを特定し、関連する `waveform-viewer.ts` の `showPreviousNote` または類似の関数呼び出し箇所を分析してください。特に、ノートインデックスの更新ロジックと波形データの取得・描画フローに焦点を当て、問題箇所を特定するためのデバッグログ（`console.log`）をコードに追加してください。
+     実行内容: `tones/` ディレクトリ内のファイルを分析し、以下の情報をmarkdown形式で出力してください：
+     1. 現在存在するJSONファイル名の一覧。
+     2. 期待される `000.json` から `127.json` の範囲で、現在不足しているファイル名の一覧。
+     3. 上記分析結果に基づき、ym2151-tone-editorを利用してデフォルト音色を生成するための次の具体的なステップを提案してください。
 
-     確認事項: 「前のノート」ボタンが `pop-noise-demo.html` でどのように定義され、`pop-noise-demo.ts` でどのようにイベントリスナーがアタッチされているかを確認してください。また、`waveform-viewer.ts` が期待通りにノートデータを扱っているか、そのインターフェースと利用方法を把握してください。
+     確認事項: `tones/` ディレクトリの構造とファイル命名規則を理解していること。
 
-     期待する出力: `demo-library/pop-noise-demo.ts` と `demo-library/waveform-viewer.ts` の修正案をMarkdown形式で提示してください。修正案には、デバッグログの追加箇所と、修正が必要となると思われるロジックの具体的な変更内容を含めてください。
+     期待する出力: Markdown形式で、現在の音色ファイルの状態と、不足しているファイル、およびその後の音色データ整備に関する提案（例: ym2151-tone-editorの使用方法、特定の音色グループから作成を開始する等）を出力してください。
      ```
 
-2. [Issue #213](../issue-notes/213.md) ポップノイズdemoに、ランダム音色ボタンをつけて、いろいろな音色での検証をしやすくする
-   - 最初の小さな一歩: `demo-library/pop-noise-demo.html` に「ランダム音色」ボタンを追加し、`demo-library/pop-noise-demo.ts` にそのボタンのクリックイベントハンドラを仮実装する。このハンドラ内で、現在の音色設定を一時的にランダムな値に置き換える処理（ダミーで良い）を追加する。
+3. 添付JSON機能のドッグフーディングとYM2151トーンエディタ連携仕様の検討 [Issue #177, #33]
+   - 最初の小さな一歩: `demo-library/tone-json-demo.ts` や `demo-library/tone-json-attachment.ts` など、添付JSONに関連するデモコードを読み、現在の添付JSONがどのようなデータ構造を期待し、どのように処理されているかを理解する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: demo-library/pop-noise-demo.html, demo-library/pop-noise-demo.ts, demo-library/shared-demo.ts
+     対象ファイル: `demo-library/tone-json-demo.ts`, `demo-library/tone-json-attachment.ts`, `demo-library/pop-noise-demo.ts`
 
-     実行内容:
-     1. `demo-library/pop-noise-demo.html` に「ランダム音色」ボタンを追加してください。
-     2. `demo-library/pop-noise-demo.ts` に、追加したボタンに対応するクリックイベントリスナーを実装してください。
-     3. クリックイベントハンドラ内で、`shared-demo.ts` に存在する可能性のあるランダム音色生成機能、またはそれに類する既存の音色設定関数を調査し、それを利用して現在の音色をランダムなものに更新する処理を追加してください。もし直接的な機能が見つからなければ、仮のランダムな音色データを生成し、デモに適用するロジックを記述してください。
+     実行内容: 上記ファイルを分析し、以下の観点から添付JSONの現在の利用方法と仕様をmarkdown形式で出力してください：
+     1. 添付JSONが読み込まれる主要な箇所とその処理フロー。
+     2. `PopNoiseEnvelope` 以外の、現在の添付JSONでサポートされている主要な機能やデータ構造（もしあれば）。
+     3. `issue-notes/33.md` で言及されている「ym2151-tone-editorの出力するGM000 variations format json」を現在の添付JSONの仕組みに統合する際の技術的な課題や考慮事項。
 
-     確認事項: `demo-library` 内で既にランダムな音色を生成するためのヘルパー関数やパターンが存在しないか、`shared-demo.ts` や他のデモファイル (`tone-json-demo.ts` など) を確認してください。また、既存の音色変更処理 (`updateTone` のようなもの) がどのように実装されているかを理解してください。
+     確認事項: `smf-to-ym2151log-rust` の添付JSON処理に関する基本的な理解。
 
-     期待する出力: `demo-library/pop-noise-demo.html` と `demo-library/pop-noise-demo.ts` の変更内容をMarkdown形式で提示してください。HTMLにはボタンの追加箇所、TSファイルにはイベントハンドラとランダム音色適用ロジックのコードを含めてください。
-     ```
-
-3. [Issue #208](../issue-notes/208.md) 隣接音色線形補間デモのデフォルトの音色2つは、web-ym2151のランダム音色関数を利用して生成する
-   - 最初の小さな一歩: `demo-library/tone-interpolation-demo.ts` を開き、デフォルトの音色データを設定している箇所を特定する。ここに、ランダム音色を生成する関数を呼び出すためのプレースホルダーを追加する。
-   - Agent実行プロンプト:
-     ```
-     対象ファイル: demo-library/tone-interpolation-demo.ts, demo-library/tone-json-attachment.ts, src/ym2151/tone.rs
-
-     実行内容: `demo-library/tone-interpolation-demo.ts` 内で、デモ開始時に使用される2つのデフォルト音色を定義している箇所を特定してください。これらの音色が`web-ym2151`のランダム音色関数（または`tone-json-attachment.ts`等、利用可能な既存のランダム音色生成ロジック）によって生成されるように、既存の音色定義を置き換える変更を検討してください。具体的には、音色生成ロジックの呼び出しと、生成された音色データをデモに適用する部分の実装案を記述してください。
-
-     確認事項: `demo-library` 内でランダム音色を生成する既存のヘルパー関数や、`tone.rs` が定義する音色構造体との互換性を確認してください。デモが音色データをどのように受け取り、適用しているかを理解してください。
-
-     期待する出力: `demo-library/tone-interpolation-demo.ts` の修正案をMarkdown形式で提示してください。変更内容には、デフォルト音色定義箇所と、ランダム音色生成関数呼び出し、および生成された音色をデモに組み込むコードを含めてください。
+     期待する出力: Markdown形式で、添付JSONの現状の機能、処理フロー、および将来的なトーンエディタ連携に関する技術的な考察を記述してください。
      ```
 
 ---
-Generated at: 2026-03-15 07:09:10 JST
+Generated at: 2026-03-17 07:15:13 JST

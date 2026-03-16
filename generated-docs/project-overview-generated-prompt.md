@@ -1,4 +1,4 @@
-Last updated: 2026-03-15
+Last updated: 2026-03-17
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -526,9 +526,9 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/tone-interpolation-demo.ts** (319行, 8128バイト)
-  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
-  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
+**demo-library/tone-interpolation-demo.ts** (386行, 10211バイト)
+  - 関数: getToneEditorGenerator, buildRandomAttachment, nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
+  - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./tone-json-attachment, ./mml-support
 
 **demo-library/tone-interpolation.html** (61行, 2367バイト)
   - 関数: なし
@@ -562,7 +562,7 @@ cargo audit
   - 関数: drawEmpty, drawWaveform, for, if
   - インポート: ./ym2151-utils, ./pop-noise-detector
 
-**demo-library/waveform-viewer.ts** (398行, 11336バイト)
+**demo-library/waveform-viewer.ts** (412行, 11747バイト)
   - 関数: extractNoteBoundaries, normalizeAmplitude, createWaveformViewer, getWindowDurS, clampViewStart, updatePositionLabel, render, updateBoundariesAndRender, synthesizeAndRender, setZoom, endDrag, for, if, renderFromJson, clear, exportWav
   - インポート: ./waveform-canvas, ./shared-demo, ./waveform-canvas
 
@@ -609,6 +609,9 @@ cargo audit
       - setLfoRegisters (demo-library/log-visualizer.ts)
       - extractLfoRegistersFromAttachment ()
       - syncLfoRegisters ()
+      - getToneEditorGenerator (demo-library/tone-interpolation-demo.ts)
+      - buildRandomAttachment ()
+      - normalizeAttachmentText ()
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
@@ -642,7 +645,6 @@ cargo audit
     - cleanup ()
   - buildEventsFromCompact (demo-library/tone-json-attachment.ts)
     - serializeWithStatus ()
-      - normalizeAttachmentText ()
   - convertMmlToSmf ()
   - drawEmpty (demo-library/waveform-canvas.ts)
     - drawWaveform ()
@@ -707,4 +709,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-15 07:08:51 JST
+Generated at: 2026-03-17 07:14:53 JST
