@@ -27,6 +27,12 @@ import { detectPopNoise } from "./pop-noise-detector";
 /** Normalize waveform peak amplitude to this fraction of the display range. */
 const NORMALIZE_AMPLITUDE = 0.95;
 
+/**
+ * Fraction of the visible window width at which a navigated-to note is anchored
+ * (from the left edge). Used for auto-scroll on load and prev/next navigation.
+ */
+const NOTE_NAV_ANCHOR_FRACTION = 0.3;
+
 // --- UI string constants ---
 const MSG_INITIAL = "YM2151 ログを変換するとここに描画します。";
 const MSG_EMPTY = "変換結果がまだありません。";
@@ -206,7 +212,9 @@ export function createWaveformViewer(
 			// Auto-scroll to the first note boundary for the selected channel.
 			if (waveformData.noteBoundaries.length > 0) {
 				const firstNote = waveformData.noteBoundaries[0];
-				viewStart = clampViewStart(firstNote - getWindowDurS() * 0.3);
+				viewStart = clampViewStart(
+					firstNote - getWindowDurS() * NOTE_NAV_ANCHOR_FRACTION,
+				);
 			} else {
 				viewStart = 0;
 			}
@@ -266,7 +274,8 @@ export function createWaveformViewer(
 	if (prevNoteBtn) {
 		prevNoteBtn.addEventListener("click", () => {
 			if (!waveformData) return;
-			const anchor = viewStart + getWindowDurS() * 0.3;
+			const windowDurS = getWindowDurS();
+			const anchor = viewStart + windowDurS * NOTE_NAV_ANCHOR_FRACTION;
 			const prevCandidates = waveformData.noteBoundaries.filter(
 				(t) => t < anchor - 0.001,
 			);
@@ -275,7 +284,9 @@ export function createWaveformViewer(
 					? prevCandidates[prevCandidates.length - 1]
 					: undefined;
 			if (prev !== undefined) {
-				viewStart = clampViewStart(prev - getWindowDurS() * 0.3);
+				viewStart = clampViewStart(
+					prev - windowDurS * NOTE_NAV_ANCHOR_FRACTION,
+				);
 				render();
 			}
 		});
@@ -285,10 +296,13 @@ export function createWaveformViewer(
 	if (nextNoteBtn) {
 		nextNoteBtn.addEventListener("click", () => {
 			if (!waveformData) return;
-			const anchor = viewStart + getWindowDurS() * 0.3;
+			const windowDurS = getWindowDurS();
+			const anchor = viewStart + windowDurS * NOTE_NAV_ANCHOR_FRACTION;
 			const next = waveformData.noteBoundaries.find((t) => t > anchor + 0.001);
 			if (next !== undefined) {
-				viewStart = clampViewStart(next - getWindowDurS() * 0.3);
+				viewStart = clampViewStart(
+					next - windowDurS * NOTE_NAV_ANCHOR_FRACTION,
+				);
 				render();
 			}
 		});
