@@ -169,7 +169,6 @@ function readAttachmentBytes(): Uint8Array | null {
 	// Normalize compact nibble to events without modifying the textarea content.
 	const normalized = normalizeAttachmentText(raw, attachmentStatus);
 	if (normalized === null) return null;
-	if (normalized.length === 0) return new Uint8Array();
 	return new TextEncoder().encode(normalized);
 }
 
@@ -259,7 +258,10 @@ function setupAttachmentEditor(): void {
 			// Only replace if the user has not yet edited the field.
 			if (attachmentField.value === DEFAULT_COMPACT_ATTACHMENT) {
 				attachmentField.value = attachment;
-				void runConversion("デフォルト音色 (ランダム生成)");
+				// Only trigger conversion if MIDI is already loaded.
+				if (midiBytes && wasmReady) {
+					void runConversion("デフォルト音色 (ランダム生成)");
+				}
 			}
 		})
 		.catch(() => {
