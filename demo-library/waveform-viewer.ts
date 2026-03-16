@@ -266,9 +266,9 @@ export function createWaveformViewer(
 	if (prevNoteBtn) {
 		prevNoteBtn.addEventListener("click", () => {
 			if (!waveformData) return;
-			const center = viewStart + getWindowDurS() / 2;
+			const anchor = viewStart + getWindowDurS() * 0.3;
 			const prevCandidates = waveformData.noteBoundaries.filter(
-				(t) => t < center - 0.001,
+				(t) => t < anchor - 0.001,
 			);
 			const prev =
 				prevCandidates.length > 0
@@ -285,8 +285,8 @@ export function createWaveformViewer(
 	if (nextNoteBtn) {
 		nextNoteBtn.addEventListener("click", () => {
 			if (!waveformData) return;
-			const center = viewStart + getWindowDurS() / 2;
-			const next = waveformData.noteBoundaries.find((t) => t > center + 0.001);
+			const anchor = viewStart + getWindowDurS() * 0.3;
+			const next = waveformData.noteBoundaries.find((t) => t > anchor + 0.001);
 			if (next !== undefined) {
 				viewStart = clampViewStart(next - getWindowDurS() * 0.3);
 				render();
