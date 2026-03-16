@@ -294,6 +294,129 @@ function setupWavExportButton(): void {
 	});
 }
 
+function randInt(min: number, max: number): number {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function toHex(value: number): string {
+	return `0x${value.toString(16).toUpperCase().padStart(2, "0")}`;
+}
+
+function generateRandomToneEvents(): Array<{
+	time: number;
+	addr: string;
+	data: string;
+}> {
+	const events: Array<{ time: number; addr: string; data: string }> = [];
+
+	// RL/FB/CON: Both L/R enabled (bits 7:6 = 11), random feedback and connection
+	const fl = randInt(0, 7);
+	const con = randInt(0, 7);
+	events.push({ time: 0, addr: "0x20", data: toHex(0xc0 | (fl << 3) | con) });
+
+	// PMS/AMS: no modulation
+	events.push({ time: 0, addr: "0x38", data: "0x00" });
+
+	// Configure all 4 operators (channel 0: slot = op * 8)
+	for (let op = 0; op < 4; op++) {
+		const slot = op * 8;
+
+		// DT1/MUL: detune and frequency multiplier
+		const dt1 = randInt(0, 3);
+		const mul = randInt(0, 15);
+		events.push({
+			time: 0,
+			addr: toHex(0x40 + slot),
+			data: toHex((dt1 << 4) | mul),
+		});
+
+		// TL: Total Level (0=max volume, 127=silent)
+		events.push({
+			time: 0,
+			addr: toHex(0x60 + slot),
+			data: toHex(randInt(0, 64)),
+		});
+
+		// KS/AR: Key Scale and Attack Rate (AR >= 16 for audible attack)
+		const ks = randInt(0, 3);
+		const ar = randInt(16, 31);
+		events.push({
+			time: 0,
+			addr: toHex(0x80 + slot),
+			data: toHex((ks << 6) | ar),
+		});
+
+		// AMS_EN/D1R: Amplitude mod enable and first decay rate
+		const amsEn = randInt(0, 1);
+		const d1r = randInt(0, 20);
+		events.push({
+			time: 0,
+			addr: toHex(0xa0 + slot),
+			data: toHex((amsEn << 7) | d1r),
+		});
+
+		// DT2/D2R: Second detune and second decay rate
+		const dt2 = randInt(0, 3);
+		const d2r = randInt(0, 20);
+		events.push({
+			time: 0,
+			addr: toHex(0xc0 + slot),
+			data: toHex((dt2 << 6) | d2r),
+		});
+
+		// D1L/RR: First decay level and release rate (RR >= 1 for finite release)
+		const d1l = randInt(0, 15);
+		const rr = randInt(1, 15);
+		events.push({
+			time: 0,
+			addr: toHex(0xe0 + slot),
+			data: toHex((d1l << 4) | rr),
+		});
+	}
+
+	return events;
+}
+
+function applyRandomToneToAttachment(): void {
+	if (!attachmentField) return;
+
+	let entries: Array<Record<string, unknown>>;
+	try {
+		const parsed = JSON.parse(attachmentField.value);
+		entries = Array.isArray(parsed) ? parsed : JSON.parse(DEFAULT_ATTACHMENT);
+	} catch {
+		entries = JSON.parse(DEFAULT_ATTACHMENT);
+	}
+
+	const toneEvents = generateRandomToneEvents();
+	const entryIndex = entries.findIndex(
+		(e) => (e as { ProgramChange?: number }).ProgramChange === 0,
+	);
+	const baseEntry =
+		entryIndex >= 0 ? { ...entries[entryIndex] } : { ProgramChange: 0 };
+
+	baseEntry.Tone = { type: "YM2151 tone", events: toneEvents };
+
+	if (entryIndex >= 0) {
+		entries[entryIndex] = baseEntry;
+	} else {
+		entries.unshift(baseEntry);
+	}
+
+	attachmentField.value = JSON.stringify(entries, null, 2);
+	void runConversion("ランダム音色");
+}
+
+function setupRandomToneButton(): void {
+	const randomToneBtn = document.getElementById(
+		"random-tone",
+	) as HTMLButtonElement | null;
+	if (!randomToneBtn) return;
+	randomToneBtn.addEventListener("click", () => {
+		applyRandomToneToAttachment();
+	});
+}
+
 function bootstrap(): void {
 	void initializeWasm();
 	setupAttachmentEditor();
@@ -301,6 +424,7 @@ function bootstrap(): void {
 	setupPlayButton();
 	setupMmlInput();
 	setupWavExportButton();
+	setupRandomToneButton();
 }
 
 bootstrap();
