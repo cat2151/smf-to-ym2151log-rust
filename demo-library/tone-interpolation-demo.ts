@@ -4,54 +4,98 @@ import { smf_to_ym2151_json_with_attachment } from "smf-to-ym2151log-rust/pkg/sm
 import {
 	ensureWasmInitialized,
 	ensureWebYm2151,
-	parseAttachmentField,
 	setEventCountDisplay,
 	setStatus,
 	updateOutput,
 } from "./shared-demo";
+import { normalizeAttachmentText } from "./tone-json-attachment";
 import { setupMmlToSmf } from "./mml-support";
 import { createLogVisualizer } from "./log-visualizer";
 
+/** URL of the ym2151-tone-editor WASM library used for random tone generation. */
+const YM2151_TONE_EDITOR_WASM_URL =
+	"https://cat2151.github.io/ym2151-tone-editor/demo-library/pkg/ym2151_wasm.js";
+
+/** MIDI note number used when generating random tones (A4 = 69). */
+const DEFAULT_MIDI_NOTE_FOR_RANDOM = 69;
+
 /**
- * Default attachment JSON demonstrating ChangeToNextTone.
+ * Fallback default attachment in compact nibble format.
  *
  * Program 0: Modulator TL = 0x10 (bright, rich harmonics)
  * Program 1: Modulator TL = 0x7F (dark, pure sine-like)
- * Over 10 seconds the modulator TL transitions from 0x10 → 0x7F, then back,
- * continuously looping for the duration of the song.
+ * Used when the ym2151-tone-editor WASM cannot be loaded.
  */
-const DEFAULT_ATTACHMENT = `[
+const DEFAULT_COMPACT_ATTACHMENT = `[
   {
     "ProgramChange": 0,
     "ChangeToNextTone": true,
     "ChangeToNextToneTime": 10,
-    "Tone": {
-      "events": [
-        { "time": 0, "addr": "0x20", "data": "0xC7" },
-        { "time": 0, "addr": "0x60", "data": "0x00" },
-        { "time": 0, "addr": "0x68", "data": "0x10" },
-        { "time": 0, "addr": "0x80", "data": "0x1F" },
-        { "time": 0, "addr": "0x88", "data": "0x1F" },
-        { "time": 0, "addr": "0xE0", "data": "0x0F" },
-        { "time": 0, "addr": "0xE8", "data": "0x0F" }
-      ]
-    }
+    "registers": "20C760006810801F881FE00FE80F"
   },
   {
     "ProgramChange": 1,
-    "Tone": {
-      "events": [
-        { "time": 0, "addr": "0x20", "data": "0xC7" },
-        { "time": 0, "addr": "0x60", "data": "0x00" },
-        { "time": 0, "addr": "0x68", "data": "0x7F" },
-        { "time": 0, "addr": "0x80", "data": "0x1F" },
-        { "time": 0, "addr": "0x88", "data": "0x1F" },
-        { "time": 0, "addr": "0xE0", "data": "0x0F" },
-        { "time": 0, "addr": "0xE8", "data": "0x0F" }
-      ]
-    }
+    "registers": "20C76000687F801F881FE00FE80F"
   }
 ]`;
+
+/** Cached promise that resolves to the generate_random_tone_registers function. */
+let toneEditorInitPromise: Promise<
+	(seed: number, midiNote: number) => string
+> | null = null;
+
+/** Load the ym2151-tone-editor WASM once and return the generation function. */
+function getToneEditorGenerator(): Promise<
+	(seed: number, midiNote: number) => string
+> {
+	if (!toneEditorInitPromise) {
+		toneEditorInitPromise = (async () => {
+			try {
+				const mod = await import(
+					/* @vite-ignore */ YM2151_TONE_EDITOR_WASM_URL
+				);
+				await mod.default();
+				return mod.generate_random_tone_registers as (
+					seed: number,
+					midiNote: number,
+				) => string;
+			} catch (e) {
+				// Reset so the next call can retry (handles transient network errors).
+				toneEditorInitPromise = null;
+				throw e;
+			}
+		})();
+	}
+	return toneEditorInitPromise;
+}
+
+/**
+ * Generate a compact nibble attachment JSON string with two random tones.
+ * Uses the ym2151-tone-editor WASM library for random tone generation.
+ */
+async function buildRandomAttachment(): Promise<string> {
+	const generate = await getToneEditorGenerator();
+	const seed = Date.now();
+	const registers1 = generate(seed, DEFAULT_MIDI_NOTE_FOR_RANDOM);
+	// Use a well-separated seed to ensure the second tone is clearly distinct.
+	const registers2 = generate(seed + 100000, DEFAULT_MIDI_NOTE_FOR_RANDOM);
+	return JSON.stringify(
+		[
+			{
+				ProgramChange: 0,
+				ChangeToNextTone: true,
+				ChangeToNextToneTime: 10,
+				registers: registers1,
+			},
+			{
+				ProgramChange: 1,
+				registers: registers2,
+			},
+		],
+		null,
+		2,
+	);
+}
 
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;
@@ -116,12 +160,16 @@ async function initializeWasm(): Promise<void> {
 }
 
 function readAttachmentBytes(): Uint8Array | null {
-	return parseAttachmentField(
-		attachmentField,
-		attachmentStatus,
-		"添付 JSON は空です (音色補間無効)",
-		"音色補間 添付 JSON を適用します",
-	);
+	if (!attachmentField) return new Uint8Array();
+	const raw = attachmentField.value.trim();
+	if (raw.length === 0) {
+		setStatus(attachmentStatus, "添付 JSON は空です (音色補間無効)");
+		return new Uint8Array();
+	}
+	// Normalize compact nibble to events without modifying the textarea content.
+	const normalized = normalizeAttachmentText(raw, attachmentStatus);
+	if (normalized === null) return null;
+	return new TextEncoder().encode(normalized);
 }
 
 async function runConversion(trigger: string): Promise<void> {
@@ -200,7 +248,26 @@ async function handlePlay(autoPlayId?: number): Promise<void> {
 
 function setupAttachmentEditor(): void {
 	if (!attachmentField) return;
-	attachmentField.value = DEFAULT_ATTACHMENT;
+	// Set the fallback compact nibble attachment immediately, then try to
+	// replace it with randomly generated tones from the ym2151-tone-editor WASM.
+	attachmentField.value = DEFAULT_COMPACT_ATTACHMENT;
+
+	buildRandomAttachment()
+		.then((attachment) => {
+			if (!attachmentField) return;
+			// Only replace if the user has not yet edited the field.
+			if (attachmentField.value === DEFAULT_COMPACT_ATTACHMENT) {
+				attachmentField.value = attachment;
+				// Only trigger conversion if MIDI is already loaded.
+				if (midiBytes && wasmReady) {
+					void runConversion("デフォルト音色 (ランダム生成)");
+				}
+			}
+		})
+		.catch(() => {
+			// ym2151-tone-editor WASM failed to load; keep the fallback attachment.
+		});
+
 	attachmentField.addEventListener("input", () => {
 		if (attachmentDebounce) {
 			window.clearTimeout(attachmentDebounce);
