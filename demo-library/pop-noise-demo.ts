@@ -348,7 +348,7 @@ function generateRandomToneEvents(): Array<{
 
 		// AMS_EN/D1R: Amplitude mod enable and first decay rate
 		const amsEn = randInt(0, 1);
-		const d1r = randInt(0, 20);
+		const d1r = randInt(0, 31);
 		events.push({
 			time: 0,
 			addr: toHex(0xa0 + slot),
@@ -357,7 +357,7 @@ function generateRandomToneEvents(): Array<{
 
 		// DT2/D2R: Second detune and second decay rate
 		const dt2 = randInt(0, 3);
-		const d2r = randInt(0, 20);
+		const d2r = randInt(0, 31);
 		events.push({
 			time: 0,
 			addr: toHex(0xc0 + slot),
@@ -383,9 +383,22 @@ function applyRandomToneToAttachment(): void {
 	let entries: Array<Record<string, unknown>>;
 	try {
 		const parsed = JSON.parse(attachmentField.value);
-		entries = Array.isArray(parsed) ? parsed : JSON.parse(DEFAULT_ATTACHMENT);
+		if (!Array.isArray(parsed)) {
+			setStatus(
+				attachmentStatus,
+				"JSON が配列ではありません。ランダム音色を適用できません。",
+				true,
+			);
+			return;
+		}
+		entries = parsed;
 	} catch {
-		entries = JSON.parse(DEFAULT_ATTACHMENT);
+		setStatus(
+			attachmentStatus,
+			"JSON が不正なためランダム音色を適用できません。",
+			true,
+		);
+		return;
 	}
 
 	const toneEvents = generateRandomToneEvents();
