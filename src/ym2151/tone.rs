@@ -65,15 +65,15 @@ pub fn load_tone_from_file(path: &Path) -> Result<Option<ToneDefinition>> {
 /// Returns the platform-specific directory used to store tone JSON files.
 ///
 /// The exact path is determined by the [`directories`] crate using `data_local_dir()`:
-/// - **Windows**: `%LOCALAPPDATA%\cat2151\smf-to-ym2151log-rust\data\tones`
+/// - **Windows**: `%LOCALAPPDATA%\smf-to-ym2151log-rust\tones`
 /// - **Linux**: `$XDG_DATA_HOME/smf-to-ym2151log-rust/tones` (default: `~/.local/share/…`)
-/// - **macOS**: `~/Library/Application Support/cat2151/smf-to-ym2151log-rust/tones`
+/// - **macOS**: `~/Library/Application Support/smf-to-ym2151log-rust/tones`
 ///
 /// Returns `None` when the home directory cannot be determined.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn get_tones_data_dir() -> Option<std::path::PathBuf> {
-    directories::ProjectDirs::from("", "cat2151", "smf-to-ym2151log-rust")
-        .map(|dirs| dirs.data_local_dir().join("tones"))
+    directories::BaseDirs::new()
+        .map(|dirs| dirs.data_local_dir().join("smf-to-ym2151log-rust").join("tones"))
 }
 
 /// Load a tone definition for a specific program number

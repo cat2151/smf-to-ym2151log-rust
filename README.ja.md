@@ -168,9 +168,9 @@ Saving YM2151 log JSON...
 コンバータはMIDIプログラムチェンジイベント（0-127）による音色切り替えに対応しています。プログラムチェンジイベントが検出されると、コンバータは以下の動作をします：
 
 1. **外部音色ファイルを検索** `{データディレクトリ}/tones/{program:03}.json`
-   - Windows: `%LOCALAPPDATA%\cat2151\smf-to-ym2151log-rust\data\tones\{program:03}.json`
+   - Windows: `%LOCALAPPDATA%\smf-to-ym2151log-rust\tones\{program:03}.json`
    - Linux: `$XDG_DATA_HOME/smf-to-ym2151log-rust/tones/{program:03}.json`（デフォルト: `~/.local/share/…`）
-   - macOS: `~/Library/Application Support/cat2151/smf-to-ym2151log-rust/tones/{program:03}.json`
+   - macOS: `~/Library/Application Support/smf-to-ym2151log-rust/tones/{program:03}.json`
 2. **音色をロードして適用** ファイルが存在する場合
 3. **内蔵デフォルト音色を使用** ファイルが存在しない場合
 
@@ -180,7 +180,7 @@ Saving YM2151 log JSON...
 
 ```bash
 # Windowsの場合のパス例:
-%LOCALAPPDATA%\cat2151\smf-to-ym2151log-rust\data\tones\
+%LOCALAPPDATA%\smf-to-ym2151log-rust\tones\
 ├── 000.json    # プログラム0 (アコースティックグランドピアノ)
 ├── 001.json    # プログラム1 (ブライトアコースティックピアノ)
 ├── ...
@@ -195,9 +195,9 @@ Saving YM2151 log JSON...
 # 1. MIDIプログラム42用のカスタム音色を作成
 #    （例：ブラス音）
 #    プラットフォーム固有のデータディレクトリに配置します:
-#    Windows: %LOCALAPPDATA%\cat2151\smf-to-ym2151log-rust\data\tones\042.json
+#    Windows: %LOCALAPPDATA%\smf-to-ym2151log-rust\tones\042.json
 #    Linux:   ~/.local/share/smf-to-ym2151log-rust/tones/042.json
-#    macOS:   ~/Library/Application Support/cat2151/smf-to-ym2151log-rust/tones/042.json
+#    macOS:   ~/Library/Application Support/smf-to-ym2151log-rust/tones/042.json
 cat > ~/.local/share/smf-to-ym2151log-rust/tones/042.json << EOF
 {
   "events": [
