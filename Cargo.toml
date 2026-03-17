@@ -27,6 +27,10 @@ thiserror = "1.0"
 # WASM support
 wasm-bindgen = { version = "0.2", optional = true }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# Platform-specific config/data directory resolution (not available in WASM)
+directories = "6"
+
 [dev-dependencies]
 
 [[bin]]

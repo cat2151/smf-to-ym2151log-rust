@@ -166,16 +166,21 @@ Saving YM2151 log JSON...
 
 The converter supports instrument patch switching via MIDI program change events (0-127). When a program change event is detected, the converter performs the following actions:
 
-**1. Search for external patch file**: `tones/{program:03}.json` (e.g., `tones/042.json` for program 42)
+**1. Search for external patch file**: `{config_dir}/tones/{program:03}.json`
+   - Windows: `%LOCALAPPDATA%\smf-to-ym2151log-rust\tones\{program:03}.json`
+   - Linux: `$XDG_DATA_HOME/smf-to-ym2151log-rust/tones/{program:03}.json` (default: `~/.local/share/…`)
+   - macOS: `~/Library/Application Support/smf-to-ym2151log-rust/tones/{program:03}.json`
 **2. Load and apply patch**: If the file exists
 **3. Use built-in default patch**: If the file does not exist
 
 ### Custom Patch Files
 
-You can create custom YM2151 instrument patches by placing JSON files in the `tones/` directory:
+You can create custom YM2151 instrument patches by placing JSON files in the platform-specific
+data directory listed above, under the `tones/` subdirectory:
 
 ```bash
-tones/
+# Windows example path:
+%LOCALAPPDATA%\smf-to-ym2151log-rust\tones\
 ├── 000.json    # Program 0 (Acoustic Grand Piano)
 ├── 001.json    # Program 1 (Bright Acoustic Piano)
 ├── ...
@@ -189,7 +194,11 @@ Each patch file defines YM2151 register writes for setting FM synthesis paramete
 ```bash
 # 1. Create a custom patch for MIDI Program 42
 #    (e.g., a brass sound)
-cat > tones/042.json << EOF
+#    Place the file in the platform-specific data directory:
+#    Windows: %LOCALAPPDATA%\smf-to-ym2151log-rust\tones\042.json
+#    Linux:   ~/.local/share/smf-to-ym2151log-rust/tones/042.json
+#    macOS:   ~/Library/Application Support/smf-to-ym2151log-rust/tones/042.json
+cat > ~/.local/share/smf-to-ym2151log-rust/tones/042.json << EOF
 {
   "events": [
     { "time": 0.0, "addr": "0x20", "data": "0xC7" },
@@ -202,7 +211,7 @@ EOF
 # 2. Convert a MIDI file that uses Program 42
 smf-to-ym2151log-rust song.mid
 
-# The converter will automatically use tones/042.json
+# The converter will automatically use the tone file from the config directory
 # when Program 42 is specified in a program change event.
 ```
 

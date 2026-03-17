@@ -7,28 +7,23 @@ use smf_to_ym2151log::ym2151::convert_to_ym2151_log;
 fn test_tone_loading_from_file() {
     use smf_to_ym2151log::ym2151::load_tone_for_program;
 
-    // Test loading tone file 000.json (which should exist in tones directory)
+    // Tone files are now read from the platform config directory, not the current directory.
+    // In the test environment the config dir will typically be empty, so None is the expected
+    // result.  The important thing is that the function does not return an error.
     let result = load_tone_for_program(0);
     assert!(result.is_ok(), "Failed to load tone: {:?}", result.err());
 
-    let tone_opt = result.unwrap();
-    assert!(
-        tone_opt.is_some(),
-        "Tone file tones/000.json should exist for testing"
-    );
-
-    let tone = tone_opt.unwrap();
-    assert_eq!(
-        tone.r#type, "YM2151 tone",
-        "Tone type field should be 'YM2151 tone'"
-    );
-    assert!(
-        !tone.events.is_empty(),
-        "Tone should have register write events"
-    );
-
-    // Verify tone has expected structure
-    assert_eq!(tone.events.len(), 26, "Default tone should have 26 events");
+    // If a tone file happens to be installed in the config dir, verify it is well-formed.
+    if let Some(tone) = result.unwrap() {
+        assert_eq!(
+            tone.r#type, "YM2151 tone",
+            "Tone type field should be 'YM2151 tone'"
+        );
+        assert!(
+            !tone.events.is_empty(),
+            "Tone should have register write events"
+        );
+    }
 }
 
 #[test]
