@@ -294,90 +294,43 @@ function setupWavExportButton(): void {
 	});
 }
 
-function randInt(min: number, max: number): number {
-	return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+/** URL of the ym2151-tone-editor WASM library used for random tone generation. */
+const YM2151_TONE_EDITOR_WASM_URL =
+	"https://cat2151.github.io/ym2151-tone-editor/demo-library/pkg/ym2151_wasm.js";
 
-function toHex(value: number): string {
-	return `0x${value.toString(16).toUpperCase().padStart(2, "0")}`;
-}
+/** MIDI note number used when generating random tones (A4 = 69). */
+const DEFAULT_MIDI_NOTE_FOR_RANDOM = 69;
 
-function generateRandomToneEvents(): Array<{
-	time: number;
-	addr: string;
-	data: string;
-}> {
-	const events: Array<{ time: number; addr: string; data: string }> = [];
+/** Cached promise that resolves to the generate_random_tone_registers function. */
+let toneEditorInitPromise: Promise<
+	(seed: number, midiNote: number) => string
+> | null = null;
 
-	// RL/FB/CON: Both L/R enabled (bits 7:6 = 11), random feedback and connection
-	const fl = randInt(0, 7);
-	const con = randInt(0, 7);
-	events.push({ time: 0, addr: "0x20", data: toHex(0xc0 | (fl << 3) | con) });
-
-	// PMS/AMS: no modulation
-	events.push({ time: 0, addr: "0x38", data: "0x00" });
-
-	// Configure all 4 operators (channel 0: slot = op * 8)
-	for (let op = 0; op < 4; op++) {
-		const slot = op * 8;
-
-		// DT1/MUL: detune and frequency multiplier
-		const dt1 = randInt(0, 3);
-		const mul = randInt(0, 15);
-		events.push({
-			time: 0,
-			addr: toHex(0x40 + slot),
-			data: toHex((dt1 << 4) | mul),
-		});
-
-		// TL: Total Level (0=max volume, 127=silent)
-		events.push({
-			time: 0,
-			addr: toHex(0x60 + slot),
-			data: toHex(randInt(0, 64)),
-		});
-
-		// KS/AR: Key Scale and Attack Rate (AR >= 16 for audible attack)
-		const ks = randInt(0, 3);
-		const ar = randInt(16, 31);
-		events.push({
-			time: 0,
-			addr: toHex(0x80 + slot),
-			data: toHex((ks << 6) | ar),
-		});
-
-		// AMS_EN/D1R: Amplitude mod enable and first decay rate
-		const amsEn = randInt(0, 1);
-		const d1r = randInt(0, 31);
-		events.push({
-			time: 0,
-			addr: toHex(0xa0 + slot),
-			data: toHex((amsEn << 7) | d1r),
-		});
-
-		// DT2/D2R: Second detune and second decay rate
-		const dt2 = randInt(0, 3);
-		const d2r = randInt(0, 31);
-		events.push({
-			time: 0,
-			addr: toHex(0xc0 + slot),
-			data: toHex((dt2 << 6) | d2r),
-		});
-
-		// D1L/RR: First decay level and release rate (RR >= 1 for finite release)
-		const d1l = randInt(0, 15);
-		const rr = randInt(1, 15);
-		events.push({
-			time: 0,
-			addr: toHex(0xe0 + slot),
-			data: toHex((d1l << 4) | rr),
-		});
+/** Load the ym2151-tone-editor WASM once and return the generation function. */
+function getToneEditorGenerator(): Promise<
+	(seed: number, midiNote: number) => string
+> {
+	if (!toneEditorInitPromise) {
+		toneEditorInitPromise = (async () => {
+			try {
+				const mod = await import(
+					/* @vite-ignore */ YM2151_TONE_EDITOR_WASM_URL
+				);
+				await mod.default();
+				return mod.generate_random_tone_registers as (
+					seed: number,
+					midiNote: number,
+				) => string;
+			} catch (e) {
+				toneEditorInitPromise = null;
+				throw e;
+			}
+		})();
 	}
-
-	return events;
+	return toneEditorInitPromise;
 }
 
-function applyRandomToneToAttachment(): void {
+async function applyRandomToneToAttachment(): Promise<void> {
 	if (!attachmentField) return;
 
 	let entries: Array<Record<string, unknown>>;
@@ -401,14 +354,27 @@ function applyRandomToneToAttachment(): void {
 		return;
 	}
 
-	const toneEvents = generateRandomToneEvents();
+	let registers: string;
+	try {
+		const generate = await getToneEditorGenerator();
+		registers = generate(Date.now(), DEFAULT_MIDI_NOTE_FOR_RANDOM);
+	} catch {
+		setStatus(
+			attachmentStatus,
+			"ym2151-tone-editor の読み込みに失敗しました。ランダム音色を適用できません。",
+			true,
+		);
+		return;
+	}
+
 	const entryIndex = entries.findIndex(
 		(e) => (e as { ProgramChange?: number }).ProgramChange === 0,
 	);
 	const baseEntry =
 		entryIndex >= 0 ? { ...entries[entryIndex] } : { ProgramChange: 0 };
 
-	baseEntry.Tone = { type: "YM2151 tone", events: toneEvents };
+	delete baseEntry.Tone;
+	baseEntry.registers = registers;
 
 	if (entryIndex >= 0) {
 		entries[entryIndex] = baseEntry;
@@ -426,7 +392,7 @@ function setupRandomToneButton(): void {
 	) as HTMLButtonElement | null;
 	if (!randomToneBtn) return;
 	randomToneBtn.addEventListener("click", () => {
-		applyRandomToneToAttachment();
+		void applyRandomToneToAttachment();
 	});
 }
 
