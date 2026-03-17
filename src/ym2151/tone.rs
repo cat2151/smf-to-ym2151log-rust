@@ -71,7 +71,7 @@ pub fn load_tone_from_file(path: &Path) -> Result<Option<ToneDefinition>> {
 ///
 /// Returns `None` when the home directory cannot be determined.
 #[cfg(not(target_arch = "wasm32"))]
-pub fn get_tones_config_dir() -> Option<std::path::PathBuf> {
+pub fn get_tones_data_dir() -> Option<std::path::PathBuf> {
     directories::ProjectDirs::from("", "cat2151", "smf-to-ym2151log-rust")
         .map(|dirs| dirs.data_local_dir().join("tones"))
 }
@@ -79,7 +79,7 @@ pub fn get_tones_config_dir() -> Option<std::path::PathBuf> {
 /// Load a tone definition for a specific program number
 ///
 /// Attempts to load `{program:03}.json` from the platform-specific data directory
-/// (see [`get_tones_config_dir`]).  Returns `None` if the file does not exist
+/// (see [`get_tones_data_dir`]).  Returns `None` if the file does not exist
 /// (caller should use the default tone).
 ///
 /// # Arguments
@@ -93,7 +93,7 @@ pub fn get_tones_config_dir() -> Option<std::path::PathBuf> {
 pub fn load_tone_for_program(program: u8) -> Result<Option<ToneDefinition>> {
     #[cfg(not(target_arch = "wasm32"))]
     {
-        if let Some(dir) = get_tones_config_dir() {
+        if let Some(dir) = get_tones_data_dir() {
             let path = dir.join(format!("{:03}.json", program));
             return load_tone_from_file(&path);
         }
@@ -182,9 +182,11 @@ mod tests {
     #[test]
     fn test_load_tone_from_file_reads_valid_json() {
         // Verify load_tone_from_file works with the bundled tones/000.json in the repo.
-        // This tests file reading and JSON parsing independently of the config-dir logic.
-        let path = std::path::Path::new("tones/000.json");
-        let result = load_tone_from_file(path);
+        // This tests file reading and JSON parsing independently of the data-dir logic.
+        // Use CARGO_MANIFEST_DIR so the test works regardless of the process working directory.
+        let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let path = manifest_dir.join("tones/000.json");
+        let result = load_tone_from_file(&path);
         assert!(result.is_ok(), "Failed to load tones/000.json: {:?}", result.err());
         let tone_opt = result.unwrap();
         assert!(tone_opt.is_some(), "tones/000.json should be present in the repo");

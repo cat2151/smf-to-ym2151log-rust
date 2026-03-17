@@ -166,10 +166,10 @@ Saving YM2151 log JSON...
 
 The converter supports instrument patch switching via MIDI program change events (0-127). When a program change event is detected, the converter performs the following actions:
 
-**1. Search for external patch file**: `{config_dir}/tones/{program:03}.json`
-   - Windows: `%LOCALAPPDATA%\smf-to-ym2151log-rust\tones\{program:03}.json`
+**1. Search for external patch file**: `{data_dir}/tones/{program:03}.json`
+   - Windows: `%LOCALAPPDATA%\cat2151\smf-to-ym2151log-rust\data\tones\{program:03}.json`
    - Linux: `$XDG_DATA_HOME/smf-to-ym2151log-rust/tones/{program:03}.json` (default: `~/.local/share/…`)
-   - macOS: `~/Library/Application Support/smf-to-ym2151log-rust/tones/{program:03}.json`
+   - macOS: `~/Library/Application Support/cat2151/smf-to-ym2151log-rust/tones/{program:03}.json`
 **2. Load and apply patch**: If the file exists
 **3. Use built-in default patch**: If the file does not exist
 
@@ -180,7 +180,7 @@ data directory listed above, under the `tones/` subdirectory:
 
 ```bash
 # Windows example path:
-%LOCALAPPDATA%\smf-to-ym2151log-rust\tones\
+%LOCALAPPDATA%\cat2151\smf-to-ym2151log-rust\data\tones\
 ├── 000.json    # Program 0 (Acoustic Grand Piano)
 ├── 001.json    # Program 1 (Bright Acoustic Piano)
 ├── ...
@@ -195,9 +195,9 @@ Each patch file defines YM2151 register writes for setting FM synthesis paramete
 # 1. Create a custom patch for MIDI Program 42
 #    (e.g., a brass sound)
 #    Place the file in the platform-specific data directory:
-#    Windows: %LOCALAPPDATA%\smf-to-ym2151log-rust\tones\042.json
+#    Windows: %LOCALAPPDATA%\cat2151\smf-to-ym2151log-rust\data\tones\042.json
 #    Linux:   ~/.local/share/smf-to-ym2151log-rust/tones/042.json
-#    macOS:   ~/Library/Application Support/smf-to-ym2151log-rust/tones/042.json
+#    macOS:   ~/Library/Application Support/cat2151/smf-to-ym2151log-rust/tones/042.json
 cat > ~/.local/share/smf-to-ym2151log-rust/tones/042.json << EOF
 {
   "events": [
