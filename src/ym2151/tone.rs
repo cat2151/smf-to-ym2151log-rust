@@ -62,23 +62,43 @@ pub fn load_tone_from_file(path: &Path) -> Result<Option<ToneDefinition>> {
     Ok(Some(tone))
 }
 
+/// Returns the platform-specific directory used to store tone JSON files.
+///
+/// The exact path is determined by the [`directories`] crate using `data_local_dir()`:
+/// - **Windows**: `%LOCALAPPDATA%\smf-to-ym2151log-rust\tones`
+/// - **Linux**: `$XDG_DATA_HOME/smf-to-ym2151log-rust/tones` (default: `~/.local/share/…`)
+/// - **macOS**: `~/Library/Application Support/smf-to-ym2151log-rust/tones`
+///
+/// Returns `None` when the home directory cannot be determined.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn get_tones_data_dir() -> Option<std::path::PathBuf> {
+    directories::BaseDirs::new()
+        .map(|dirs| dirs.data_local_dir().join("smf-to-ym2151log-rust").join("tones"))
+}
+
 /// Load a tone definition for a specific program number
 ///
-/// Attempts to load from `tones/{program:03}.json` in the current directory.
-/// Returns None if the file doesn't exist (caller should use default tone).
+/// Attempts to load `{program:03}.json` from the platform-specific data directory
+/// (see [`get_tones_data_dir`]).  Returns `None` if the file does not exist
+/// (caller should use the default tone).
 ///
 /// # Arguments
 /// * `program` - MIDI program number (0-127)
 ///
 /// # Returns
-/// ToneDefinition if file exists, None if it doesn't exist
+/// `ToneDefinition` if the file exists and is valid, `None` if it does not exist
 ///
 /// # Errors
 /// Returns an error if the file exists but cannot be parsed
 pub fn load_tone_for_program(program: u8) -> Result<Option<ToneDefinition>> {
-    let filename = format!("tones/{:03}.json", program);
-    let path = Path::new(&filename);
-    load_tone_from_file(path)
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        if let Some(dir) = get_tones_data_dir() {
+            let path = dir.join(format!("{:03}.json", program));
+            return load_tone_from_file(&path);
+        }
+    }
+    Ok(None)
 }
 
 /// Generate default tone events for a channel
@@ -157,6 +177,22 @@ mod tests {
         let events = default_tone_events(0, 0.0);
         // Should have 26 events (same as initialize_channel_events)
         assert_eq!(events.len(), 26);
+    }
+
+    #[test]
+    fn test_load_tone_from_file_reads_valid_json() {
+        // Verify load_tone_from_file works with the bundled tones/000.json in the repo.
+        // This tests file reading and JSON parsing independently of the data-dir logic.
+        // Use CARGO_MANIFEST_DIR so the test works regardless of the process working directory.
+        let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let path = manifest_dir.join("tones/000.json");
+        let result = load_tone_from_file(&path);
+        assert!(result.is_ok(), "Failed to load tones/000.json: {:?}", result.err());
+        let tone_opt = result.unwrap();
+        assert!(tone_opt.is_some(), "tones/000.json should be present in the repo");
+        let tone = tone_opt.unwrap();
+        assert_eq!(tone.r#type, "YM2151 tone");
+        assert_eq!(tone.events.len(), 26, "Default tone should have 26 events");
     }
 
     #[test]
