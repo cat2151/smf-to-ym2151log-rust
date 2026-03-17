@@ -72,8 +72,11 @@ pub fn load_tone_from_file(path: &Path) -> Result<Option<ToneDefinition>> {
 /// Returns `None` when the home directory cannot be determined.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn get_tones_data_dir() -> Option<std::path::PathBuf> {
-    directories::BaseDirs::new()
-        .map(|dirs| dirs.data_local_dir().join("smf-to-ym2151log-rust").join("tones"))
+    directories::BaseDirs::new().map(|dirs| {
+        dirs.data_local_dir()
+            .join("smf-to-ym2151log-rust")
+            .join("tones")
+    })
 }
 
 /// Load a tone definition for a specific program number
@@ -187,9 +190,16 @@ mod tests {
         let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
         let path = manifest_dir.join("tones/000.json");
         let result = load_tone_from_file(&path);
-        assert!(result.is_ok(), "Failed to load tones/000.json: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Failed to load tones/000.json: {:?}",
+            result.err()
+        );
         let tone_opt = result.unwrap();
-        assert!(tone_opt.is_some(), "tones/000.json should be present in the repo");
+        assert!(
+            tone_opt.is_some(),
+            "tones/000.json should be present in the repo"
+        );
         let tone = tone_opt.unwrap();
         assert_eq!(tone.r#type, "YM2151 tone");
         assert_eq!(tone.events.len(), 26, "Default tone should have 26 events");
