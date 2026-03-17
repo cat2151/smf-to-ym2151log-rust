@@ -370,7 +370,7 @@ async function applyRandomToneToAttachment(): Promise<void> {
 	const entryIndex = entries.findIndex(
 		(e) => (e as { ProgramChange?: number }).ProgramChange === 0,
 	);
-	const baseEntry =
+	const baseEntry: Record<string, unknown> =
 		entryIndex >= 0 ? { ...entries[entryIndex] } : { ProgramChange: 0 };
 
 	delete baseEntry.Tone;
