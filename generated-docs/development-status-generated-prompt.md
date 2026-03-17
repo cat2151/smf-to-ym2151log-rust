@@ -1,4 +1,4 @@
-Last updated: 2026-03-17
+Last updated: 2026-03-18
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -278,13 +278,9 @@ Last updated: 2026-03-17
 - issue-notes/198.md
 - issue-notes/200.md
 - issue-notes/201.md
-- issue-notes/208.md
-- issue-notes/209.md
 - issue-notes/211.md
-- issue-notes/212.md
-- issue-notes/213.md
+- issue-notes/219.md
 - issue-notes/22.md
-- issue-notes/33.md
 - issue-notes/45.md
 - issue-notes/47.md
 - issue-notes/66-resolution.md
@@ -345,40 +341,6 @@ Last updated: 2026-03-17
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #217](../issue-notes/217.md): ポップノイズdemoにランダム音色ボタンを追加
-ポップノイズdemoで異なる音色を手軽に試せるよう、ランダム音色ボタンを追加。
-
-## Changes
-
-- **`pop-noise.html`**: 添付JSON編集セクションに「ランダム音色」ボタンを追加
-- **`pop-noise-demo.ts`**: ランダムYM2151音色の生成・適用ロジックを追加
-  - `generateRandomToneEvents()`: 全4オペレーター分のレジスタ値をランダム生成
-    - TL: 0–64（無音にならない範囲）
-    - AR: 16–31（発音が確認できる速度）
-    - RR: 1–15（リリースが無限にならない）
- ...
-ラベル: 
---- issue-notes/217.md の内容 ---
-
-```markdown
-
-```
-
-## [Issue #213](../issue-notes/213.md): ポップノイズdemoに、ランダム音色ボタンをつけて、いろいろな音色での検証をしやすくする
-[issue-notes/213.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/213.md)
-
-...
-ラベル: 
---- issue-notes/213.md の内容 ---
-
-```markdown
-# issue ポップノイズdemoに、ランダム音色ボタンをつけて、いろいろな音色での検証をしやすくする #213
-[issues #213](https://github.com/cat2151/smf-to-ym2151log-rust/issues/213)
-
-
-
-```
-
 ## [Issue #177](../issue-notes/177.md): （人力）添付JSONまわりのドッグフーディングをする
 [issue-notes/177.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/177.md)
 
@@ -415,22 +377,7 @@ Last updated: 2026-03-17
 
 ```
 
-## [Issue #33](../issue-notes/33.md): 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。
-[issue-notes/33.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/33.md)
-
-...
-ラベル: 
---- issue-notes/33.md の内容 ---
-
-```markdown
-# issue 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。 #33
-[issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
-
-
-
-```
-
-## [Issue #22](../issue-notes/22.md): （手作業）仮で tones/000.json～127.json のうちいくつかを実際に配置する。ym2151-tone-editorを利用して作成できる
+## [Issue #22](../issue-notes/22.md): （人力）仮で tones/000.json～127.json のうちいくつかを実際に配置する。ym2151-tone-editorを利用して作成できる
 [issue-notes/22.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/22.md)
 
 ...
@@ -446,60 +393,6 @@ Last updated: 2026-03-17
 ```
 
 ## ドキュメントで言及されているファイルの内容
-### .github/actions-tmp/issue-notes/13.md
-```md
-{% raw %}
-# issue issue-note を他projectから使いやすくする #13
-[issues #13](https://github.com/cat2151/github-actions/issues/13)
-
-- docs
-    - call導入手順を書く
-
-{% endraw %}
-```
-
-### .github/actions-tmp/issue-notes/17.md
-```md
-{% raw %}
-# issue development-status が生成したmdに誤りがある。issue-note へのlinkがURL誤りで、404となってしまう #17
-[issues #17](https://github.com/cat2151/github-actions/issues/17)
-
-# 事例
-- 生成したmdのURL：
-    - https://github.com/cat2151/github-actions/blob/main/generated-docs/development-status.md
-- そのmdをGitHub上でdecodeして閲覧したときのURL、404である：
-    - https://github.com/cat2151/github-actions/blob/main/generated-docs/issue-notes/16.md
-- そのmdに実際に含まれるURL：
-    - issue-notes/16.md
-- あるべきURL：
-    - https://github.com/cat2151/github-actions/blob/main/issue-notes/16.md
-- あるべきURLがmdにどう含まれているべきか：
-    - ../issue-notes/16.md
-
-# どうする？
-- 案
-    - promptを修正する
-    - promptの場所は：
-        - .github_automation/project_summary/scripts/development/DevelopmentStatusGenerator.cjs
-    - 備考、cjs内にpromptがハードコーディングされており、promptをメンテしづらいので別途対処する : [issues #18](https://github.com/cat2151/github-actions/issues/18)
-
-# 結果
-- agentにpromptを投げた
-    - ※promptは、development-statusで生成したもの
-- レビューした
-    - agentがフルパスで実装した、ことがわかった
-- userが分析し、 ../ のほうが適切と判断した
-    - ※「事例」コーナーを、あわせて修正した
-- そのように指示してagentに修正させた
-- testする
-
-# 結果
-- test green
-- closeする
-
-{% endraw %}
-```
-
 ### .github/actions-tmp/issue-notes/2.md
 ```md
 {% raw %}
@@ -817,437 +710,11 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
-### demo-library/pop-noise-demo.ts
-```ts
-{% raw %}
-import "./style.css";
-
-import { smf_to_ym2151_json_with_attachment } from "smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js";
-import {
-	ensureWasmInitialized,
-	ensureWebYm2151,
-	parseAttachmentField,
-	setEventCountDisplay,
-	setStatus,
-	updateOutput,
-} from "./shared-demo";
-import { setupMmlToSmf } from "./mml-support";
-import { createLogVisualizer } from "./log-visualizer";
-import { createWaveformViewer } from "./waveform-viewer";
-
-const DEFAULT_ATTACHMENT = `[
-  {
-    "ProgramChange": 0,
-    "PopNoiseEnvelope": {
-      "Enabled": true,
-      "OffsetSeconds": 0.002,
-      "Registers": [
-        { "BaseRegister": "0xE0", "Value": "0x0F" },
-        { "BaseRegister": "0xE8", "Value": "0x0F" },
-        { "BaseRegister": "0xF0", "Value": "0x0F" },
-        { "BaseRegister": "0xF8", "Value": "0x0F" }
-      ]
-    }
-  }
-]`;
-
-let wasmReady = false;
-let midiBytes: Uint8Array | null = null;
-let currentOutput: string | null = null;
-let attachmentDebounce: number | null = null;
-let lastMidiSource: "file" | "mml" | null = null;
-let latestMidiRequestId = 0;
-let latestAutoPlayId = 0;
-
-const attachmentField = document.getElementById(
-	"attachment-json",
-) as HTMLTextAreaElement | null;
-const conversionOutput = document.getElementById(
-	"conversion-output",
-) as HTMLTextAreaElement | null;
-const conversionStatus = document.getElementById("conversion-status");
-const attachmentStatus = document.getElementById("attachment-status");
-const fileStatus = document.getElementById("file-status");
-const mmlStatus = document.getElementById("mml-status");
-const eventCount = document.getElementById("event-count");
-const jsonEditor = document.getElementById(
-	"jsonEditor",
-) as HTMLTextAreaElement | null;
-const playButton = document.getElementById(
-	"play-audio",
-) as HTMLButtonElement | null;
-const mmlInput = document.getElementById(
-	"mml-input",
-) as HTMLTextAreaElement | null;
-const logVisualizer = createLogVisualizer(
-	document.getElementById("log-visualizer"),
-);
-const waveformViewer = createWaveformViewer(
-	document.getElementById("waveform-canvas") as HTMLCanvasElement | null,
-	{
-		zoomSlider: document.getElementById("wv-zoom") as HTMLInputElement | null,
-		zoomLabel: document.getElementById("wv-zoom-label"),
-		prevNoteBtn: document.getElementById(
-			"wv-prev-note",
-		) as HTMLButtonElement | null,
-		nextNoteBtn: document.getElementById(
-			"wv-next-note",
-		) as HTMLButtonElement | null,
-		channelSelect: document.getElementById(
-			"wv-channel",
-		) as HTMLSelectElement | null,
-		positionLabel: document.getElementById("wv-position"),
-	},
-	ensureWebYm2151(),
-);
-
-function nextRequestId(): number {
-	latestMidiRequestId += 1;
-	return latestMidiRequestId;
-}
-
-function isLatestRequest(id: number): boolean {
-	return id === latestMidiRequestId;
-}
-
-function updateOutputWithState(text: string): void {
-	currentOutput = text;
-	updateOutput(text, conversionOutput, jsonEditor, () => {
-		logVisualizer.renderFromJson(text);
-		waveformViewer.renderFromJson(text);
-		updatePlayButtonState();
-	});
-}
-
-function updatePlayButtonState(): void {
-	if (!playButton) return;
-	playButton.disabled = !currentOutput;
-}
-
-async function initializeWasm(): Promise<void> {
-	wasmReady = await ensureWasmInitialized(
-		(message, isError) => setStatus(conversionStatus, message, isError),
-		"WASM 初期化完了。MIDI を読み込んでください。",
-	);
-}
-
-function readAttachmentBytes(): Uint8Array | null {
-	return parseAttachmentField(
-		attachmentField,
-		attachmentStatus,
-		"添付 JSON は空です (ポップノイズ対策なし)",
-		"添付 JSON を適用します",
-	);
-}
-
-async function runConversion(trigger: string): Promise<void> {
-	if (!wasmReady) {
-		setStatus(conversionStatus, "WASM 初期化中です。少しお待ちください...");
-		return;
-	}
-	if (!midiBytes) {
-		setStatus(
-			conversionStatus,
-			"MIDI ファイルを選択するか、MML を入力してください。",
-			true,
-		);
-		return;
-	}
-
-	const attachmentBytes = readAttachmentBytes();
-	if (attachmentBytes === null) {
-		updatePlayButtonState();
-		return;
-	}
-
-	try {
-		const triggerLabel =
-			lastMidiSource === "mml"
-				? `${trigger} (MML 入力)`
-				: lastMidiSource === "file"
-					? `${trigger} (SMF ファイル)`
-					: trigger;
-		setStatus(conversionStatus, `変換中... (${triggerLabel})`);
-		const result = smf_to_ym2151_json_with_attachment(
-			midiBytes,
-			attachmentBytes,
-		);
-		const parsed = JSON.parse(result);
-		const formatted = JSON.stringify(parsed, null, 2);
-		setEventCountDisplay(
-			eventCount,
-			typeof parsed.event_count === "number" ? parsed.event_count : undefined,
-		);
-		updateOutputWithState(formatted);
-		setStatus(conversionStatus, "変換が完了しました。");
-		void handlePlay(++latestAutoPlayId);
-	} catch (error) {
-		updateOutputWithState("");
-		setEventCountDisplay(eventCount, undefined);
-		setStatus(
-			conversionStatus,
-			`変換に失敗しました: ${(error as Error).message}`,
-			true,
-		);
-	}
-}
-
-async function handlePlay(autoPlayId?: number): Promise<void> {
-	if (!currentOutput) {
-		setStatus(conversionStatus, "先に SMF を変換してください。", true);
-		return;
-	}
-	setStatus(conversionStatus, "web-ym2151 で再生します...");
-	try {
-		const api = await ensureWebYm2151();
-		if (autoPlayId !== undefined && autoPlayId !== latestAutoPlayId) {
-			return;
-		}
-		api.playAudioWithOverlay();
-		setStatus(conversionStatus, "再生コマンドを送信しました。");
-	} catch (error) {
-		setStatus(
-			conversionStatus,
-			`再生に失敗しました: ${(error as Error).message}`,
-			true,
-		);
-	}
-}
-
-function setupAttachmentEditor(): void {
-	if (!attachmentField) return;
-	attachmentField.value = DEFAULT_ATTACHMENT;
-	attachmentField.addEventListener("input", () => {
-		if (attachmentDebounce) {
-			window.clearTimeout(attachmentDebounce);
-		}
-		attachmentDebounce = window.setTimeout(() => {
-			void runConversion("添付 JSON 更新");
-		}, 400);
-	});
-}
-
-function setupMmlInput(): void {
-	setupMmlToSmf({
-		mmlInput,
-		mmlStatus,
-		fileStatus,
-		nextRequestId,
-		isLatestRequest,
-		onMidiReady: (bytes) => {
-			midiBytes = bytes;
-			lastMidiSource = "mml";
-		},
-		onClear: () => {
-			if (lastMidiSource === "mml") {
-				midiBytes = null;
-				lastMidiSource = null;
-			}
-		},
-		onAfterConvert: (trigger) => {
-			void runConversion(trigger);
-		},
-	});
-}
-
-function setupMidiInput(): void {
-	const midiInput = document.getElementById(
-		"midi-input",
-	) as HTMLInputElement | null;
-	if (!midiInput) return;
-
-	midiInput.addEventListener("change", async (event) => {
-		const target = event.target as HTMLInputElement;
-		const file = target.files?.[0];
-		if (!file) {
-			nextRequestId();
-			midiBytes = null;
-			lastMidiSource = null;
-			updateOutputWithState("");
-			setEventCountDisplay(eventCount, undefined);
-			setStatus(
-				fileStatus,
-				"SMF ファイルを選択するか、MML を入力してください。",
-			);
-			updatePlayButtonState();
-			return;
-		}
-
-		const requestId = nextRequestId();
-		setStatus(fileStatus, `${file.name} を読み込み中...`);
-		try {
-			const arrayBuffer = await file.arrayBuffer();
-			if (!isLatestRequest(requestId)) {
-				return;
-			}
-			midiBytes = new Uint8Array(arrayBuffer);
-			lastMidiSource = "file";
-			setStatus(
-				fileStatus,
-				`${file.name} を読み込みました (${midiBytes.byteLength} bytes)`,
-			);
-			void runConversion("MIDI 更新");
-		} catch (error) {
-			midiBytes = null;
-			lastMidiSource = null;
-			setStatus(
-				fileStatus,
-				`読み込みに失敗しました: ${(error as Error).message}`,
-				true,
-			);
-		}
-	});
-}
-
-function setupPlayButton(): void {
-	if (!playButton) return;
-	playButton.addEventListener("click", () => {
-		void handlePlay();
-	});
-}
-
-function setupWavExportButton(): void {
-	const wavExportBtn = document.getElementById(
-		"wv-export-wav",
-	) as HTMLButtonElement | null;
-	if (!wavExportBtn) return;
-	wavExportBtn.addEventListener("click", () => {
-		waveformViewer.exportWav("waveform.wav");
-	});
-}
-
-function bootstrap(): void {
-	void initializeWasm();
-	setupAttachmentEditor();
-	setupMidiInput();
-	setupPlayButton();
-	setupMmlInput();
-	setupWavExportButton();
-}
-
-bootstrap();
-
-{% endraw %}
-```
-
-### demo-library/pop-noise.html
-```html
-{% raw %}
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pop Noise Demo | SMF to YM2151</title>
-</head>
-<body>
-  <a class="nav-link" href="./index.html">← ライブラリデモに戻る</a>
-  <h1>ポップノイズ対策デモ（別ページ）</h1>
-  <p class="lead">
-    キーオン直前にエンベロープを一時的に変更する <code>PopNoiseEnvelope</code> を添付 JSON で試せます。
-  </p>
-
-  <section class="demo-section">
-    <h2>1. MIDI ファイルを選択</h2>
-    <label for="midi-input" class="sr-only">MIDI ファイルを選択</label>
-    <input type="file" id="midi-input" accept=".mid,.midi">
-    <div class="status" id="file-status">SMF ファイルを選択するか、MML を入力してください。</div>
-    <label for="mml-input">MML を直接入力して SMF を生成</label>
-    <textarea id="mml-input" class="code-input" rows="5" spellcheck="false" placeholder="cde"></textarea>
-    <div class="status" id="mml-status">SMF アップロードと MML 入力は後着を優先します。</div>
-  </section>
-
-  <section class="demo-section">
-    <h2>2. 添付 JSON を編集</h2>
-    <p class="note">JSON を編集すると 400ms デバウンス後に自動で再変換されます。</p>
-    <label for="attachment-json">PopNoiseEnvelope を含む添付 JSON 入力</label>
-    <textarea id="attachment-json" class="code-input" rows="5" spellcheck="false"></textarea>
-    <div class="status" id="attachment-status"></div>
-  </section>
-
-  <section class="demo-section">
-    <h2>3. 変換結果</h2>
-    <div class="actions">
-      <button id="play-audio" disabled>web-ym2151 で再生</button>
-      <span class="status inline" id="web-ym-status">web-ym2151 を準備中...</span>
-    </div>
-    <div class="status" id="conversion-status">MIDI と JSON を読み込み後に結果を表示します。</div>
-    <div class="status" id="event-count"></div>
-    <div id="log-visualizer" class="log-visualizer" aria-live="polite"></div>
-    <label for="conversion-output">変換結果 JSON（編集して確認できます）</label>
-    <textarea id="conversion-output" class="code-input" rows="5" spellcheck="false"></textarea>
-  </section>
-
-  <section class="demo-section">
-    <h2>4. 波形ビュア</h2>
-    <p class="note">
-      音の途切れ目（<span style="color:#00b450">緑の縦線</span>）でポップノイズが発生していないか確認できます。
-      最もポップノイズらしいゼロクロス箇所が<span style="color:#dc0000">赤の縦線</span>で1箇所表示されます。
-      ホイールでズーム、ドラッグでスクロール。
-    </p>
-    <div class="waveform-controls">
-      <label for="wv-channel">チャンネル:</label>
-      <select id="wv-channel">
-        <option value="0">CH 0</option>
-        <option value="1">CH 1</option>
-        <option value="2">CH 2</option>
-        <option value="3">CH 3</option>
-        <option value="4">CH 4</option>
-        <option value="5">CH 5</option>
-        <option value="6">CH 6</option>
-        <option value="7">CH 7</option>
-      </select>
-      <label for="wv-zoom">ズーム:</label>
-      <input type="range" id="wv-zoom" min="0" max="100" value="0" class="wv-zoom-slider">
-      <span id="wv-zoom-label" class="wv-zoom-label">1x</span>
-      <button id="wv-prev-note" type="button">← 前のノート</button>
-      <button id="wv-next-note" type="button">次のノート →</button>
-      <button id="wv-export-wav" type="button">WAV エクスポート</button>
-    </div>
-    <div id="wv-position" class="status"></div>
-    <canvas id="waveform-canvas" width="720" height="200" class="waveform-canvas"></canvas>
-  </section>
-
-  <textarea id="jsonEditor" aria-hidden="true" hidden></textarea>
-
-  <footer class="github-link">
-    <a href="https://github.com/cat2151/smf-to-ym2151log-rust" target="_blank" rel="noopener noreferrer">GitHub</a>
-  </footer>
-
-  <script type="module" src="./pop-noise-demo.ts"></script>
-</body>
-</html>
-
-{% endraw %}
-```
-
 ### issue-notes/177.md
 ```md
 {% raw %}
 # issue （人力）添付JSONまわりのドッグフーディングをする #177
 [issues #177](https://github.com/cat2151/smf-to-ym2151log-rust/issues/177)
-
-
-
-{% endraw %}
-```
-
-### issue-notes/213.md
-```md
-{% raw %}
-# issue ポップノイズdemoに、ランダム音色ボタンをつけて、いろいろな音色での検証をしやすくする #213
-[issues #213](https://github.com/cat2151/smf-to-ym2151log-rust/issues/213)
-
-
-
-{% endraw %}
-```
-
-### issue-notes/33.md
-```md
-{% raw %}
-# issue 仕様追加。ym2151-tone-editorの出力するGM000 variations format jsonがある場合、従来のtones/より優先して読み込む。仮仕様。tone editorのdirをsymlinkで検証想定。 #33
-[issues #33](https://github.com/cat2151/smf-to-ym2151log-rust/issues/33)
 
 
 
@@ -1415,38 +882,37 @@ bootstrap();
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-fbb0274 Merge pull request #216 from cat2151/copilot/fix-prev-note-button
-da05193 Extract NOTE_NAV_ANCHOR_FRACTION constant; cache getWindowDurS() in nav handlers
-188300d Fix prev/next note buttons: use 30% anchor instead of 50% center as navigation reference
-c4527fa Initial plan
-fd7301a Merge pull request #215 from cat2151/copilot/add-default-instruments-demo
-b43cbf1 fix: skip runConversion when no MIDI loaded; remove unreachable empty-string branch
-2740f78 feat: generate random default tones using ym2151-tone-editor WASM with compact nibble display
-74f4d5b Initial plan
-88756b8 Update project summaries (overview & development status) [auto]
-90fe4f8 Merge pull request #214 from cat2151/copilot/fix-initial-value-of-pop-noise
+58cd239 Merge pull request #221 from cat2151/copilot/fix-deploy-demo-workflow
+2580fde fix: add Record<string, unknown> type to baseEntry in pop-noise-demo.ts
+326605d Initial plan
+c78c005 Auto-translate README.ja.md to README.md [auto]
+b907f90 style: auto-format with cargo fmt
+c16c8db Merge pull request #220 from cat2151/copilot/update-tones-json-storage
+fe902cb Simplify tones dir path: remove org segment and data suffix
+81cd2bc Fix tone data dir naming, test robustness, and documented paths
+8dfaef5 Change tone JSON loading to platform config dir (directories crate)
+6cf6c1c Add issue note for #219 [auto]
 
 ### 変更されたファイル:
+Cargo.lock
+Cargo.toml
+README.ja.md
+README.md
 demo-library/pop-noise-demo.ts
 demo-library/pop-noise.html
-demo-library/tone-interpolation-demo.ts
-demo-library/waveform-viewer.ts
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
+issue-notes/208.md
+issue-notes/209.md
 issue-notes/212.md
 issue-notes/213.md
-src/lib.rs
-src/ym2151/converter.rs
-src/ym2151/converter/event_accumulator.rs
-src/ym2151/converter/pitch_effects.rs
-src/ym2151/converter/register_effects.rs
-src/ym2151/converter_tests.rs
-src/ym2151/converter_tests/attachments_program_effects.rs
-src/ym2151/converter_tests/effects.rs
-src/ym2151/event_processor.rs
+issue-notes/219.md
+issue-notes/33.md
+src/ym2151/tone.rs
+tests/integration_program_change.rs
 
 
 ---
-Generated at: 2026-03-17 07:14:53 JST
+Generated at: 2026-03-18 07:14:18 JST

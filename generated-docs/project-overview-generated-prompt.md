@@ -1,4 +1,4 @@
-Last updated: 2026-03-17
+Last updated: 2026-03-18
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -230,16 +230,20 @@ Saving YM2151 log JSON...
 
 コンバータはMIDIプログラムチェンジイベント（0-127）による音色切り替えに対応しています。プログラムチェンジイベントが検出されると、コンバータは以下の動作をします：
 
-1. **外部音色ファイルを検索** `tones/{program:03}.json` （例：プログラム42の場合は `tones/042.json`）
+1. **外部音色ファイルを検索** `{データディレクトリ}/tones/{program:03}.json`
+   - Windows: `%LOCALAPPDATA%\smf-to-ym2151log-rust\tones\{program:03}.json`
+   - Linux: `$XDG_DATA_HOME/smf-to-ym2151log-rust/tones/{program:03}.json`（デフォルト: `~/.local/share/…`）
+   - macOS: `~/Library/Application Support/smf-to-ym2151log-rust/tones/{program:03}.json`
 2. **音色をロードして適用** ファイルが存在する場合
 3. **内蔵デフォルト音色を使用** ファイルが存在しない場合
 
 ### カスタム音色ファイル
 
-`tones/` ディレクトリにJSONファイルを配置することで、カスタムYM2151音色を作成できます：
+上記のプラットフォーム固有のデータディレクトリ内の `tones/` サブディレクトリにJSONファイルを配置することで、カスタムYM2151音色を作成できます：
 
 ```bash
-tones/
+# Windowsの場合のパス例:
+%LOCALAPPDATA%\smf-to-ym2151log-rust\tones\
 ├── 000.json    # プログラム0 (アコースティックグランドピアノ)
 ├── 001.json    # プログラム1 (ブライトアコースティックピアノ)
 ├── ...
@@ -253,7 +257,11 @@ tones/
 ```bash
 # 1. MIDIプログラム42用のカスタム音色を作成
 #    （例：ブラス音）
-cat > tones/042.json << EOF
+#    プラットフォーム固有のデータディレクトリに配置します:
+#    Windows: %LOCALAPPDATA%\smf-to-ym2151log-rust\tones\042.json
+#    Linux:   ~/.local/share/smf-to-ym2151log-rust/tones/042.json
+#    macOS:   ~/Library/Application Support/smf-to-ym2151log-rust/tones/042.json
+cat > ~/.local/share/smf-to-ym2151log-rust/tones/042.json << EOF
 {
   "events": [
     { "time": 0.0, "addr": "0x20", "data": "0xC7" },
@@ -267,7 +275,7 @@ EOF
 smf-to-ym2151log-rust song.mid
 
 # コンバータはプログラムチェンジでプログラム42が
-# 指定されると自動的に tones/042.json を使用します
+# 指定されると自動的に設定ディレクトリの tones/042.json を使用します
 ```
 
 ## 開発
@@ -383,13 +391,9 @@ cargo audit
   📖 198.md
   📖 200.md
   📖 201.md
-  📖 208.md
-  📖 209.md
   📖 211.md
-  📖 212.md
-  📖 213.md
+  📖 219.md
   📖 22.md
-  📖 33.md
   📖 45.md
   📖 47.md
   📖 66-resolution.md
@@ -498,15 +502,15 @@ cargo audit
   - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (307行, 7743バイト)
-  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, bootstrap, if, catch
+**demo-library/pop-noise-demo.ts** (410行, 10333バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, getToneEditorGenerator, applyRandomToneToAttachment, setupRandomToneButton, bootstrap, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
 **demo-library/pop-noise-detector.ts** (61行, 1972バイト)
   - 関数: detectPopNoise, for, if
   - インポート: なし
 
-**demo-library/pop-noise.html** (85行, 3442バイト)
+**demo-library/pop-noise.html** (88行, 3540バイト)
   - 関数: なし
   - インポート: なし
 
@@ -603,13 +607,15 @@ cargo audit
       - parseAttachmentField ()
       - setupPlayButton ()
       - setupWavExportButton ()
+      - getToneEditorGenerator ()
+      - applyRandomToneToAttachment ()
+      - setupRandomToneButton ()
       - bootstrap ()
       - createWaveformViewer ()
       - exportWav ()
       - setLfoRegisters (demo-library/log-visualizer.ts)
       - extractLfoRegistersFromAttachment ()
       - syncLfoRegisters ()
-      - getToneEditorGenerator (demo-library/tone-interpolation-demo.ts)
       - buildRandomAttachment ()
       - normalizeAttachmentText ()
   - initWasm (demo-library/library-demo.ts)
@@ -709,4 +715,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-17 07:14:53 JST
+Generated at: 2026-03-18 07:14:18 JST
