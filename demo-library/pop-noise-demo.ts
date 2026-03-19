@@ -4,7 +4,6 @@ import { smf_to_ym2151_json_with_attachment } from "smf-to-ym2151log-rust/pkg/sm
 import {
 	ensureWasmInitialized,
 	ensureWebYm2151,
-	parseAttachmentField,
 	setEventCountDisplay,
 	setStatus,
 	updateOutput,
@@ -12,6 +11,7 @@ import {
 import { setupMmlToSmf } from "./mml-support";
 import { createLogVisualizer } from "./log-visualizer";
 import { createWaveformViewer } from "./waveform-viewer";
+import { normalizeAttachmentText } from "./tone-json-attachment";
 
 const DEFAULT_ATTACHMENT = `[
   {
@@ -45,9 +45,15 @@ const conversionOutput = document.getElementById(
 ) as HTMLTextAreaElement | null;
 const conversionStatus = document.getElementById("conversion-status");
 const attachmentStatus = document.getElementById("attachment-status");
+const registerValidationStatus = document.getElementById(
+	"register-validation-status",
+);
 const fileStatus = document.getElementById("file-status");
 const mmlStatus = document.getElementById("mml-status");
 const eventCount = document.getElementById("event-count");
+const registerReflectionStatus = document.getElementById(
+	"register-reflection-status",
+);
 const jsonEditor = document.getElementById(
 	"jsonEditor",
 ) as HTMLTextAreaElement | null;
@@ -93,6 +99,7 @@ function updateOutputWithState(text: string): void {
 	updateOutput(text, conversionOutput, jsonEditor, () => {
 		logVisualizer.renderFromJson(text);
 		waveformViewer.renderFromJson(text);
+		updateRegisterReflectionStatus(text);
 		updatePlayButtonState();
 	});
 }
@@ -100,6 +107,44 @@ function updateOutputWithState(text: string): void {
 function updatePlayButtonState(): void {
 	if (!playButton) return;
 	playButton.disabled = !currentOutput;
+}
+
+function updateRegisterReflectionStatus(outputJson: string): void {
+	if (!registerReflectionStatus) return;
+	if (outputJson.trim().length === 0) {
+		setStatus(registerReflectionStatus, "最終 JSON 反映: 未確認");
+		return;
+	}
+	try {
+		const parsed = JSON.parse(outputJson) as {
+			events?: Array<{ addr?: string }>;
+		};
+		const hasToneLikeRegister = (parsed.events ?? []).some((event) => {
+			if (typeof event.addr !== "string") return false;
+			const addr = Number.parseInt(event.addr, 16);
+			return (
+				Number.isFinite(addr) &&
+				((addr >= 0x20 && addr <= 0x27) ||
+					(addr >= 0x40 && addr <= 0x5f) ||
+					(addr >= 0x60 && addr <= 0x7f) ||
+					(addr >= 0x80 && addr <= 0x9f) ||
+					(addr >= 0xe0 && addr <= 0xff))
+			);
+		});
+		setStatus(
+			registerReflectionStatus,
+			hasToneLikeRegister
+				? "最終 JSON 反映: OK（音色レジスタ書き込みを検出）"
+				: "最終 JSON 反映: NG（音色レジスタ書き込みを検出できません）",
+			!hasToneLikeRegister,
+		);
+	} catch (error) {
+		setStatus(
+			registerReflectionStatus,
+			`最終 JSON 反映: 判定失敗 (${(error as Error).message})`,
+			true,
+		);
+	}
 }
 
 async function initializeWasm(): Promise<void> {
@@ -110,12 +155,39 @@ async function initializeWasm(): Promise<void> {
 }
 
 function readAttachmentBytes(): Uint8Array | null {
-	return parseAttachmentField(
-		attachmentField,
-		attachmentStatus,
-		"添付 JSON は空です (ポップノイズ対策なし)",
-		"添付 JSON を適用します",
-	);
+	if (!attachmentField) return new Uint8Array();
+	const raw = attachmentField.value.trim();
+	if (raw.length === 0) {
+		setStatus(attachmentStatus, "添付 JSON は空です (ポップノイズ対策なし)");
+		setStatus(registerValidationStatus, "registers 検証: 未実行");
+		return new Uint8Array();
+	}
+	const normalized = normalizeAttachmentText(raw, attachmentStatus);
+	if (normalized === null) {
+		setStatus(registerValidationStatus, "registers 検証: NG", true);
+		return null;
+	}
+	const normalizedTrimmed = normalized.trim();
+	if (normalizedTrimmed.length > 0) {
+		try {
+			const parsed = JSON.parse(normalizedTrimmed);
+			const entryCount = Array.isArray(parsed) ? parsed.length : 1;
+			setStatus(
+				registerValidationStatus,
+				`registers 検証: OK（${entryCount}エントリを正規化）`,
+			);
+		} catch (error) {
+			setStatus(
+				registerValidationStatus,
+				`registers 検証: NG (${(error as Error).message})`,
+				true,
+			);
+			return null;
+		}
+	} else {
+		setStatus(registerValidationStatus, "registers 検証: 未実行");
+	}
+	return new TextEncoder().encode(normalized);
 }
 
 async function runConversion(trigger: string): Promise<void> {
