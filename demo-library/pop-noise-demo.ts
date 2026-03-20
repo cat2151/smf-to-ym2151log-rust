@@ -119,6 +119,9 @@ function updateRegisterReflectionStatus(outputJson: string): void {
 		const parsed = JSON.parse(outputJson) as {
 			events?: Array<{ addr?: string }>;
 		};
+		// YM2151 tone-related register groups:
+		// - 0x20..0x27: RL/FB/CONNECT (channel)
+		// - 0x40..0x5f, 0x60..0x7f, 0x80..0x9f, 0xe0..0xff: operator tone params
 		const hasToneLikeRegister = (parsed.events ?? []).some((event) => {
 			if (typeof event.addr !== "string") return false;
 			const addr = Number.parseInt(event.addr, 16);
@@ -164,7 +167,12 @@ function readAttachmentBytes(): Uint8Array | null {
 	}
 	const normalized = normalizeAttachmentText(raw, attachmentStatus);
 	if (normalized === null) {
-		setStatus(registerValidationStatus, "registers 検証: NG", true);
+		const detail = attachmentStatus?.textContent?.trim();
+		setStatus(
+			registerValidationStatus,
+			detail ? `registers 検証: NG (${detail})` : "registers 検証: NG",
+			true,
+		);
 		return null;
 	}
 	const normalizedTrimmed = normalized.trim();
