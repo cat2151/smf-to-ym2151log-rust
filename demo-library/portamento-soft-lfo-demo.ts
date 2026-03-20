@@ -105,6 +105,10 @@ function readAttachmentBytes(): Uint8Array | null {
 	}
 	const normalized = normalizeAttachmentText(raw, attachmentStatus);
 	if (normalized === null) return null;
+	setStatus(
+		attachmentStatus,
+		"添付 JSON を解析しました (ポルタメント/ソフトLFO 設定を使用します)。",
+	);
 	return new TextEncoder().encode(normalized);
 }
 

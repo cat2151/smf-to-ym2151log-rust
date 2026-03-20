@@ -104,6 +104,7 @@ function readAttachmentBytes(): Uint8Array | null {
 	}
 	const normalized = normalizeAttachmentText(raw, attachmentStatus);
 	if (normalized === null) return null;
+	setStatus(attachmentStatus, "Delay Vibrato 用の添付 JSON を適用します。");
 	return new TextEncoder().encode(normalized);
 }
 

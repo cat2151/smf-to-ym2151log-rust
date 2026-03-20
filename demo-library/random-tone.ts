@@ -43,7 +43,12 @@ export function upsertAttachmentRegisters(
 	registers: string,
 	programChange = 0,
 ): string {
-	const parsed = JSON.parse(rawAttachment);
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(rawAttachment);
+	} catch {
+		throw new Error("JSON が不正なためランダム音色を適用できません。");
+	}
 	if (!Array.isArray(parsed)) {
 		throw new Error("JSON が配列ではありません。ランダム音色を適用できません。");
 	}
