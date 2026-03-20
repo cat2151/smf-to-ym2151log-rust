@@ -1,4 +1,4 @@
-Last updated: 2026-03-18
+Last updated: 2026-03-21
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -392,8 +392,8 @@ cargo audit
   📖 200.md
   📖 201.md
   📖 211.md
-  📖 219.md
   📖 22.md
+  📖 224.md
   📖 45.md
   📖 47.md
   📖 66-resolution.md
@@ -502,15 +502,15 @@ cargo audit
   - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (410行, 10333バイト)
-  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, getToneEditorGenerator, applyRandomToneToAttachment, setupRandomToneButton, bootstrap, if, catch
+**demo-library/pop-noise-demo.ts** (541行, 14382バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, updateRegisterReflectionStatus, countRegisterNormalizationTargets, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, getToneEditorGenerator, applyRandomToneToAttachment, setupRandomToneButton, bootstrap, catch, if
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
 **demo-library/pop-noise-detector.ts** (61行, 1972バイト)
   - 関数: detectPopNoise, for, if
   - インポート: なし
 
-**demo-library/pop-noise.html** (88行, 3540バイト)
+**demo-library/pop-noise.html** (90行, 3698バイト)
   - 関数: なし
   - インポート: なし
 
@@ -605,19 +605,21 @@ cargo audit
       - ensureWebYm2151 ()
       - updateOutput ()
       - parseAttachmentField ()
+      - updateRegisterReflectionStatus ()
+      - countRegisterNormalizationTargets ()
       - setupPlayButton ()
       - setupWavExportButton ()
       - getToneEditorGenerator ()
       - applyRandomToneToAttachment ()
       - setupRandomToneButton ()
       - bootstrap ()
+      - normalizeAttachmentText ()
       - createWaveformViewer ()
       - exportWav ()
       - setLfoRegisters (demo-library/log-visualizer.ts)
       - extractLfoRegistersFromAttachment ()
       - syncLfoRegisters ()
       - buildRandomAttachment ()
-      - normalizeAttachmentText ()
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
@@ -715,4 +717,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-18 07:14:18 JST
+Generated at: 2026-03-21 07:10:29 JST

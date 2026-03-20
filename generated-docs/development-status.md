@@ -1,51 +1,51 @@
-Last updated: 2026-03-18
+Last updated: 2026-03-21
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #177](../issue-notes/177.md) では、添付JSON関連機能のドッグフーディングが必要とされており、実際の使用を通じて改善点を見つけるフェーズです。
-- [Issue #83](../issue-notes/83.md) は音色データの扱いを整理する課題で、特にデフォルト音色（0～127）の不足が和音SMFの再生品質に影響を与えています。
-- [Issue #22](../issue-notes/22.md) は `ym2151-tone-editor` を活用し、不足しているデフォルト音色JSONファイル（`tones/000.json`～`127.json`）の作成と配置を目指しています。
+- [Issue #226](../issue-notes/226.md) は、`demo-library/pop-noise-demo.ts` が500行を超過しており、リファクタリングが推奨されています。
+- [Issue #224](../issue-notes/224.md) は、既存のポップノイズ対策デモを参考に、すべてのデモページにランダム音色ボタンを実装するタスクです。
+- [Issue #177](../issue-notes/177.md) は、添付JSON機能の実際の利用を通じて潜在的な改善点やバグを発見するドッグフーディング作業です。
 
 ## 次の一手候補
-1. [Issue #22](../issue-notes/22.md) - デフォルト音色JSON (`tones/001.json`) の作成とリポジトリへの追加計画
-   - 最初の小さな一歩: 既存の `tones/000.json` の構造を分析し、`tones/001.json` を作成するための基本的なひな形JSONの要素を理解する。
+1. [Issue #226](../issue-notes/226.md) `demo-library/pop-noise-demo.ts` のリファクタリング
+   - 最初の小さな一歩: `demo-library/pop-noise-demo.ts` のコードを読み込み、特にイベントリスナーのセットアップ関数（`setupAttachmentEditor`, `setupMmlInput` など）が肥大化していないか、共通化できる部分がないかを特定します。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `tones/000.json`
+     対象ファイル: `demo-library/pop-noise-demo.ts`
 
-     実行内容: `tones/000.json` の内容を分析し、YM2151の音色データがどのように表現されているかをmarkdown形式で記述してください。特に、`events` 配列内の各オブジェクトの `time`, `addr`, `data` フィールドの意味について説明してください。
+     実行内容: `demo-library/pop-noise-demo.ts` を分析し、特に初期化とイベントリスナー設定に関連する関数群（`setupAttachmentEditor`, `setupMmlInput`, `setupMidiInput`, `setupPlayButton`, `setupWavExportButton`, `setupRandomToneButton` など）に関して、コードの凝集度を高め、行数を削減できるようなリファクタリングの改善点をMarkdown形式で提案してください。具体的な改善案として、共通の初期化ユーティリティ関数や、関連する設定をグループ化するクラス構造の導入などを検討してください。
 
-     確認事項: YM2151のレジスタマップに関する既存情報（もしあれば）との整合性。`addr` の値がYM2151のレジスタアドレスに対応しているか、`data` がそのレジスタに書き込む値であることを確認してください。
+     確認事項: リファクタリングによって既存の機能が損なわれないこと、および他のデモページへの予期せぬ影響がないことを確認してください。
 
-     期待する出力: `tones/000.json` の解析結果と、`tones/001.json` を作成するためのテンプレートJSONの構造（キーと値の例を含む）をmarkdown形式で出力してください。
+     期待する出力: リファクタリングの具体的な提案、改善後の擬似コード、およびリファクタリングのメリット（例: 可読性向上、行数削減）を含むMarkdown形式のレポート。
      ```
 
-2. [Issue #83](../issue-notes/83.md) - `src/ym2151/tone.rs` における音色データロードロジックの解析
-   - 最初の小さな一歩: `src/ym2151/tone.rs` のコードを読み込み、音色データがどのようにファイルシステムから読み込まれ、JSONとしてパースされているかを特定する。
+2. [Issue #224](../issue-notes/224.md) ランダム音色ボタンのロジックを他デモページで利用できるように共通化
+   - 最初の小さな一歩: `demo-library/pop-noise-demo.ts` に実装されているランダム音色生成 (`applyRandomToneToAttachment`) とボタン設定 (`setupRandomToneButton`) のロジックを抽出するための計画を立て、これらの機能を `demo-library/shared-demo-utils.ts` のような新しいユーティリティファイルに移動させることを検討します。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `src/ym2151/tone.rs`
+     対象ファイル: `demo-library/pop-noise-demo.ts`, `demo-library/shared-demo.ts`, `demo-library/delay-vibrato-demo.ts`
 
-     実行内容: `src/ym2151/tone.rs` における音色データ（tone JSON）のロードロジックを分析し、ファイルパスの解決方法、JSONのパース、およびロードされたデータが内部でどのように表現されているかについてmarkdown形式で出力してください。特に、`directories` クレートの使用箇所と、そのパス解決が `tones/` ディレクトリとどのように関連しているかに焦点を当ててください。
+     実行内容: `demo-library/pop-noise-demo.ts` からランダム音色生成 (`applyRandomToneToAttachment`) とボタン設定 (`setupRandomToneButton`) のロジックを抽出し、これらを共通化して `demo-library/shared-demo-utils.ts` のような新しいファイルに移動させるための具体的な計画を提案してください。また、その共通化した関数を `demo-library/delay-vibrato-demo.ts` (既存のデモの一つ) から呼び出す方法についても記述してください。
 
-     確認事項: 最近のコミット (`8dfaef5`, `81cd2bc`, `fe902cb`) で変更されたファイルパス解決ロジックとの整合性、および `Tone` 構造体の定義。
+     確認事項: `pop-noise-demo.ts` の既存機能が変更後も維持されること、`ym2151-tone-editor` WASMの読み込みが適切に管理されること、および他のデモページへの影響を最小限に抑えることを確認してください。
 
-     期待する出力: 音色データロードのフロー図またはステップバイステップの説明、参照されているファイルパスのパターン、および `Tone` 構造体の主要なフィールドとその役割をmarkdown形式で生成してください。
+     期待する出力: 新規ファイル `shared-demo-utils.ts` のコード案、`pop-noise-demo.ts` からの変更点、`delay-vibrato-demo.ts` からの利用例を含むMarkdown形式の計画書。
      ```
 
-3. [Issue #177](../issue-notes/177.md) - 添付JSONのフロントエンドでの利用例の調査 (`demo-library/tone-json-attachment.ts`)
-   - 最初の小さな一歩: `demo-library/tone-json-attachment.ts` を詳細に読み、添付JSONがどのようなデータ構造を持ち、どのタイミングで、どのようにAudioContextなどのWeb Audio APIと連携して適用されているかを確認する。
+3. [Issue #177](../issue-notes/177.md) 添付JSONまわりのドッグフーディングを支援するシナリオ生成
+   - 最初の小さな一歩: `pop-noise-demo.ts` の `DEFAULT_ATTACHMENT` や `tones/000.json` の内容を分析し、より複雑なパターンやエッジケースとなり得る添付JSONの構造について検討します。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `demo-library/tone-json-attachment.ts`
+     対象ファイル: `demo-library/pop-noise-demo.ts`, `tones/000.json`
 
-     実行内容: `demo-library/tone-json-attachment.ts` を分析し、添付JSONがフロントエンドのデモ環境でどのように利用され、音源生成やエフェクトにどのように影響を与えているかをmarkdown形式で説明してください。特に、JSONデータの構造、それが適用されるイベントまたはライフサイクル、およびWeb Audio APIのパラメーターへのマッピングを記述してください。
+     実行内容: `pop-noise-demo.ts` の `DEFAULT_ATTACHMENT` および `tones/000.json` の構造を分析し、添付JSONが影響を与える可能性のあるYM2151レジスタ（例: 音色設定、LFO、エンベロープ、プログラム変更など）に関する情報を提供してください。その上で、添付JSON機能のドッグフーディングに役立つ、より複雑な添付JSONのシナリオ例を3つ以上提案してください。各シナリオは、どのような機能や挙動を確認できるかを簡潔に説明してください。
 
-     確認事項: 関連するHTMLファイル (`demo-library/tone-json.html` など) との連携、および `shared-demo.ts` や `library-demo.ts` との相互作用。
+     確認事項: 提案するシナリオが、既存のコードベースの機能と大きく乖離しないこと。ハルシネーションを避けるため、具体的なレジスタ値やプログラム変更の記述は簡潔に留めてください。
 
-     期待する出力: 添付JSONの利用シナリオ、主要なデータ構造（TypeScriptの型定義があればそれも含む）、およびその適用プロセスを示す主要なコードスニペットを含むmarkdown形式のドキュメントを生成してください。
+     期待する出力: 添付JSONが関連するYM2151レジスタに関する概要、および3つ以上の具体的なシナリオ例（各シナリオには簡単な説明を含む）を含むMarkdown形式のレポート。
      ```
 
 ---
-Generated at: 2026-03-18 07:14:35 JST
+Generated at: 2026-03-21 07:10:46 JST

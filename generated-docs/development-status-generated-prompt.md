@@ -1,4 +1,4 @@
-Last updated: 2026-03-18
+Last updated: 2026-03-21
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -279,8 +279,8 @@ Last updated: 2026-03-18
 - issue-notes/200.md
 - issue-notes/201.md
 - issue-notes/211.md
-- issue-notes/219.md
 - issue-notes/22.md
+- issue-notes/224.md
 - issue-notes/45.md
 - issue-notes/47.md
 - issue-notes/66-resolution.md
@@ -341,6 +341,58 @@ Last updated: 2026-03-18
 - tones/README.md
 
 ## 現在のオープンIssues
+## [Issue #226](../issue-notes/226.md): 大きなファイルの検出: 1個のファイルが500行を超えています
+以下のファイルが500行を超えています。リファクタリングを検討してください。
+
+## 検出されたファイル
+
+| ファイル | 行数 | 超過行数 |
+|---------|------|----------|
+| `demo-library/pop-noise-demo.ts` | 540 | +40 |
+
+## テスト実施のお願い
+
+- リファクタリング前後にテストを実行し、それぞれのテスト失敗件数を報告してください
+- リファクタリング前後のどちらかでテストがredの場合、まず別issueでtest greenにしてからリファクタリングしてください
+
+## 推奨事項
+
+1. 単一責任の原則...
+ラベル: refactoring, code-quality, automated
+--- issue-notes/226.md の内容 ---
+
+```markdown
+
+```
+
+## [Issue #225](../issue-notes/225.md): Add random tone buttons to all dedicated demo pages
+All demo pages now expose the same random tone workflow already used by the pop-noise demo. This makes random timbre generation consistently available across the attachment-driven demos without changing their core conversion behavior.
+
+- **UI**
+  - Added a `ランダム音色` button to:
+    - `delay-vibrato.ht...
+ラベル: 
+--- issue-notes/225.md の内容 ---
+
+```markdown
+
+```
+
+## [Issue #224](../issue-notes/224.md): すべてのdemoにランダム音色ボタンをつける。ランダム音色ボタンの実装方法はポップノイズ対策demoの実装を参考にすること
+[issue-notes/224.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/224.md)
+
+...
+ラベル: 
+--- issue-notes/224.md の内容 ---
+
+```markdown
+# issue すべてのdemoにランダム音色ボタンをつける。ランダム音色ボタンの実装方法はポップノイズ対策demoの実装を参考にすること #224
+[issues #224](https://github.com/cat2151/smf-to-ym2151log-rust/issues/224)
+
+
+
+```
+
 ## [Issue #177](../issue-notes/177.md): （人力）添付JSONまわりのドッグフーディングをする
 [issue-notes/177.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/177.md)
 
@@ -617,6 +669,132 @@ jobs:
 {% endraw %}
 ```
 
+### .github/actions-tmp/issue-notes/24.md
+```md
+{% raw %}
+# issue Geminiが503で落ちたのでretryを実装する #24
+[issues #24](https://github.com/cat2151/github-actions/issues/24)
+
+# 何が困るの？
+- 朝起きて、development statusがgenerateされてないのは困る
+    - それをタスク実施のヒントにしているので
+    - 毎朝generatedな状態を維持したい
+
+# 方法
+- retryを実装する
+    - 現在は `this.model.generateContent(developmentPrompt);`
+    - 実装後は `this.generateContent(developmentPrompt);`
+    - BaseGenerator 側に、
+        - generateContent関数を実装する
+            - そこで、
+                - `this.model.generateContent(developmentPrompt);` する
+                - 503のとき、
+                    - retryあり
+                    - Exponential Backoff
+
+# 結果
+- 直近の実行結果をlog確認した
+    - 本番で503が発生しなかったことをlog確認した
+- 本番の503 testは、今回発生しなかったので、できず
+- ここ1週間で2回発生しているので、次の1週間で1回発生する想定
+- ソース机上確認した
+
+# どうする？
+- このissueはcloseしたほうがわかりやすい、と判断する
+- 1週間503を毎日チェック、は省略とする
+- もし今後503が発生したら別issueとする
+- 2日チェックして503なし
+
+# closeとする
+
+{% endraw %}
+```
+
+### .github/actions-tmp/issue-notes/25.md
+```md
+{% raw %}
+# issue project summaryを他projectからcallしたところ、issue-notes参照ディレクトリ誤りが発覚した #25
+[issues #25](https://github.com/cat2151/github-actions/issues/25)
+
+# 事象
+- `Issueノートが存在しません: /home/runner/work/tonejs-mml-to-json/tonejs-mml-to-json/.github/actions-tmp/issue-notes/6.md`
+
+# どうする？
+- 当該処理のディレクトリ部分を確認する
+- 日次バッチでGeminiに確認させてみる
+- 結果
+    - Geminiに確認させてpromptを生成させ、agentに投げた
+    - 結果、projectRootの扱いの誤り、と判明
+        - 共通workflow側のdirを引数でわたしてしまっていた
+        - target repository側のdirを引数でわたすべき
+- 修正したつもり
+- 次の日次バッチで動作確認させるつもり
+
+# 結果
+- test green
+
+# closeとする
+
+{% endraw %}
+```
+
+### .github/actions-tmp/issue-notes/26.md
+```md
+{% raw %}
+# issue userによるcommitがなくなって24時間超経過しているのに、毎日ムダにproject summaryとcallgraphの自動生成が行われてしまっている #26
+[issues #26](https://github.com/cat2151/github-actions/issues/26)
+
+# どうする？
+- logを確認する。24時間チェックがバグっている想定。
+- もしlogから判別できない場合は、logを改善する。
+
+# log確認結果
+- botによるcommitなのに、user commitとして誤判別されている
+```
+Checking for user commits in the last 24 hours...
+User commits found: true
+Recent user commits:
+7654bf7 Update callgraph.html [auto]
+abd2f2d Update project summaries (overview & development status)
+```
+
+# ざっくり調査結果
+- #27 が判明した
+
+# どうする？
+- [x] #27 を修正する。これで自動的に #26 も修正される想定。
+    - 当該処理を修正する。
+    - もしデータ不足なら、より詳細なlog生成を実装する。
+- 別件として、このチェックはむしろworkflow ymlの先頭で行うのが適切と考える。なぜなら、以降のムダな処理をカットできるのでエコ。
+    - [x] #28 を起票したので、そちらで実施する。
+
+# close条件は？
+- 前提
+    - [x] 先行タスクである #27 と #28 が完了済みであること
+- 誤爆がなくなること。
+    - つまり、userによるcommitがなくなって24時間超経過後の日次バッチにて、
+        - ムダなdevelopment status生成、等がないこと
+        - jobのlogに「commitがないので処理しません」的なmessageが出ること
+- どうする？
+    - 日次バッチを本番を流して本番testする
+
+# 結果
+- github-actions logより：
+    - 直近24hのcommitはbotによる1件のみであった
+    - よって後続jobはskipとなった
+    - ことを確認した
+- close条件を満たした、と判断する
+```
+Run node .github_automation/check_recent_human_commit/scripts/check-recent-human-commit.cjs
+BOT: Commit 5897f0c6df6bc2489f9ce3579b4f351754ee0551 | Author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com> | Message: Update project summaries (overview & development status) [auto]
+has_recent_human_commit=false
+```
+
+# closeとする
+
+{% endraw %}
+```
+
 ### .github/actions-tmp/issue-notes/3.md
 ```md
 {% raw %}
@@ -698,6 +876,152 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
+### .github/actions-tmp/issue-notes/4.md
+```md
+{% raw %}
+# issue GitHub Actions「project概要生成」を共通ワークフロー化する #4
+[issues #4](https://github.com/cat2151/github-actions/issues/4)
+
+# prompt
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+このymlファイルを、以下の2つのファイルに分割してください。
+1. 共通ワークフロー       cat2151/github-actions/.github/workflows/daily-project-summary.yml
+2. 呼び出し元ワークフロー cat2151/github-actions/.github/workflows/call-daily-project-summary.yml
+まずplanしてください
+```
+
+# 結果、あちこちハルシネーションのあるymlが生成された
+- agentの挙動があからさまにハルシネーション
+    - インデントが修正できない、「失敗した」という
+    - 構文誤りを認識できない
+- 人力で修正した
+
+# このagentによるセルフレビューが信頼できないため、別のLLMによるセカンドオピニオンを試す
+```
+あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
+以下の2つのファイルをレビューしてください。最優先で、エラーが発生するかどうかだけレビューてください。エラー以外の改善事項のチェックをするかわりに、エラー発生有無チェックに最大限注力してください。
+
+--- 呼び出し元
+
+name: Call Daily Project Summary
+
+on:
+  schedule:
+    # 日本時間 07:00 (UTC 22:00 前日)
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+jobs:
+  call-daily-project-summary:
+    uses: cat2151/github-actions/.github/workflows/daily-project-summary.yml
+    secrets:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+--- 共通ワークフロー
+name: Daily Project Summary
+on:
+  workflow_call:
+
+jobs:
+  generate-summary:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # 履歴を取得するため
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          # 一時的なディレクトリで依存関係をインストール
+          mkdir -p /tmp/summary-deps
+          cd /tmp/summary-deps
+          npm init -y
+          npm install @google/generative-ai @octokit/rest
+          # generated-docsディレクトリを作成
+          mkdir -p $GITHUB_WORKSPACE/generated-docs
+
+      - name: Generate project summary
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          NODE_PATH: /tmp/summary-deps/node_modules
+        run: |
+          node .github/scripts/generate-project-summary.cjs
+
+      - name: Check for generated summaries
+        id: check_summaries
+        run: |
+          if [ -f "generated-docs/project-overview.md" ] && [ -f "generated-docs/development-status.md" ]; then
+            echo "summaries_generated=true" >> $GITHUB_OUTPUT
+          else
+            echo "summaries_generated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push summaries
+        if: steps.check_summaries.outputs.summaries_generated == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          # package.jsonの変更のみリセット（generated-docsは保持）
+          git restore package.json 2>/dev/null || true
+          # サマリーファイルのみを追加
+          git add generated-docs/project-overview.md
+          git add generated-docs/development-status.md
+          git commit -m "Update project summaries (overview & development status)"
+          git push
+
+      - name: Summary generation result
+        run: |
+          if [ "${{ steps.check_summaries.outputs.summaries_generated }}" == "true" ]; then
+            echo "✅ Project summaries updated successfully"
+            echo "📊 Generated: project-overview.md & development-status.md"
+          else
+            echo "ℹ️ No summaries generated (likely no user commits in the last 24 hours)"
+          fi
+```
+
+# 上記promptで、2つのLLMにレビューさせ、合格した
+
+# 細部を、先行する2つのymlを参照に手直しした
+
+# ローカルtestをしてからcommitできるとよい。方法を検討する
+- ローカルtestのメリット
+    - 素早く修正のサイクルをまわせる
+    - ムダにgit historyを汚さない
+        - これまでの事例：「実装したつもり」「エラー。修正したつもり」「エラー。修正したつもり」...（以降エラー多数）
+- 方法
+    - ※検討、WSL + act を環境構築済みである。test可能であると判断する
+    - 呼び出し元のURLをコメントアウトし、相対パス記述にする
+    - ※備考、テスト成功すると結果がcommit pushされる。それでよしとする
+- 結果
+    - OK
+    - secretsを簡略化できるか試した、できなかった、現状のsecrets記述が今わかっている範囲でベストと判断する
+    - OK
+
+# test green
+
+# commit用に、yml 呼び出し元 uses をlocal用から本番用に書き換える
+
+# closeとする
+
+{% endraw %}
+```
+
 ### .github/actions-tmp/issue-notes/7.md
 ```md
 {% raw %}
@@ -710,11 +1034,569 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
+### demo-library/pop-noise-demo.ts
+```ts
+{% raw %}
+import "./style.css";
+
+import { smf_to_ym2151_json_with_attachment } from "smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js";
+import {
+	ensureWasmInitialized,
+	ensureWebYm2151,
+	setEventCountDisplay,
+	setStatus,
+	updateOutput,
+} from "./shared-demo";
+import { setupMmlToSmf } from "./mml-support";
+import { createLogVisualizer } from "./log-visualizer";
+import { createWaveformViewer } from "./waveform-viewer";
+import { normalizeAttachmentText } from "./tone-json-attachment";
+
+const DEFAULT_ATTACHMENT = `[
+  {
+    "ProgramChange": 0,
+    "PopNoiseEnvelope": {
+      "Enabled": true,
+      "OffsetSeconds": 0.002,
+      "Registers": [
+        { "BaseRegister": "0xE0", "Value": "0x0F" },
+        { "BaseRegister": "0xE8", "Value": "0x0F" },
+        { "BaseRegister": "0xF0", "Value": "0x0F" },
+        { "BaseRegister": "0xF8", "Value": "0x0F" }
+      ]
+    }
+  }
+]`;
+
+let wasmReady = false;
+let midiBytes: Uint8Array | null = null;
+let currentOutput: string | null = null;
+let attachmentDebounce: number | null = null;
+let lastMidiSource: "file" | "mml" | null = null;
+let latestMidiRequestId = 0;
+let latestAutoPlayId = 0;
+
+const attachmentField = document.getElementById(
+	"attachment-json",
+) as HTMLTextAreaElement | null;
+const conversionOutput = document.getElementById(
+	"conversion-output",
+) as HTMLTextAreaElement | null;
+const conversionStatus = document.getElementById("conversion-status");
+const attachmentStatus = document.getElementById("attachment-status");
+const registerValidationStatus = document.getElementById(
+	"register-validation-status",
+);
+const fileStatus = document.getElementById("file-status");
+const mmlStatus = document.getElementById("mml-status");
+const eventCount = document.getElementById("event-count");
+const registerReflectionStatus = document.getElementById(
+	"register-reflection-status",
+);
+const jsonEditor = document.getElementById(
+	"jsonEditor",
+) as HTMLTextAreaElement | null;
+const playButton = document.getElementById(
+	"play-audio",
+) as HTMLButtonElement | null;
+const mmlInput = document.getElementById(
+	"mml-input",
+) as HTMLTextAreaElement | null;
+const logVisualizer = createLogVisualizer(
+	document.getElementById("log-visualizer"),
+);
+const waveformViewer = createWaveformViewer(
+	document.getElementById("waveform-canvas") as HTMLCanvasElement | null,
+	{
+		zoomSlider: document.getElementById("wv-zoom") as HTMLInputElement | null,
+		zoomLabel: document.getElementById("wv-zoom-label"),
+		prevNoteBtn: document.getElementById(
+			"wv-prev-note",
+		) as HTMLButtonElement | null,
+		nextNoteBtn: document.getElementById(
+			"wv-next-note",
+		) as HTMLButtonElement | null,
+		channelSelect: document.getElementById(
+			"wv-channel",
+		) as HTMLSelectElement | null,
+		positionLabel: document.getElementById("wv-position"),
+	},
+	ensureWebYm2151(),
+);
+
+function nextRequestId(): number {
+	latestMidiRequestId += 1;
+	return latestMidiRequestId;
+}
+
+function isLatestRequest(id: number): boolean {
+	return id === latestMidiRequestId;
+}
+
+function updateOutputWithState(text: string): void {
+	currentOutput = text;
+	updateOutput(text, conversionOutput, jsonEditor, () => {
+		logVisualizer.renderFromJson(text);
+		waveformViewer.renderFromJson(text);
+		updateRegisterReflectionStatus(text);
+		updatePlayButtonState();
+	});
+}
+
+function updatePlayButtonState(): void {
+	if (!playButton) return;
+	playButton.disabled = !currentOutput;
+}
+
+function updateRegisterReflectionStatus(outputJson: string): void {
+	if (!registerReflectionStatus) return;
+	if (outputJson.trim().length === 0) {
+		setStatus(registerReflectionStatus, "最終 JSON 反映: 未確認");
+		return;
+	}
+	try {
+		const parsed = JSON.parse(outputJson) as {
+			events?: unknown;
+		};
+		const events = Array.isArray(parsed.events)
+			? (parsed.events as Array<{ addr?: string }>)
+			: [];
+		// YM2151 tone-related register groups:
+		// - 0x20..0x27: RL/FB/CONNECT (channel)
+		// - 0x40..0x5f, 0x60..0x7f, 0x80..0x9f, 0xe0..0xff: operator tone params
+		const hasToneLikeRegister = events.some((event) => {
+			if (typeof event.addr !== "string") return false;
+			const addr = Number.parseInt(event.addr, 16);
+			return (
+				Number.isFinite(addr) &&
+				((addr >= 0x20 && addr <= 0x27) ||
+					(addr >= 0x40 && addr <= 0x5f) ||
+					(addr >= 0x60 && addr <= 0x7f) ||
+					(addr >= 0x80 && addr <= 0x9f) ||
+					(addr >= 0xe0 && addr <= 0xff))
+			);
+		});
+		setStatus(
+			registerReflectionStatus,
+			hasToneLikeRegister
+				? "最終 JSON 反映: OK（音色レジスタ書き込みを検出）"
+				: "最終 JSON 反映: NG（音色レジスタ書き込みを検出できません）",
+			!hasToneLikeRegister,
+		);
+	} catch (error) {
+		setStatus(
+			registerReflectionStatus,
+			`最終 JSON 反映: 判定失敗 (${(error as Error).message})`,
+			true,
+		);
+	}
+}
+
+function countRegisterNormalizationTargets(rawJson: string): number {
+	const parsed = JSON.parse(rawJson) as unknown;
+	if (Array.isArray(parsed)) {
+		return parsed.reduce((count, item) => {
+			if (!item || typeof item !== "object" || Array.isArray(item)) return count;
+			const entry = item as Record<string, unknown>;
+			const hasRegisters =
+				typeof entry.registers === "string" && entry.registers.length > 0;
+			const hasCompactTone =
+				typeof entry.CompactTone === "string" && entry.CompactTone.length > 0;
+			const tone = entry.Tone;
+			const hasToneRegisters =
+				tone !== null &&
+				typeof tone === "object" &&
+				!Array.isArray(tone) &&
+				typeof (tone as Record<string, unknown>).registers === "string" &&
+				((tone as Record<string, unknown>).registers as string).length > 0;
+			return hasRegisters || hasCompactTone || hasToneRegisters
+				? count + 1
+				: count;
+		}, 0);
+	}
+	if (!parsed || typeof parsed !== "object") {
+		return 0;
+	}
+	const obj = parsed as Record<string, unknown>;
+	const compactTones = obj.CompactTones;
+	if (
+		compactTones !== null &&
+		typeof compactTones === "object" &&
+		!Array.isArray(compactTones)
+	) {
+		return Object.values(compactTones).filter(
+			(value) => typeof value === "string" && value.length > 0,
+		).length;
+	}
+	return 0;
+}
+
+async function initializeWasm(): Promise<void> {
+	wasmReady = await ensureWasmInitialized(
+		(message, isError) => setStatus(conversionStatus, message, isError),
+		"WASM 初期化完了。MIDI を読み込んでください。",
+	);
+}
+
+function readAttachmentBytes(): Uint8Array | null {
+	if (!attachmentField) return new Uint8Array();
+	const raw = attachmentField.value.trim();
+	if (raw.length === 0) {
+		setStatus(attachmentStatus, "添付 JSON は空です (ポップノイズ対策なし)");
+		setStatus(registerValidationStatus, "registers 検証: 未実行");
+		return new Uint8Array();
+	}
+	let normalizationTargetCount = 0;
+	try {
+		normalizationTargetCount = countRegisterNormalizationTargets(raw);
+	} catch {
+		normalizationTargetCount = 0;
+	}
+	const normalized = normalizeAttachmentText(raw, attachmentStatus);
+	if (normalized === null) {
+		const detail = attachmentStatus?.textContent?.trim();
+		setStatus(
+			registerValidationStatus,
+			detail ? `registers 検証: NG (${detail})` : "registers 検証: NG",
+			true,
+		);
+		return null;
+	}
+	const normalizedTrimmed = normalized.trim();
+	if (normalizedTrimmed.length > 0) {
+		try {
+			JSON.parse(normalizedTrimmed);
+			if (normalizationTargetCount > 0) {
+				setStatus(
+					registerValidationStatus,
+					`registers 検証: OK（${normalizationTargetCount}件を正規化）`,
+				);
+			} else {
+				setStatus(registerValidationStatus, "registers 検証: 対象なし");
+			}
+		} catch (error) {
+			setStatus(
+				registerValidationStatus,
+				`registers 検証: NG (${(error as Error).message})`,
+				true,
+			);
+			return null;
+		}
+	} else {
+		setStatus(registerValidationStatus, "registers 検証: 未実行");
+	}
+	return new TextEncoder().encode(normalized);
+}
+
+async function runConversion(trigger: string): Promise<void> {
+	if (!wasmReady) {
+		setStatus(conversionStatus, "WASM 初期化中です。少しお待ちください...");
+		return;
+	}
+	if (!midiBytes) {
+		setStatus(
+			conversionStatus,
+			"MIDI ファイルを選択するか、MML を入力してください。",
+			true,
+		);
+		return;
+	}
+
+	const attachmentBytes = readAttachmentBytes();
+	if (attachmentBytes === null) {
+		updatePlayButtonState();
+		return;
+	}
+
+	try {
+		const triggerLabel =
+			lastMidiSource === "mml"
+				? `${trigger} (MML 入力)`
+				: lastMidiSource === "file"
+					? `${trigger} (SMF ファイル)`
+					: trigger;
+		setStatus(conversionStatus, `変換中... (${triggerLabel})`);
+		const result = smf_to_ym2151_json_with_attachment(
+			midiBytes,
+			attachmentBytes,
+		);
+		const parsed = JSON.parse(result);
+		const formatted = JSON.stringify(parsed, null, 2);
+		setEventCountDisplay(
+			eventCount,
+			typeof parsed.event_count === "number" ? parsed.event_count : undefined,
+		);
+		updateOutputWithState(formatted);
+		setStatus(conversionStatus, "変換が完了しました。");
+		void handlePlay(++latestAutoPlayId);
+	} catch (error) {
+		updateOutputWithState("");
+		setEventCountDisplay(eventCount, undefined);
+		setStatus(
+			conversionStatus,
+			`変換に失敗しました: ${(error as Error).message}`,
+			true,
+		);
+	}
+}
+
+async function handlePlay(autoPlayId?: number): Promise<void> {
+	if (!currentOutput) {
+		setStatus(conversionStatus, "先に SMF を変換してください。", true);
+		return;
+	}
+	setStatus(conversionStatus, "web-ym2151 で再生します...");
+	try {
+		const api = await ensureWebYm2151();
+		if (autoPlayId !== undefined && autoPlayId !== latestAutoPlayId) {
+			return;
+		}
+		api.playAudioWithOverlay();
+		setStatus(conversionStatus, "再生コマンドを送信しました。");
+	} catch (error) {
+		setStatus(
+			conversionStatus,
+			`再生に失敗しました: ${(error as Error).message}`,
+			true,
+		);
+	}
+}
+
+function setupAttachmentEditor(): void {
+	if (!attachmentField) return;
+	attachmentField.value = DEFAULT_ATTACHMENT;
+	attachmentField.addEventListener("input", () => {
+		if (attachmentDebounce) {
+			window.clearTimeout(attachmentDebounce);
+		}
+		attachmentDebounce = window.setTimeout(() => {
+			void runConversion("添付 JSON 更新");
+		}, 400);
+	});
+}
+
+function setupMmlInput(): void {
+	setupMmlToSmf({
+		mmlInput,
+		mmlStatus,
+		fileStatus,
+		nextRequestId,
+		isLatestRequest,
+		onMidiReady: (bytes) => {
+			midiBytes = bytes;
+			lastMidiSource = "mml";
+		},
+		onClear: () => {
+			if (lastMidiSource === "mml") {
+				midiBytes = null;
+				lastMidiSource = null;
+			}
+		},
+		onAfterConvert: (trigger) => {
+			void runConversion(trigger);
+		},
+	});
+}
+
+function setupMidiInput(): void {
+	const midiInput = document.getElementById(
+		"midi-input",
+	) as HTMLInputElement | null;
+	if (!midiInput) return;
+
+	midiInput.addEventListener("change", async (event) => {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (!file) {
+			nextRequestId();
+			midiBytes = null;
+			lastMidiSource = null;
+			updateOutputWithState("");
+			setEventCountDisplay(eventCount, undefined);
+			setStatus(
+				fileStatus,
+				"SMF ファイルを選択するか、MML を入力してください。",
+			);
+			updatePlayButtonState();
+			return;
+		}
+
+		const requestId = nextRequestId();
+		setStatus(fileStatus, `${file.name} を読み込み中...`);
+		try {
+			const arrayBuffer = await file.arrayBuffer();
+			if (!isLatestRequest(requestId)) {
+				return;
+			}
+			midiBytes = new Uint8Array(arrayBuffer);
+			lastMidiSource = "file";
+			setStatus(
+				fileStatus,
+				`${file.name} を読み込みました (${midiBytes.byteLength} bytes)`,
+			);
+			void runConversion("MIDI 更新");
+		} catch (error) {
+			midiBytes = null;
+			lastMidiSource = null;
+			setStatus(
+				fileStatus,
+				`読み込みに失敗しました: ${(error as Error).message}`,
+				true,
+			);
+		}
+	});
+}
+
+function setupPlayButton(): void {
+	if (!playButton) return;
+	playButton.addEventListener("click", () => {
+		void handlePlay();
+	});
+}
+
+function setupWavExportButton(): void {
+	const wavExportBtn = document.getElementById(
+		"wv-export-wav",
+	) as HTMLButtonElement | null;
+	if (!wavExportBtn) return;
+	wavExportBtn.addEventListener("click", () => {
+		waveformViewer.exportWav("waveform.wav");
+	});
+}
+
+/** URL of the ym2151-tone-editor WASM library used for random tone generation. */
+const YM2151_TONE_EDITOR_WASM_URL =
+	"https://cat2151.github.io/ym2151-tone-editor/demo-library/pkg/ym2151_wasm.js";
+
+/** MIDI note number used when generating random tones (A4 = 69). */
+const DEFAULT_MIDI_NOTE_FOR_RANDOM = 69;
+
+/** Cached promise that resolves to the generate_random_tone_registers function. */
+let toneEditorInitPromise: Promise<
+	(seed: number, midiNote: number) => string
+> | null = null;
+
+/** Load the ym2151-tone-editor WASM once and return the generation function. */
+function getToneEditorGenerator(): Promise<
+	(seed: number, midiNote: number) => string
+> {
+	if (!toneEditorInitPromise) {
+		toneEditorInitPromise = (async () => {
+			try {
+				const mod = await import(
+					/* @vite-ignore */ YM2151_TONE_EDITOR_WASM_URL
+				);
+				await mod.default();
+				return mod.generate_random_tone_registers as (
+					seed: number,
+					midiNote: number,
+				) => string;
+			} catch (e) {
+				toneEditorInitPromise = null;
+				throw e;
+			}
+		})();
+	}
+	return toneEditorInitPromise;
+}
+
+async function applyRandomToneToAttachment(): Promise<void> {
+	if (!attachmentField) return;
+
+	let entries: Array<Record<string, unknown>>;
+	try {
+		const parsed = JSON.parse(attachmentField.value);
+		if (!Array.isArray(parsed)) {
+			setStatus(
+				attachmentStatus,
+				"JSON が配列ではありません。ランダム音色を適用できません。",
+				true,
+			);
+			return;
+		}
+		entries = parsed;
+	} catch {
+		setStatus(
+			attachmentStatus,
+			"JSON が不正なためランダム音色を適用できません。",
+			true,
+		);
+		return;
+	}
+
+	let registers: string;
+	try {
+		const generate = await getToneEditorGenerator();
+		registers = generate(Date.now(), DEFAULT_MIDI_NOTE_FOR_RANDOM);
+	} catch {
+		setStatus(
+			attachmentStatus,
+			"ym2151-tone-editor の読み込みに失敗しました。ランダム音色を適用できません。",
+			true,
+		);
+		return;
+	}
+
+	const entryIndex = entries.findIndex(
+		(e) => (e as { ProgramChange?: number }).ProgramChange === 0,
+	);
+	const baseEntry: Record<string, unknown> =
+		entryIndex >= 0 ? { ...entries[entryIndex] } : { ProgramChange: 0 };
+
+	delete baseEntry.Tone;
+	baseEntry.registers = registers;
+
+	if (entryIndex >= 0) {
+		entries[entryIndex] = baseEntry;
+	} else {
+		entries.unshift(baseEntry);
+	}
+
+	attachmentField.value = JSON.stringify(entries, null, 2);
+	void runConversion("ランダム音色");
+}
+
+function setupRandomToneButton(): void {
+	const randomToneBtn = document.getElementById(
+		"random-tone",
+	) as HTMLButtonElement | null;
+	if (!randomToneBtn) return;
+	randomToneBtn.addEventListener("click", () => {
+		void applyRandomToneToAttachment();
+	});
+}
+
+function bootstrap(): void {
+	void initializeWasm();
+	setupAttachmentEditor();
+	setupMidiInput();
+	setupPlayButton();
+	setupMmlInput();
+	setupWavExportButton();
+	setupRandomToneButton();
+}
+
+bootstrap();
+
+{% endraw %}
+```
+
 ### issue-notes/177.md
 ```md
 {% raw %}
 # issue （人力）添付JSONまわりのドッグフーディングをする #177
 [issues #177](https://github.com/cat2151/smf-to-ym2151log-rust/issues/177)
+
+
+
+{% endraw %}
+```
+
+### issue-notes/224.md
+```md
+{% raw %}
+# issue すべてのdemoにランダム音色ボタンをつける。ランダム音色ボタンの実装方法はポップノイズ対策demoの実装を参考にすること #224
+[issues #224](https://github.com/cat2151/smf-to-ym2151log-rust/issues/224)
 
 
 
@@ -882,21 +1764,18 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+b4f3708 Add issue note for #224 [auto]
+6f4160f Merge pull request #223 from cat2151/copilot/implement-visualization-for-register-validation
+08d2606 fix(demo): stabilize reflection check and count real register normalization targets
+3b5cee6 chore(demo): improve register status messaging clarity
+8b1ddc4 feat(demo): visualize register validation and output reflection in pop-noise demo
+15903ef Initial plan
+c014c4d Add issue note for #222 [auto]
+0f08805 Update project summaries (overview & development status) [auto]
 58cd239 Merge pull request #221 from cat2151/copilot/fix-deploy-demo-workflow
 2580fde fix: add Record<string, unknown> type to baseEntry in pop-noise-demo.ts
-326605d Initial plan
-c78c005 Auto-translate README.ja.md to README.md [auto]
-b907f90 style: auto-format with cargo fmt
-c16c8db Merge pull request #220 from cat2151/copilot/update-tones-json-storage
-fe902cb Simplify tones dir path: remove org segment and data suffix
-81cd2bc Fix tone data dir naming, test robustness, and documented paths
-8dfaef5 Change tone JSON loading to platform config dir (directories crate)
-6cf6c1c Add issue note for #219 [auto]
 
 ### 変更されたファイル:
-Cargo.lock
-Cargo.toml
-README.ja.md
 README.md
 demo-library/pop-noise-demo.ts
 demo-library/pop-noise.html
@@ -904,15 +1783,10 @@ generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
-issue-notes/208.md
-issue-notes/209.md
-issue-notes/212.md
-issue-notes/213.md
 issue-notes/219.md
-issue-notes/33.md
+issue-notes/224.md
 src/ym2151/tone.rs
-tests/integration_program_change.rs
 
 
 ---
-Generated at: 2026-03-18 07:14:18 JST
+Generated at: 2026-03-21 07:10:29 JST
