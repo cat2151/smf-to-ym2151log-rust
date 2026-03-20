@@ -4,7 +4,6 @@ import { smf_to_ym2151_json_with_attachment } from "smf-to-ym2151log-rust/pkg/sm
 import {
 	ensureWasmInitialized,
 	ensureWebYm2151,
-	parseAttachmentField,
 	setEventCountDisplay,
 	setStatus,
 	updateOutput,
@@ -12,6 +11,7 @@ import {
 import { setupMmlToSmf } from "./mml-support";
 import { createLogVisualizer } from "./log-visualizer";
 import { createWaveformViewer } from "./waveform-viewer";
+import { normalizeAttachmentText } from "./tone-json-attachment";
 
 const DEFAULT_ATTACHMENT = `[
   {
@@ -45,9 +45,15 @@ const conversionOutput = document.getElementById(
 ) as HTMLTextAreaElement | null;
 const conversionStatus = document.getElementById("conversion-status");
 const attachmentStatus = document.getElementById("attachment-status");
+const registerValidationStatus = document.getElementById(
+	"register-validation-status",
+);
 const fileStatus = document.getElementById("file-status");
 const mmlStatus = document.getElementById("mml-status");
 const eventCount = document.getElementById("event-count");
+const registerReflectionStatus = document.getElementById(
+	"register-reflection-status",
+);
 const jsonEditor = document.getElementById(
 	"jsonEditor",
 ) as HTMLTextAreaElement | null;
@@ -93,6 +99,7 @@ function updateOutputWithState(text: string): void {
 	updateOutput(text, conversionOutput, jsonEditor, () => {
 		logVisualizer.renderFromJson(text);
 		waveformViewer.renderFromJson(text);
+		updateRegisterReflectionStatus(text);
 		updatePlayButtonState();
 	});
 }
@@ -100,6 +107,89 @@ function updateOutputWithState(text: string): void {
 function updatePlayButtonState(): void {
 	if (!playButton) return;
 	playButton.disabled = !currentOutput;
+}
+
+function updateRegisterReflectionStatus(outputJson: string): void {
+	if (!registerReflectionStatus) return;
+	if (outputJson.trim().length === 0) {
+		setStatus(registerReflectionStatus, "最終 JSON 反映: 未確認");
+		return;
+	}
+	try {
+		const parsed = JSON.parse(outputJson) as {
+			events?: unknown;
+		};
+		const events = Array.isArray(parsed.events)
+			? (parsed.events as Array<{ addr?: string }>)
+			: [];
+		// YM2151 tone-related register groups:
+		// - 0x20..0x27: RL/FB/CONNECT (channel)
+		// - 0x40..0x5f, 0x60..0x7f, 0x80..0x9f, 0xe0..0xff: operator tone params
+		const hasToneLikeRegister = events.some((event) => {
+			if (typeof event.addr !== "string") return false;
+			const addr = Number.parseInt(event.addr, 16);
+			return (
+				Number.isFinite(addr) &&
+				((addr >= 0x20 && addr <= 0x27) ||
+					(addr >= 0x40 && addr <= 0x5f) ||
+					(addr >= 0x60 && addr <= 0x7f) ||
+					(addr >= 0x80 && addr <= 0x9f) ||
+					(addr >= 0xe0 && addr <= 0xff))
+			);
+		});
+		setStatus(
+			registerReflectionStatus,
+			hasToneLikeRegister
+				? "最終 JSON 反映: OK（音色レジスタ書き込みを検出）"
+				: "最終 JSON 反映: NG（音色レジスタ書き込みを検出できません）",
+			!hasToneLikeRegister,
+		);
+	} catch (error) {
+		setStatus(
+			registerReflectionStatus,
+			`最終 JSON 反映: 判定失敗 (${(error as Error).message})`,
+			true,
+		);
+	}
+}
+
+function countRegisterNormalizationTargets(rawJson: string): number {
+	const parsed = JSON.parse(rawJson) as unknown;
+	if (Array.isArray(parsed)) {
+		return parsed.reduce((count, item) => {
+			if (!item || typeof item !== "object" || Array.isArray(item)) return count;
+			const entry = item as Record<string, unknown>;
+			const hasRegisters =
+				typeof entry.registers === "string" && entry.registers.length > 0;
+			const hasCompactTone =
+				typeof entry.CompactTone === "string" && entry.CompactTone.length > 0;
+			const tone = entry.Tone;
+			const hasToneRegisters =
+				tone !== null &&
+				typeof tone === "object" &&
+				!Array.isArray(tone) &&
+				typeof (tone as Record<string, unknown>).registers === "string" &&
+				((tone as Record<string, unknown>).registers as string).length > 0;
+			return hasRegisters || hasCompactTone || hasToneRegisters
+				? count + 1
+				: count;
+		}, 0);
+	}
+	if (!parsed || typeof parsed !== "object") {
+		return 0;
+	}
+	const obj = parsed as Record<string, unknown>;
+	const compactTones = obj.CompactTones;
+	if (
+		compactTones !== null &&
+		typeof compactTones === "object" &&
+		!Array.isArray(compactTones)
+	) {
+		return Object.values(compactTones).filter(
+			(value) => typeof value === "string" && value.length > 0,
+		).length;
+	}
+	return 0;
 }
 
 async function initializeWasm(): Promise<void> {
@@ -110,12 +200,53 @@ async function initializeWasm(): Promise<void> {
 }
 
 function readAttachmentBytes(): Uint8Array | null {
-	return parseAttachmentField(
-		attachmentField,
-		attachmentStatus,
-		"添付 JSON は空です (ポップノイズ対策なし)",
-		"添付 JSON を適用します",
-	);
+	if (!attachmentField) return new Uint8Array();
+	const raw = attachmentField.value.trim();
+	if (raw.length === 0) {
+		setStatus(attachmentStatus, "添付 JSON は空です (ポップノイズ対策なし)");
+		setStatus(registerValidationStatus, "registers 検証: 未実行");
+		return new Uint8Array();
+	}
+	let normalizationTargetCount = 0;
+	try {
+		normalizationTargetCount = countRegisterNormalizationTargets(raw);
+	} catch {
+		normalizationTargetCount = 0;
+	}
+	const normalized = normalizeAttachmentText(raw, attachmentStatus);
+	if (normalized === null) {
+		const detail = attachmentStatus?.textContent?.trim();
+		setStatus(
+			registerValidationStatus,
+			detail ? `registers 検証: NG (${detail})` : "registers 検証: NG",
+			true,
+		);
+		return null;
+	}
+	const normalizedTrimmed = normalized.trim();
+	if (normalizedTrimmed.length > 0) {
+		try {
+			JSON.parse(normalizedTrimmed);
+			if (normalizationTargetCount > 0) {
+				setStatus(
+					registerValidationStatus,
+					`registers 検証: OK（${normalizationTargetCount}件を正規化）`,
+				);
+			} else {
+				setStatus(registerValidationStatus, "registers 検証: 対象なし");
+			}
+		} catch (error) {
+			setStatus(
+				registerValidationStatus,
+				`registers 検証: NG (${(error as Error).message})`,
+				true,
+			);
+			return null;
+		}
+	} else {
+		setStatus(registerValidationStatus, "registers 検証: 未実行");
+	}
+	return new TextEncoder().encode(normalized);
 }
 
 async function runConversion(trigger: string): Promise<void> {
