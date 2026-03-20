@@ -20,6 +20,10 @@ import {
 	getParseTreeJsonToSmf,
 	treeToJson,
 } from "./tone-json-mml";
+import {
+	generateRandomToneRegisters,
+	upsertAttachmentRegisters,
+} from "./random-tone";
 
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;
@@ -342,10 +346,49 @@ async function initializeWasm(): Promise<void> {
 	);
 }
 
+async function applyRandomToneToAttachment(): Promise<void> {
+	if (!toneJsonField) return;
+
+	let registers: string;
+	try {
+		registers = await generateRandomToneRegisters();
+	} catch {
+		setStatus(
+			attachmentStatus,
+			"ym2151-tone-editor の読み込みに失敗しました。ランダム音色を適用できません。",
+			true,
+		);
+		return;
+	}
+
+	try {
+		toneJsonField.value = upsertAttachmentRegisters(toneJsonField.value, registers);
+		if (attachmentPresetSelect) {
+			attachmentPresetSelect.value = "";
+		}
+	} catch (error) {
+		setStatus(attachmentStatus, (error as Error).message, true);
+		return;
+	}
+
+	void runConversion("ランダム音色");
+}
+
+function setupRandomToneButton(): void {
+	const randomToneButton = document.getElementById(
+		"random-tone",
+	) as HTMLButtonElement | null;
+	if (!randomToneButton) return;
+	randomToneButton.addEventListener("click", () => {
+		void applyRandomToneToAttachment();
+	});
+}
+
 function main(): void {
 	setupAttachmentEditor();
 	setupMidiInput();
 	setupMmlInput();
+	setupRandomToneButton();
 	updateOutputWithState("");
 	updatePlayButtonState();
 	bootstrapWebYm();
