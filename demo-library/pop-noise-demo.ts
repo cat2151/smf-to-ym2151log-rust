@@ -117,12 +117,15 @@ function updateRegisterReflectionStatus(outputJson: string): void {
 	}
 	try {
 		const parsed = JSON.parse(outputJson) as {
-			events?: Array<{ addr?: string }>;
+			events?: unknown;
 		};
+		const events = Array.isArray(parsed.events)
+			? (parsed.events as Array<{ addr?: string }>)
+			: [];
 		// YM2151 tone-related register groups:
 		// - 0x20..0x27: RL/FB/CONNECT (channel)
 		// - 0x40..0x5f, 0x60..0x7f, 0x80..0x9f, 0xe0..0xff: operator tone params
-		const hasToneLikeRegister = (parsed.events ?? []).some((event) => {
+		const hasToneLikeRegister = events.some((event) => {
 			if (typeof event.addr !== "string") return false;
 			const addr = Number.parseInt(event.addr, 16);
 			return (
@@ -150,6 +153,45 @@ function updateRegisterReflectionStatus(outputJson: string): void {
 	}
 }
 
+function countRegisterNormalizationTargets(rawJson: string): number {
+	const parsed = JSON.parse(rawJson) as unknown;
+	if (Array.isArray(parsed)) {
+		return parsed.reduce((count, item) => {
+			if (!item || typeof item !== "object" || Array.isArray(item)) return count;
+			const entry = item as Record<string, unknown>;
+			const hasRegisters =
+				typeof entry.registers === "string" && entry.registers.length > 0;
+			const hasCompactTone =
+				typeof entry.CompactTone === "string" && entry.CompactTone.length > 0;
+			const tone = entry.Tone;
+			const hasToneRegisters =
+				tone !== null &&
+				typeof tone === "object" &&
+				!Array.isArray(tone) &&
+				typeof (tone as Record<string, unknown>).registers === "string" &&
+				((tone as Record<string, unknown>).registers as string).length > 0;
+			return hasRegisters || hasCompactTone || hasToneRegisters
+				? count + 1
+				: count;
+		}, 0);
+	}
+	if (!parsed || typeof parsed !== "object") {
+		return 0;
+	}
+	const obj = parsed as Record<string, unknown>;
+	const compactTones = obj.CompactTones;
+	if (
+		compactTones !== null &&
+		typeof compactTones === "object" &&
+		!Array.isArray(compactTones)
+	) {
+		return Object.values(compactTones).filter(
+			(value) => typeof value === "string" && value.length > 0,
+		).length;
+	}
+	return 0;
+}
+
 async function initializeWasm(): Promise<void> {
 	wasmReady = await ensureWasmInitialized(
 		(message, isError) => setStatus(conversionStatus, message, isError),
@@ -165,6 +207,12 @@ function readAttachmentBytes(): Uint8Array | null {
 		setStatus(registerValidationStatus, "registers 検証: 未実行");
 		return new Uint8Array();
 	}
+	let normalizationTargetCount = 0;
+	try {
+		normalizationTargetCount = countRegisterNormalizationTargets(raw);
+	} catch {
+		normalizationTargetCount = 0;
+	}
 	const normalized = normalizeAttachmentText(raw, attachmentStatus);
 	if (normalized === null) {
 		const detail = attachmentStatus?.textContent?.trim();
@@ -178,12 +226,15 @@ function readAttachmentBytes(): Uint8Array | null {
 	const normalizedTrimmed = normalized.trim();
 	if (normalizedTrimmed.length > 0) {
 		try {
-			const parsed = JSON.parse(normalizedTrimmed);
-			const entryCount = Array.isArray(parsed) ? parsed.length : 1;
-			setStatus(
-				registerValidationStatus,
-				`registers 検証: OK（${entryCount}エントリを正規化）`,
-			);
+			JSON.parse(normalizedTrimmed);
+			if (normalizationTargetCount > 0) {
+				setStatus(
+					registerValidationStatus,
+					`registers 検証: OK（${normalizationTargetCount}件を正規化）`,
+				);
+			} else {
+				setStatus(registerValidationStatus, "registers 検証: 対象なし");
+			}
 		} catch (error) {
 			setStatus(
 				registerValidationStatus,
