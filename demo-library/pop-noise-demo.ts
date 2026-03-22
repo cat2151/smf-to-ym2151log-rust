@@ -11,6 +11,10 @@ import {
 import { setupMmlToSmf } from "./mml-support";
 import { createLogVisualizer } from "./log-visualizer";
 import { createWaveformViewer } from "./waveform-viewer";
+import {
+	generateRandomToneRegisters,
+	upsertAttachmentRegisters,
+} from "./random-tone";
 import { normalizeAttachmentText } from "./tone-json-attachment";
 
 const DEFAULT_ATTACHMENT = `[
@@ -157,7 +161,8 @@ function countRegisterNormalizationTargets(rawJson: string): number {
 	const parsed = JSON.parse(rawJson) as unknown;
 	if (Array.isArray(parsed)) {
 		return parsed.reduce((count, item) => {
-			if (!item || typeof item !== "object" || Array.isArray(item)) return count;
+			if (!item || typeof item !== "object" || Array.isArray(item))
+				return count;
 			const entry = item as Record<string, unknown>;
 			const hasRegisters =
 				typeof entry.registers === "string" && entry.registers.length > 0;
@@ -425,70 +430,12 @@ function setupWavExportButton(): void {
 	});
 }
 
-/** URL of the ym2151-tone-editor WASM library used for random tone generation. */
-const YM2151_TONE_EDITOR_WASM_URL =
-	"https://cat2151.github.io/ym2151-tone-editor/demo-library/pkg/ym2151_wasm.js";
-
-/** MIDI note number used when generating random tones (A4 = 69). */
-const DEFAULT_MIDI_NOTE_FOR_RANDOM = 69;
-
-/** Cached promise that resolves to the generate_random_tone_registers function. */
-let toneEditorInitPromise: Promise<
-	(seed: number, midiNote: number) => string
-> | null = null;
-
-/** Load the ym2151-tone-editor WASM once and return the generation function. */
-function getToneEditorGenerator(): Promise<
-	(seed: number, midiNote: number) => string
-> {
-	if (!toneEditorInitPromise) {
-		toneEditorInitPromise = (async () => {
-			try {
-				const mod = await import(
-					/* @vite-ignore */ YM2151_TONE_EDITOR_WASM_URL
-				);
-				await mod.default();
-				return mod.generate_random_tone_registers as (
-					seed: number,
-					midiNote: number,
-				) => string;
-			} catch (e) {
-				toneEditorInitPromise = null;
-				throw e;
-			}
-		})();
-	}
-	return toneEditorInitPromise;
-}
-
 async function applyRandomToneToAttachment(): Promise<void> {
 	if (!attachmentField) return;
 
-	let entries: Array<Record<string, unknown>>;
-	try {
-		const parsed = JSON.parse(attachmentField.value);
-		if (!Array.isArray(parsed)) {
-			setStatus(
-				attachmentStatus,
-				"JSON が配列ではありません。ランダム音色を適用できません。",
-				true,
-			);
-			return;
-		}
-		entries = parsed;
-	} catch {
-		setStatus(
-			attachmentStatus,
-			"JSON が不正なためランダム音色を適用できません。",
-			true,
-		);
-		return;
-	}
-
 	let registers: string;
 	try {
-		const generate = await getToneEditorGenerator();
-		registers = generate(Date.now(), DEFAULT_MIDI_NOTE_FOR_RANDOM);
+		registers = await generateRandomToneRegisters();
 	} catch {
 		setStatus(
 			attachmentStatus,
@@ -498,22 +445,16 @@ async function applyRandomToneToAttachment(): Promise<void> {
 		return;
 	}
 
-	const entryIndex = entries.findIndex(
-		(e) => (e as { ProgramChange?: number }).ProgramChange === 0,
-	);
-	const baseEntry: Record<string, unknown> =
-		entryIndex >= 0 ? { ...entries[entryIndex] } : { ProgramChange: 0 };
-
-	delete baseEntry.Tone;
-	baseEntry.registers = registers;
-
-	if (entryIndex >= 0) {
-		entries[entryIndex] = baseEntry;
-	} else {
-		entries.unshift(baseEntry);
+	try {
+		attachmentField.value = upsertAttachmentRegisters(
+			attachmentField.value,
+			registers,
+		);
+	} catch (error) {
+		setStatus(attachmentStatus, (error as Error).message, true);
+		return;
 	}
 
-	attachmentField.value = JSON.stringify(entries, null, 2);
 	void runConversion("ランダム音色");
 }
 
