@@ -14,6 +14,7 @@ import { createWaveformViewer } from "./waveform-viewer";
 import {
 	generateRandomToneRegisters,
 	upsertAttachmentRegisters,
+	validateRandomToneAttachment,
 } from "./random-tone";
 import { normalizeAttachmentText } from "./tone-json-attachment";
 
@@ -432,6 +433,13 @@ function setupWavExportButton(): void {
 
 async function applyRandomToneToAttachment(): Promise<void> {
 	if (!attachmentField) return;
+
+	try {
+		validateRandomToneAttachment(attachmentField.value);
+	} catch (error) {
+		setStatus(attachmentStatus, (error as Error).message, true);
+		return;
+	}
 
 	let registers: string;
 	try {
