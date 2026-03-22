@@ -16,6 +16,11 @@ pub(super) fn insert_at_tail_of_time(
     counters: &mut HashMap<u64, u64>,
     event: Ym2151Event,
 ) {
+    debug_assert!(
+        event.time.is_finite() && event.time >= 0.0,
+        "Event time must be finite and non-negative (got {})",
+        event.time
+    );
     let time_bits = event.time.to_bits();
     let sub_index = counters.entry(time_bits).or_insert(0);
     map.insert((time_bits, *sub_index), event);
