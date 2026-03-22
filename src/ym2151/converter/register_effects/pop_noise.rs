@@ -91,10 +91,10 @@ pub(in crate::ym2151::converter) fn append_pop_noise_envelope_events(
         // Only back-to-back notes have a key-off exactly at segment.start_time;
         // skip when the channel was already silent before apply_time.
         if any_override {
-            if let Some(mut key_off) = events.remove_matching(|event| {
-                event.addr == "0x08"
-                    && event.data == channel_key_off_data
-                    && (event.time - segment.start_time).abs() < TIME_LOOP_EPSILON
+            if let Some(mut key_off) = events.remove_matching(|ev| {
+                ev.addr == "0x08"
+                    && ev.data == channel_key_off_data
+                    && (ev.time - segment.start_time).abs() < TIME_LOOP_EPSILON
             }) {
                 key_off.time = apply_time;
                 // Tail insertion: key-off sub_index falls after all register overrides at apply_time

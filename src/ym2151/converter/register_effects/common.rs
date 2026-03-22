@@ -5,13 +5,6 @@ use crate::ym2151::Ym2151Event;
 /// Small tolerance for time-loop termination conditions to absorb accumulated f64 rounding errors.
 pub(super) const TIME_LOOP_EPSILON: f64 = 1e-9;
 
-fn insert_sub_index(counters: &mut HashMap<u64, u64>, time_bits: u64) -> u64 {
-    let sub_index = counters.entry(time_bits).or_insert(0);
-    let current = *sub_index;
-    *sub_index += 1;
-    current
-}
-
 /// Inserts an event at the tail of its time bucket in the map.
 /// `counters` tracks the next sub_index per time bucket, giving O(1) insertion.
 /// Callers choose tail insertion to express "this event comes last within this timestamp".
@@ -24,8 +17,9 @@ pub(super) fn insert_at_tail_of_time(
     event: Ym2151Event,
 ) {
     let time_bits = event.time.to_bits();
-    let sub_index = insert_sub_index(counters, time_bits);
-    map.insert((time_bits, sub_index), event);
+    let sub_index = counters.entry(time_bits).or_insert(0);
+    map.insert((time_bits, *sub_index), event);
+    *sub_index += 1;
 }
 
 pub(super) fn resolve_register_for_channel(base_register: u8, channel: u8) -> u8 {
