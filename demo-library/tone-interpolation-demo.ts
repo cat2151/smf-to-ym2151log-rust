@@ -11,7 +11,11 @@ import {
 import { normalizeAttachmentText } from "./tone-json-attachment";
 import { setupMmlToSmf } from "./mml-support";
 import { createLogVisualizer } from "./log-visualizer";
-import { buildRandomInterpolationAttachment } from "./random-tone";
+import {
+	buildRandomInterpolationAttachment,
+	generateRandomInterpolationPairRegisters,
+	upsertInterpolationAttachmentRegisters,
+} from "./random-tone";
 
 const DEFAULT_COMPACT_ATTACHMENT = `[
   {
@@ -209,16 +213,30 @@ function setupAttachmentEditor(): void {
 
 async function applyRandomToneToAttachment(): Promise<void> {
 	if (!attachmentField) return;
+	let randomPair: [string, string];
 	try {
-		attachmentField.value = await buildRandomInterpolationAttachment();
-		void runConversion("ランダム音色");
+		randomPair = await generateRandomInterpolationPairRegisters();
 	} catch {
 		setStatus(
 			attachmentStatus,
 			"ym2151-tone-editor の読み込みに失敗しました。ランダム音色を適用できません。",
 			true,
 		);
+		return;
 	}
+
+	try {
+		attachmentField.value = upsertInterpolationAttachmentRegisters(
+			attachmentField.value,
+			randomPair[0],
+			randomPair[1],
+		);
+	} catch (error) {
+		setStatus(attachmentStatus, (error as Error).message, true);
+		return;
+	}
+
+	void runConversion("ランダム音色");
 }
 
 function setupRandomToneButton(): void {

@@ -37,12 +37,18 @@ export async function generateRandomToneRegisters(
 	return generate(seed, midiNote);
 }
 
-/** Replace or insert compact tone registers for the selected ProgramChange entry. */
-export function upsertAttachmentRegisters(
-	rawAttachment: string,
-	registers: string,
-	programChange = 0,
-): string {
+/** Generate a distinct pair of compact YM2151 tone registers for interpolation. */
+export async function generateRandomInterpolationPairRegisters(
+	seed = Date.now(),
+): Promise<[string, string]> {
+	const generate = await getToneEditorGenerator();
+	return [
+		generate(seed, DEFAULT_MIDI_NOTE_FOR_RANDOM),
+		generate(seed + 100000, DEFAULT_MIDI_NOTE_FOR_RANDOM),
+	];
+}
+
+function parseAttachmentEntries(rawAttachment: string): Array<Record<string, unknown>> {
 	let parsed: unknown;
 	try {
 		parsed = JSON.parse(rawAttachment);
@@ -53,24 +59,74 @@ export function upsertAttachmentRegisters(
 		throw new Error("JSON が配列ではありません。ランダム音色を適用できません。");
 	}
 
-	const entries = parsed as Array<Record<string, unknown>>;
+	return parsed as Array<Record<string, unknown>>;
+}
+
+/**
+ * Replace or insert the compact `registers` field for one ProgramChange entry.
+ * Existing fields are preserved so the demos keep their attachment-specific
+ * settings and user-edited JSON shape. `normalizeAttachmentText()` will still
+ * prefer the injected compact registers during conversion, so keeping `Tone`
+ * here avoids clobbering the textarea content without changing runtime behavior.
+ */
+function upsertEntryRegisters(
+	entries: Array<Record<string, unknown>>,
+	registers: string,
+	programChange: number,
+	insertIndex: number,
+	defaultEntry: Record<string, unknown>,
+): void {
 	const entryIndex = entries.findIndex(
 		(entry) => (entry as { ProgramChange?: number }).ProgramChange === programChange,
 	);
 	const baseEntry: Record<string, unknown> =
 		entryIndex >= 0
 			? { ...entries[entryIndex] }
-			: { ProgramChange: programChange };
+			: { ...defaultEntry };
 
-	delete baseEntry.Tone;
+	// Use the requested insertion position only when the ProgramChange entry is
+	// missing, so newly created interpolation pairs still land in a stable order.
 	baseEntry.registers = registers;
 
 	if (entryIndex >= 0) {
 		entries[entryIndex] = baseEntry;
 	} else {
-		entries.unshift(baseEntry);
+		entries.splice(insertIndex, 0, baseEntry);
 	}
+}
 
+/** Replace or insert compact tone registers for the selected ProgramChange entry. */
+export function upsertAttachmentRegisters(
+	rawAttachment: string,
+	registers: string,
+	programChange = 0,
+): string {
+	const entries = parseAttachmentEntries(rawAttachment);
+	upsertEntryRegisters(entries, registers, programChange, 0, {
+		ProgramChange: programChange,
+	});
+
+	return JSON.stringify(entries, null, 2);
+}
+
+/**
+ * Replace or insert compact tone registers for the interpolation pair while
+ * preserving the rest of the existing attachment JSON structure.
+ */
+export function upsertInterpolationAttachmentRegisters(
+	rawAttachment: string,
+	firstRegisters: string,
+	secondRegisters: string,
+): string {
+	const entries = parseAttachmentEntries(rawAttachment);
+	upsertEntryRegisters(entries, firstRegisters, 0, 0, {
+		ProgramChange: 0,
+		ChangeToNextTone: true,
+		ChangeToNextToneTime: 10,
+	});
+	upsertEntryRegisters(entries, secondRegisters, 1, 1, {
+		ProgramChange: 1,
+	});
 	return JSON.stringify(entries, null, 2);
 }
 
