@@ -4,13 +4,17 @@ import { smf_to_ym2151_json_with_attachment } from "smf-to-ym2151log-rust/pkg/sm
 import {
 	ensureWasmInitialized,
 	ensureWebYm2151,
-	parseAttachmentField,
 	setEventCountDisplay,
 	setStatus,
 	updateOutput,
 } from "./shared-demo";
 import { setupMmlToSmf } from "./mml-support";
 import { type LfoRegisterConfig, createLogVisualizer } from "./log-visualizer";
+import {
+	generateRandomToneRegisters,
+	upsertAttachmentRegisters,
+} from "./random-tone";
+import { normalizeAttachmentText } from "./tone-json-attachment";
 
 const DEFAULT_ATTACHMENT = `[
   {
@@ -93,12 +97,19 @@ async function initializeWasm(): Promise<void> {
 }
 
 function readAttachmentBytes(): Uint8Array | null {
-	return parseAttachmentField(
-		attachmentField,
+	if (!attachmentField) return new Uint8Array();
+	const raw = attachmentField.value.trim();
+	if (raw.length === 0) {
+		setStatus(attachmentStatus, "添付 JSON は空です (ポルタメント/ソフトLFO 無効)");
+		return new Uint8Array();
+	}
+	const normalized = normalizeAttachmentText(raw, attachmentStatus);
+	if (normalized === null) return null;
+	setStatus(
 		attachmentStatus,
-		"添付 JSON は空です (ポルタメント/ソフトLFO 無効)",
-		"添付 JSON を適用します",
+		"添付 JSON を解析しました (ポルタメント/ソフトLFO 設定を使用します)。",
 	);
+	return new TextEncoder().encode(normalized);
 }
 
 /**
@@ -310,13 +321,53 @@ function bootstrapWebYm(): void {
 				`web-ym2151 の準備に失敗しました: ${(error as Error).message}`,
 				true,
 			);
-		});
+	});
+}
+
+async function applyRandomToneToAttachment(): Promise<void> {
+	if (!attachmentField) return;
+
+	let registers: string;
+	try {
+		registers = await generateRandomToneRegisters();
+	} catch {
+		setStatus(
+			attachmentStatus,
+			"ym2151-tone-editor の読み込みに失敗しました。ランダム音色を適用できません。",
+			true,
+		);
+		return;
+	}
+
+	try {
+		attachmentField.value = upsertAttachmentRegisters(
+			attachmentField.value,
+			registers,
+		);
+		syncLfoRegisters();
+	} catch (error) {
+		setStatus(attachmentStatus, (error as Error).message, true);
+		return;
+	}
+
+	void runConversion("ランダム音色");
+}
+
+function setupRandomToneButton(): void {
+	const randomToneButton = document.getElementById(
+		"random-tone",
+	) as HTMLButtonElement | null;
+	if (!randomToneButton) return;
+	randomToneButton.addEventListener("click", () => {
+		void applyRandomToneToAttachment();
+	});
 }
 
 function main(): void {
 	setupAttachmentEditor();
 	setupMidiInput();
 	setupMmlInput();
+	setupRandomToneButton();
 	updateOutputWithState("");
 	updatePlayButtonState();
 	bootstrapWebYm();

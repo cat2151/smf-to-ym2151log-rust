@@ -11,21 +11,12 @@ import {
 import { normalizeAttachmentText } from "./tone-json-attachment";
 import { setupMmlToSmf } from "./mml-support";
 import { createLogVisualizer } from "./log-visualizer";
+import {
+	buildRandomInterpolationAttachment,
+	generateRandomInterpolationPairRegisters,
+	upsertInterpolationAttachmentRegisters,
+} from "./random-tone";
 
-/** URL of the ym2151-tone-editor WASM library used for random tone generation. */
-const YM2151_TONE_EDITOR_WASM_URL =
-	"https://cat2151.github.io/ym2151-tone-editor/demo-library/pkg/ym2151_wasm.js";
-
-/** MIDI note number used when generating random tones (A4 = 69). */
-const DEFAULT_MIDI_NOTE_FOR_RANDOM = 69;
-
-/**
- * Fallback default attachment in compact nibble format.
- *
- * Program 0: Modulator TL = 0x10 (bright, rich harmonics)
- * Program 1: Modulator TL = 0x7F (dark, pure sine-like)
- * Used when the ym2151-tone-editor WASM cannot be loaded.
- */
 const DEFAULT_COMPACT_ATTACHMENT = `[
   {
     "ProgramChange": 0,
@@ -38,64 +29,6 @@ const DEFAULT_COMPACT_ATTACHMENT = `[
     "registers": "20C76000687F801F881FE00FE80F"
   }
 ]`;
-
-/** Cached promise that resolves to the generate_random_tone_registers function. */
-let toneEditorInitPromise: Promise<
-	(seed: number, midiNote: number) => string
-> | null = null;
-
-/** Load the ym2151-tone-editor WASM once and return the generation function. */
-function getToneEditorGenerator(): Promise<
-	(seed: number, midiNote: number) => string
-> {
-	if (!toneEditorInitPromise) {
-		toneEditorInitPromise = (async () => {
-			try {
-				const mod = await import(
-					/* @vite-ignore */ YM2151_TONE_EDITOR_WASM_URL
-				);
-				await mod.default();
-				return mod.generate_random_tone_registers as (
-					seed: number,
-					midiNote: number,
-				) => string;
-			} catch (e) {
-				// Reset so the next call can retry (handles transient network errors).
-				toneEditorInitPromise = null;
-				throw e;
-			}
-		})();
-	}
-	return toneEditorInitPromise;
-}
-
-/**
- * Generate a compact nibble attachment JSON string with two random tones.
- * Uses the ym2151-tone-editor WASM library for random tone generation.
- */
-async function buildRandomAttachment(): Promise<string> {
-	const generate = await getToneEditorGenerator();
-	const seed = Date.now();
-	const registers1 = generate(seed, DEFAULT_MIDI_NOTE_FOR_RANDOM);
-	// Use a well-separated seed to ensure the second tone is clearly distinct.
-	const registers2 = generate(seed + 100000, DEFAULT_MIDI_NOTE_FOR_RANDOM);
-	return JSON.stringify(
-		[
-			{
-				ProgramChange: 0,
-				ChangeToNextTone: true,
-				ChangeToNextToneTime: 10,
-				registers: registers1,
-			},
-			{
-				ProgramChange: 1,
-				registers: registers2,
-			},
-		],
-		null,
-		2,
-	);
-}
 
 let wasmReady = false;
 let midiBytes: Uint8Array | null = null;
@@ -252,7 +185,7 @@ function setupAttachmentEditor(): void {
 	// replace it with randomly generated tones from the ym2151-tone-editor WASM.
 	attachmentField.value = DEFAULT_COMPACT_ATTACHMENT;
 
-	buildRandomAttachment()
+	buildRandomInterpolationAttachment()
 		.then((attachment) => {
 			if (!attachmentField) return;
 			// Only replace if the user has not yet edited the field.
@@ -275,6 +208,44 @@ function setupAttachmentEditor(): void {
 		attachmentDebounce = window.setTimeout(() => {
 			void runConversion("添付 JSON 更新");
 		}, 400);
+	});
+}
+
+async function applyRandomToneToAttachment(): Promise<void> {
+	if (!attachmentField) return;
+	let randomPair: [string, string];
+	try {
+		randomPair = await generateRandomInterpolationPairRegisters();
+	} catch {
+		setStatus(
+			attachmentStatus,
+			"ym2151-tone-editor の読み込みに失敗しました。ランダム音色を適用できません。",
+			true,
+		);
+		return;
+	}
+
+	try {
+		attachmentField.value = upsertInterpolationAttachmentRegisters(
+			attachmentField.value,
+			randomPair[0],
+			randomPair[1],
+		);
+	} catch (error) {
+		setStatus(attachmentStatus, (error as Error).message, true);
+		return;
+	}
+
+	void runConversion("ランダム音色");
+}
+
+function setupRandomToneButton(): void {
+	const randomToneButton = document.getElementById(
+		"random-tone",
+	) as HTMLButtonElement | null;
+	if (!randomToneButton) return;
+	randomToneButton.addEventListener("click", () => {
+		void applyRandomToneToAttachment();
 	});
 }
 
@@ -370,6 +341,7 @@ function main(): void {
 	setupAttachmentEditor();
 	setupMidiInput();
 	setupMmlInput();
+	setupRandomToneButton();
 	updateOutputWithState("");
 	updatePlayButtonState();
 	bootstrapWebYm();
