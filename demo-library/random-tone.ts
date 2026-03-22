@@ -62,6 +62,11 @@ function parseAttachmentEntries(rawAttachment: string): Array<Record<string, unk
 	return parsed as Array<Record<string, unknown>>;
 }
 
+/** Validate that the attachment JSON can accept random-tone register insertion. */
+export function validateRandomToneAttachment(rawAttachment: string): void {
+	parseAttachmentEntries(rawAttachment);
+}
+
 /**
  * Replace or insert the compact `registers` field for one ProgramChange entry.
  * Existing fields are preserved so the demos keep their attachment-specific
