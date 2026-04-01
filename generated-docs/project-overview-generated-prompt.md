@@ -1,4 +1,4 @@
-Last updated: 2026-03-21
+Last updated: 2026-04-02
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -353,6 +353,7 @@ cargo audit
   🌐 pop-noise.html
   📘 portamento-soft-lfo-demo.ts
   🌐 portamento-soft-lfo.html
+  📘 random-tone.ts
   📘 shared-demo.ts
   🎨 style.css
   📘 tone-interpolation-demo.ts
@@ -393,7 +394,8 @@ cargo audit
   📖 201.md
   📖 211.md
   📖 22.md
-  📖 224.md
+  📖 234.md
+  📖 235.md
   📖 45.md
   📖 47.md
   📖 66-resolution.md
@@ -405,6 +407,7 @@ cargo audit
 📊 package-lock.json
 📊 package.json
 📁 src/
+  📄 api.rs
   📄 error.rs
   📄 lib.rs
   📄 main.rs
@@ -414,13 +417,20 @@ cargo audit
     📄 parser.rs
     📄 utils.rs
     📄 utils_tests.rs
+  📄 options.rs
   📄 wasm.rs
   📁 ym2151/
     📄 channel_allocation.rs
     📁 converter/
       📄 event_accumulator.rs
       📄 pitch_effects.rs
-      📄 register_effects.rs
+      📁 register_effects/
+        📄 common.rs
+        📄 mod.rs
+        📄 pop_noise.rs
+        📄 register_lfo.rs
+        📄 state_cache.rs
+        📄 tone_interpolation.rs
       📄 register_fields.rs
       📄 waveform.rs
     📄 converter.rs
@@ -450,6 +460,7 @@ cargo audit
   📄 integration_midi.rs
   📄 integration_multichannel.rs
   📄 integration_program_change.rs
+  📄 integration_public_api.rs
   📄 integration_wasm.rs
   📁 test_data/
     📄 multi_channel.mid
@@ -462,11 +473,11 @@ cargo audit
   📖 README.md
 
 ## ファイル詳細分析
-**demo-library/delay-vibrato-demo.ts** (324行, 7918バイト)
-  - 関数: computeHash, nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
+**demo-library/delay-vibrato-demo.ts** (380行, 9394バイト)
+  - 関数: computeHash, nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, applyRandomToneToAttachment, setupRandomToneButton, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/delay-vibrato.html** (55行, 2153バイト)
+**demo-library/delay-vibrato.html** (58行, 2368バイト)
   - 関数: なし
   - インポート: なし
 
@@ -502,8 +513,8 @@ cargo audit
   - 関数: setupMmlToSmf, if, catch
   - インポート: ./shared-demo
 
-**demo-library/pop-noise-demo.ts** (541行, 14382バイト)
-  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, updateRegisterReflectionStatus, countRegisterNormalizationTargets, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, getToneEditorGenerator, applyRandomToneToAttachment, setupRandomToneButton, bootstrap, catch, if
+**demo-library/pop-noise-demo.ts** (490行, 12902バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, updateRegisterReflectionStatus, countRegisterNormalizationTargets, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, setupPlayButton, setupWavExportButton, applyRandomToneToAttachment, setupRandomToneButton, bootstrap, catch, if
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
 **demo-library/pop-noise-detector.ts** (61行, 1972バイト)
@@ -514,12 +525,16 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/portamento-soft-lfo-demo.ts** (335行, 8400バイト)
-  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, extractLfoRegistersFromAttachment, syncLfoRegisters, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, for, if, catch
+**demo-library/portamento-soft-lfo-demo.ts** (386行, 9708バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, extractLfoRegistersFromAttachment, syncLfoRegisters, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, applyRandomToneToAttachment, setupRandomToneButton, main, if, for, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./mml-support, ./log-visualizer
 
-**demo-library/portamento-soft-lfo.html** (57行, 2332バイト)
+**demo-library/portamento-soft-lfo.html** (60行, 2430バイト)
   - 関数: なし
+  - インポート: なし
+
+**demo-library/random-tone.ts** (159行, 4933バイト)
+  - 関数: getToneEditorGenerator, generateRandomToneRegisters, generateRandomInterpolationPairRegisters, parseAttachmentEntries, validateRandomToneAttachment, upsertEntryRegisters, upsertAttachmentRegisters, upsertInterpolationAttachmentRegisters, buildRandomInterpolationAttachment, if, catch
   - インポート: なし
 
 **demo-library/shared-demo.ts** (226行, 5608バイト)
@@ -530,11 +545,11 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/tone-interpolation-demo.ts** (386行, 10211バイト)
-  - 関数: getToneEditorGenerator, buildRandomAttachment, nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
+**demo-library/tone-interpolation-demo.ts** (358行, 9129バイト)
+  - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, applyRandomToneToAttachment, setupRandomToneButton, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./tone-json-attachment, ./mml-support
 
-**demo-library/tone-interpolation.html** (61行, 2367バイト)
+**demo-library/tone-interpolation.html** (64行, 2465バイト)
   - 関数: なし
   - インポート: なし
 
@@ -542,15 +557,15 @@ cargo audit
   - 関数: buildEventsFromCompact, serializeWithStatus, normalizeAttachmentText, if, for, catch
   - インポート: ./shared-demo
 
-**demo-library/tone-json-demo.ts** (362行, 9387バイト)
-  - 関数: updateOutputWithState, updatePlayButtonState, convertMmlToSmf, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, initializeWasm, main, if, catch
+**demo-library/tone-json-demo.ts** (405行, 10370バイト)
+  - 関数: updateOutputWithState, updatePlayButtonState, convertMmlToSmf, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, setupMmlInput, setupMidiInput, bootstrapWebYm, initializeWasm, applyRandomToneToAttachment, setupRandomToneButton, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./log-visualizer
 
 **demo-library/tone-json-mml.ts** (110行, 3168バイト)
   - 関数: getMmlParser, getParseTreeJsonToSmf, treeToJson, ensureMmlRuntime, if, for
   - インポート: ./shared-demo
 
-**demo-library/tone-json.html** (60行, 2269バイト)
+**demo-library/tone-json.html** (63行, 2367バイト)
   - 関数: なし
   - インポート: なし
 
@@ -593,33 +608,36 @@ cargo audit
       - setupMmlInput ()
       - setupMidiInput ()
       - bootstrapWebYm ()
+      - applyRandomToneToAttachment ()
+      - setupRandomToneButton ()
       - main ()
       - catch ()
       - playAudioWithOverlay ()
       - createLogVisualizer ()
       - renderFromJson ()
       - setupMmlToSmf ()
+      - generateRandomToneRegisters ()
+      - upsertAttachmentRegisters ()
       - ensureWasmInitialized ()
       - setStatus ()
       - setEventCountDisplay ()
       - ensureWebYm2151 ()
       - updateOutput ()
-      - parseAttachmentField ()
+      - normalizeAttachmentText ()
       - updateRegisterReflectionStatus ()
       - countRegisterNormalizationTargets ()
       - setupPlayButton ()
       - setupWavExportButton ()
-      - getToneEditorGenerator ()
-      - applyRandomToneToAttachment ()
-      - setupRandomToneButton ()
       - bootstrap ()
-      - normalizeAttachmentText ()
+      - validateRandomToneAttachment ()
       - createWaveformViewer ()
       - exportWav ()
       - setLfoRegisters (demo-library/log-visualizer.ts)
       - extractLfoRegistersFromAttachment ()
       - syncLfoRegisters ()
-      - buildRandomAttachment ()
+      - generateRandomInterpolationPairRegisters ()
+      - upsertInterpolationAttachmentRegisters ()
+      - buildRandomInterpolationAttachment ()
   - initWasm (demo-library/library-demo.ts)
     - displayResult ()
       - showError ()
@@ -647,10 +665,14 @@ cargo audit
       - treeToJson ()
       - ensureMmlRuntime ()
   - detectPopNoise (demo-library/pop-noise-detector.ts)
+  - getToneEditorGenerator (demo-library/random-tone.ts)
+    - parseAttachmentEntries ()
+      - upsertEntryRegisters ()
   - clearAudioCache ()
     - generateAudioFromJson ()
   - clearWebYmAudioCache ()
-    - cleanup ()
+    - parseAttachmentField ()
+      - cleanup ()
   - buildEventsFromCompact (demo-library/tone-json-attachment.ts)
     - serializeWithStatus ()
   - convertMmlToSmf ()
@@ -696,6 +718,7 @@ demo-library/pop-noise-detector.ts
 demo-library/pop-noise.html
 demo-library/portamento-soft-lfo-demo.ts
 demo-library/portamento-soft-lfo.html
+demo-library/random-tone.ts
 demo-library/shared-demo.ts
 demo-library/style.css
 demo-library/tone-interpolation-demo.ts
@@ -704,7 +727,6 @@ demo-library/tone-json-attachment.ts
 demo-library/tone-json-demo.ts
 demo-library/tone-json-mml.ts
 demo-library/tone-json.html
-demo-library/tsconfig.json
 googled947dc864c270e07.html
 
 上記の情報を基に、プロンプトで指定された形式でプロジェクト概要を生成してください。
@@ -717,4 +739,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-03-21 07:10:29 JST
+Generated at: 2026-04-02 07:16:40 JST
