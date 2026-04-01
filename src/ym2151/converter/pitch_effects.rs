@@ -16,6 +16,7 @@ const VIBRATO_RELEASE_TAIL_SECONDS: f64 = 0.5;
 const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
 const MIN_VIBRATO_SAMPLES_PER_PERIOD: f64 = 16.0;
 const MAX_VIBRATO_SAMPLES_PER_SECOND: f64 = 512.0;
+const DEPTH_TO_SAMPLES_MULTIPLIER: f64 = 4.0;
 
 pub(super) fn append_delay_vibrato_events(
     segments: &[NoteSegment],
@@ -170,7 +171,7 @@ fn append_vibrato_for_segment(
     }
 
     let time_step = delay_vibrato_time_step(config);
-    if !time_step.is_finite() || time_step <= 0.0 {
+    if !time_step.is_finite() {
         return;
     }
 
@@ -211,7 +212,10 @@ fn append_vibrato_for_segment(
 
 fn delay_vibrato_time_step(config: &DelayVibratoDefinition) -> f64 {
     let period = 1.0 / config.rate_hz.max(f64::EPSILON);
-    let samples_per_period = (4.0 * config.depth_cents.abs())
+    // A triangle vibrato reaches its maximum slope by traversing the full depth
+    // over a quarter-period, so 4×depth gives roughly 1 cent of change per sample
+    // before the max-samples-per-second cap is applied.
+    let samples_per_period = (DEPTH_TO_SAMPLES_MULTIPLIER * config.depth_cents.abs())
         .max(MIN_VIBRATO_SAMPLES_PER_PERIOD)
         .ceil();
     let uncapped_step = period / samples_per_period;
