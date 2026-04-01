@@ -50,6 +50,6 @@ pub use api::{convert_smf_to_ym2151_log, convert_smf_to_ym2151_log_with_options}
 pub use error::{Error, Result};
 #[doc(inline)]
 pub use options::{
-    ConversionOptions, DelayVibratoDefinition, LfoWaveform, PopNoiseEnvelope, ProgramAttachment,
-    RegisterLfoDefinition, RegisterOverride,
+    ChangeToNextToneKeepField, ConversionOptions, DelayVibratoDefinition, LfoWaveform,
+    PopNoiseEnvelope, ProgramAttachment, RegisterLfoDefinition, RegisterOverride,
 };

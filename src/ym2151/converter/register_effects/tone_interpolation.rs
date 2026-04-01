@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
 use crate::ym2151::{ToneDefinition, Ym2151Event};
-use crate::{ym2151::converter::event_accumulator::EventAccumulator, ProgramAttachment};
+use crate::{
+    ym2151::converter::event_accumulator::EventAccumulator, ChangeToNextToneKeepField,
+    ProgramAttachment,
+};
 
 use super::common::{
     is_note_register, parse_hex_byte, resolve_register_for_channel, TIME_LOOP_EPSILON,
@@ -9,6 +12,41 @@ use super::common::{
 use crate::ym2151::converter::register_fields::{
     get_register_fields, interpolate_fields, max_steps_for_fields,
 };
+
+fn keep_field_mask(base_addr: u8, keep_field: ChangeToNextToneKeepField) -> Option<u8> {
+    match (base_addr, keep_field) {
+        (0x20..=0x27, ChangeToNextToneKeepField::Alg) => Some(0x07),
+        (0x20..=0x27, ChangeToNextToneKeepField::Fb) => Some(0x38),
+        (0x20..=0x27, ChangeToNextToneKeepField::Rl) => Some(0xC0),
+        (0x38..=0x3F, ChangeToNextToneKeepField::Ams) => Some(0x03),
+        (0x38..=0x3F, ChangeToNextToneKeepField::Pms) => Some(0x70),
+        (0x40..=0x5F, ChangeToNextToneKeepField::Mul) => Some(0x0F),
+        (0x40..=0x5F, ChangeToNextToneKeepField::Dt1) => Some(0x70),
+        (0x60..=0x7F, ChangeToNextToneKeepField::Tl) => Some(0x7F),
+        (0x80..=0x9F, ChangeToNextToneKeepField::Ar) => Some(0x1F),
+        (0x80..=0x9F, ChangeToNextToneKeepField::Ks) => Some(0xC0),
+        (0xA0..=0xBF, ChangeToNextToneKeepField::D1r) => Some(0x1F),
+        (0xA0..=0xBF, ChangeToNextToneKeepField::AmsEn) => Some(0x80),
+        (0xC0..=0xDF, ChangeToNextToneKeepField::D2r) => Some(0x1F),
+        (0xC0..=0xDF, ChangeToNextToneKeepField::Dt2) => Some(0xC0),
+        (0xE0..=0xFF, ChangeToNextToneKeepField::Rr) => Some(0x0F),
+        (0xE0..=0xFF, ChangeToNextToneKeepField::D1l) => Some(0xF0),
+        _ => None,
+    }
+}
+
+fn apply_keep_fields(
+    base_addr: u8,
+    value_from: u8,
+    value_to: u8,
+    keep_fields: &[ChangeToNextToneKeepField],
+) -> u8 {
+    let keep_mask = keep_fields
+        .iter()
+        .filter_map(|field| keep_field_mask(base_addr, *field))
+        .fold(0u8, |mask, field_mask| mask | field_mask);
+    (value_to & !keep_mask) | (value_from & keep_mask)
+}
 
 /// Append looping linear interpolation events between adjacent program tones.
 ///
@@ -71,9 +109,15 @@ pub(in crate::ym2151::converter) fn append_change_to_next_tone_events(
             let Some(value_from) = parse_hex_byte(&event.data) else {
                 continue;
             };
-            let Some(&value_to) = to_values.get(&base_addr) else {
+            let Some(&raw_value_to) = to_values.get(&base_addr) else {
                 continue;
             };
+            let value_to = apply_keep_fields(
+                base_addr,
+                value_from,
+                raw_value_to,
+                &attachment.change_to_next_tone_keep_fields,
+            );
             if value_from != value_to {
                 register_changes.push((base_addr, value_from, value_to));
             }
