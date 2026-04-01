@@ -7,18 +7,19 @@ use std::collections::HashMap;
 
 use crate::midi::{midi_note_to_frequency, midi_note_with_offset_to_kc_kf};
 use crate::ym2151::{NoteSegment, Ym2151Event};
+use crate::DelayVibratoDefinition;
 
 use super::event_accumulator::EventAccumulator;
-use super::waveform::triangle_wave;
+use super::waveform::lfo_waveform_value;
 
-const DELAY_VIBRATO_DELAY_SECONDS: f64 = 0.2;
-const DELAY_VIBRATO_ATTACK_SECONDS: f64 = 0.3;
-const DELAY_VIBRATO_DEPTH_CENTS: f64 = 100.0;
-const DELAY_VIBRATO_RATE_HZ: f64 = 6.0;
 const VIBRATO_RELEASE_TAIL_SECONDS: f64 = 0.5;
 const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
 
-pub(super) fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut EventAccumulator) {
+pub(super) fn append_delay_vibrato_events(
+    segments: &[NoteSegment],
+    config: &DelayVibratoDefinition,
+    events: &mut EventAccumulator,
+) {
     if segments.is_empty() {
         return;
     }
@@ -48,7 +49,7 @@ pub(super) fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut
                 None => natural_end,
             };
 
-            append_vibrato_for_segment(segment, stop_time, events);
+            append_vibrato_for_segment(segment, stop_time, config, events);
         }
     }
 }
@@ -154,9 +155,14 @@ fn append_portamento_glide(
 fn append_vibrato_for_segment(
     segment: &NoteSegment,
     stop_time: f64,
+    config: &DelayVibratoDefinition,
     events: &mut EventAccumulator,
 ) {
-    let vibrato_start = segment.start_time + DELAY_VIBRATO_DELAY_SECONDS;
+    if config.rate_hz <= 0.0 || config.depth_cents.abs() < f64::EPSILON {
+        return;
+    }
+
+    let vibrato_start = segment.start_time + config.delay_seconds;
     if stop_time <= vibrato_start {
         return;
     }
@@ -172,10 +178,14 @@ fn append_vibrato_for_segment(
 
     while time <= stop_time {
         let elapsed_from_delay = time - vibrato_start;
-        let depth_ratio = (elapsed_from_delay / DELAY_VIBRATO_ATTACK_SECONDS).clamp(0.0, 1.0);
-        let phase = (elapsed_from_delay * DELAY_VIBRATO_RATE_HZ) % 1.0;
-        let waveform = triangle_wave(phase);
-        let offset_cents = DELAY_VIBRATO_DEPTH_CENTS * depth_ratio * waveform;
+        let depth_ratio = if config.attack_seconds <= 0.0 {
+            1.0
+        } else {
+            (elapsed_from_delay / config.attack_seconds).clamp(0.0, 1.0)
+        };
+        let phase = (elapsed_from_delay * config.rate_hz) % 1.0;
+        let waveform = lfo_waveform_value(config.waveform, phase);
+        let offset_cents = config.depth_cents * depth_ratio * waveform;
         let (kc, kf) = midi_note_with_offset_to_kc_kf(segment.note, offset_cents);
         let values = (kc, kf);
 

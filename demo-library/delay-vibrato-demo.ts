@@ -19,7 +19,13 @@ import { normalizeAttachmentText } from "./tone-json-attachment";
 const DEFAULT_ATTACHMENT = `[
   {
     "ProgramChange": 0,
-    "DelayVibrato": true
+    "DelayVibrato": {
+      "DelaySeconds": 0.2,
+      "AttackSeconds": 0.3,
+      "DepthCents": 50.0,
+      "RateHz": 6.0,
+      "Waveform": "sine"
+    }
   }
 ]`;
 
@@ -104,7 +110,10 @@ function readAttachmentBytes(): Uint8Array | null {
 	}
 	const normalized = normalizeAttachmentText(raw, attachmentStatus);
 	if (normalized === null) return null;
-	setStatus(attachmentStatus, "Delay Vibrato 用の添付 JSON を適用します。");
+	setStatus(
+		attachmentStatus,
+		"Delay Vibrato 添付 JSON を適用します (DelaySeconds / AttackSeconds / DepthCents / RateHz / Waveform を編集できます)。",
+	);
 	return new TextEncoder().encode(normalized);
 }
 

@@ -22,7 +22,7 @@ fn test_delay_vibrato_generates_additional_pitch_events() {
     };
 
     let options = ConversionOptions {
-        delay_vibrato: true,
+        delay_vibrato: Some(DelayVibratoDefinition::default()),
         ..ConversionOptions::default()
     };
 
@@ -48,6 +48,70 @@ fn test_delay_vibrato_generates_additional_pitch_events() {
     assert!(
         !non_zero_kf_after_delay.is_empty(),
         "KF events should include fractional pitch changes from vibrato"
+    );
+}
+
+#[test]
+fn test_delay_vibrato_custom_parameters_can_start_before_default_delay() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 69,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 1920,
+                channel: 0,
+                note: 69,
+            },
+        ],
+    };
+
+    let default_result = convert_to_ym2151_log_with_options(
+        &midi_data,
+        &ConversionOptions {
+            delay_vibrato: Some(DelayVibratoDefinition::default()),
+            ..ConversionOptions::default()
+        },
+    )
+    .unwrap();
+    let custom_result = convert_to_ym2151_log_with_options(
+        &midi_data,
+        &ConversionOptions {
+            delay_vibrato: Some(DelayVibratoDefinition {
+                delay_seconds: 0.0,
+                attack_seconds: 0.0,
+                depth_cents: 50.0,
+                rate_hz: 3.0,
+                waveform: LfoWaveform::Sine,
+            }),
+            ..ConversionOptions::default()
+        },
+    )
+    .unwrap();
+
+    let default_early_events: Vec<_> = default_result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time > 0.0 && e.time < 0.2)
+        .collect();
+    let custom_early_events: Vec<_> = custom_result
+        .events
+        .iter()
+        .filter(|e| e.addr == "0x28" && e.time > 0.0 && e.time < 0.2)
+        .collect();
+
+    assert!(
+        default_early_events.is_empty(),
+        "Default delay vibrato should not emit extra KC writes before 0.2 seconds"
+    );
+    assert!(
+        !custom_early_events.is_empty(),
+        "Custom delay vibrato settings should allow earlier KC modulation"
     );
 }
 
