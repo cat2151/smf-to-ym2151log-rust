@@ -579,26 +579,28 @@ fn test_change_to_next_tone_keep_fields_preserve_mul_and_alg_from_program0() {
 
     let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
 
-    let alg_extra: Vec<_> = result
+    let alg_values: Vec<_> = result
         .events
         .iter()
-        .filter(|e| e.addr == "0x20" && e.time > 0.01)
+        .filter(|e| e.addr == "0x20" && e.time > f64::EPSILON)
+        .map(|e| e.data.as_str())
         .collect();
     assert!(
-        alg_extra.is_empty(),
+        alg_values.iter().all(|&data| data == "0x02"),
         "ALG/CON must stay on program 0 value when keep field is enabled; got {:?}",
-        alg_extra
+        alg_values
     );
 
-    let mul_extra: Vec<_> = result
+    let mul_values: Vec<_> = result
         .events
         .iter()
-        .filter(|e| e.addr == "0x40" && e.time > 0.01)
+        .filter(|e| e.addr == "0x40" && e.time > f64::EPSILON)
+        .map(|e| e.data.as_str())
         .collect();
     assert!(
-        mul_extra.is_empty(),
+        mul_values.iter().all(|&data| data == "0x03"),
         "MUL must stay on program 0 value when keep field is enabled; got {:?}",
-        mul_extra
+        mul_values
     );
 
     let tl_events: Vec<_> = result.events.iter().filter(|e| e.addr == "0x60").collect();
