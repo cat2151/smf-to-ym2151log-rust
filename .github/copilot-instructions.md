@@ -131,3 +131,6 @@ cat2151のリポジトリからclone、`npm install`、`cargo install` する際
     - linter の適用: `cd demo-library && npm run lint`
 - TypeScript demo に使うライブラリ
   - demo用のMML to SMF、SMF to JSON は、cat2151のライブラリを利用せよ。cat2151のライブラリは毎日重要なバグ修正があり、それを取り込むのがマストであるため、バージョン指定はせず最新mainを毎回取り込むべし
+
+# プルリクエスト
+- 日本語で書くこと
