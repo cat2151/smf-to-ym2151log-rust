@@ -442,6 +442,34 @@ mod tests {
     }
 
     #[test]
+    fn test_from_attachment_bytes_array_delay_vibrato_object() {
+        let json = br#"[
+          {
+            "ProgramChange": 0,
+            "DelayVibrato": {
+              "DelaySeconds": 0.05,
+              "AttackSeconds": 0.1,
+              "DepthCents": 25.0,
+              "RateHz": 5.0,
+              "Waveform": "sine"
+            }
+          }
+        ]"#;
+        let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
+        assert_eq!(opts.program_attachments.len(), 1);
+        assert_eq!(
+            opts.program_attachments[0].delay_vibrato,
+            Some(DelayVibratoDefinition {
+                delay_seconds: 0.05,
+                attack_seconds: 0.1,
+                depth_cents: 25.0,
+                rate_hz: 5.0,
+                waveform: LfoWaveform::Sine,
+            })
+        );
+    }
+
+    #[test]
     fn test_from_attachment_bytes_array_with_inline_tone() {
         let json = br#"[
           {

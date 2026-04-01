@@ -14,6 +14,8 @@ use super::waveform::lfo_waveform_value;
 
 const VIBRATO_RELEASE_TAIL_SECONDS: f64 = 0.5;
 const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
+const MIN_VIBRATO_SAMPLES_PER_PERIOD: f64 = 16.0;
+const MAX_VIBRATO_SAMPLES_PER_SECOND: f64 = 512.0;
 
 pub(super) fn append_delay_vibrato_events(
     segments: &[NoteSegment],
@@ -167,16 +169,15 @@ fn append_vibrato_for_segment(
         return;
     }
 
-    let freq = midi_note_to_frequency(segment.note);
-    if freq <= f64::EPSILON {
+    let time_step = delay_vibrato_time_step(config);
+    if !time_step.is_finite() || time_step <= 0.0 {
         return;
     }
 
-    let time_step = 1.0 / freq;
     let mut time = vibrato_start;
     let mut last_values: Option<(u8, u8)> = None;
 
-    while time <= stop_time {
+    while time <= stop_time + f64::EPSILON {
         let elapsed_from_delay = time - vibrato_start;
         let depth_ratio = if config.attack_seconds <= 0.0 {
             1.0
@@ -206,4 +207,13 @@ fn append_vibrato_for_segment(
 
         time += time_step;
     }
+}
+
+fn delay_vibrato_time_step(config: &DelayVibratoDefinition) -> f64 {
+    let period = 1.0 / config.rate_hz.max(f64::EPSILON);
+    let samples_per_period = (4.0 * config.depth_cents.abs())
+        .max(MIN_VIBRATO_SAMPLES_PER_PERIOD)
+        .ceil();
+    let uncapped_step = period / samples_per_period;
+    uncapped_step.max(1.0 / MAX_VIBRATO_SAMPLES_PER_SECOND)
 }
