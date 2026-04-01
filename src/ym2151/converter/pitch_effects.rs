@@ -17,6 +17,8 @@ const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
 const MIN_VIBRATO_SAMPLES_PER_PERIOD: f64 = 16.0;
 const MAX_VIBRATO_SAMPLES_PER_SECOND: f64 = 512.0;
 const DEPTH_TO_SAMPLES_MULTIPLIER: f64 = 4.0;
+const MIN_VIBRATO_RATE_HZ: f64 = 0.01;
+const VIBRATO_TIME_LOOP_EPSILON: f64 = 1e-9;
 
 pub(super) fn append_delay_vibrato_events(
     segments: &[NoteSegment],
@@ -115,7 +117,7 @@ fn append_portamento_glide(
     let mut time = start_time;
     let mut last_values: Option<(u8, u8)> = None;
 
-    while time <= stop_time + f64::EPSILON {
+    while time <= stop_time + VIBRATO_TIME_LOOP_EPSILON {
         let progress = ((time - start_time) / (stop_time - start_time)).clamp(0.0, 1.0);
         let (kc, kf) = midi_note_with_offset_to_kc_kf(prev_note, delta_cents * progress);
         let values = (kc, kf);
@@ -211,7 +213,7 @@ fn append_vibrato_for_segment(
 }
 
 fn delay_vibrato_time_step(config: &DelayVibratoDefinition) -> f64 {
-    let period = 1.0 / config.rate_hz.max(f64::EPSILON);
+    let period = 1.0 / config.rate_hz.max(MIN_VIBRATO_RATE_HZ);
     // A triangle vibrato reaches its maximum slope by traversing the full depth
     // over a quarter-period, so 4×depth gives roughly 1 cent of change per sample
     // before the max-samples-per-second cap is applied.
