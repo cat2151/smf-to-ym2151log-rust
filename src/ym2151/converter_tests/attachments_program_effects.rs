@@ -48,7 +48,7 @@ fn test_program_attachment_delay_vibrato_applies_only_to_matching_program() {
     let options = ConversionOptions {
         program_attachments: vec![ProgramAttachment {
             program_change: 0,
-            delay_vibrato: true,
+            delay_vibrato: Some(DelayVibratoDefinition::default()),
             ..ProgramAttachment::default()
         }],
         ..ConversionOptions::default()
@@ -162,7 +162,7 @@ fn test_program_attachment_unmatched_program_produces_no_extra_events() {
     let options_with_attachment = ConversionOptions {
         program_attachments: vec![ProgramAttachment {
             program_change: 99, // not used in the MIDI
-            delay_vibrato: true,
+            delay_vibrato: Some(DelayVibratoDefinition::default()),
             ..ProgramAttachment::default()
         }],
         ..ConversionOptions::default()

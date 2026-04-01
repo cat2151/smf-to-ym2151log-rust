@@ -7,18 +7,24 @@ use std::collections::HashMap;
 
 use crate::midi::{midi_note_to_frequency, midi_note_with_offset_to_kc_kf};
 use crate::ym2151::{NoteSegment, Ym2151Event};
+use crate::DelayVibratoDefinition;
 
 use super::event_accumulator::EventAccumulator;
-use super::waveform::triangle_wave;
+use super::waveform::lfo_waveform_value;
 
-const DELAY_VIBRATO_DELAY_SECONDS: f64 = 0.2;
-const DELAY_VIBRATO_ATTACK_SECONDS: f64 = 0.3;
-const DELAY_VIBRATO_DEPTH_CENTS: f64 = 100.0;
-const DELAY_VIBRATO_RATE_HZ: f64 = 6.0;
 const VIBRATO_RELEASE_TAIL_SECONDS: f64 = 0.5;
 const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
+const MIN_VIBRATO_SAMPLES_PER_PERIOD: f64 = 16.0;
+const MAX_VIBRATO_SAMPLES_PER_SECOND: f64 = 512.0;
+const DEPTH_TO_SAMPLES_MULTIPLIER: f64 = 4.0;
+const MIN_VIBRATO_RATE_HZ: f64 = 0.01;
+const VIBRATO_TIME_LOOP_EPSILON: f64 = 1e-9;
 
-pub(super) fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut EventAccumulator) {
+pub(super) fn append_delay_vibrato_events(
+    segments: &[NoteSegment],
+    config: &DelayVibratoDefinition,
+    events: &mut EventAccumulator,
+) {
     if segments.is_empty() {
         return;
     }
@@ -48,7 +54,7 @@ pub(super) fn append_delay_vibrato_events(segments: &[NoteSegment], events: &mut
                 None => natural_end,
             };
 
-            append_vibrato_for_segment(segment, stop_time, events);
+            append_vibrato_for_segment(segment, stop_time, config, events);
         }
     }
 }
@@ -111,7 +117,7 @@ fn append_portamento_glide(
     let mut time = start_time;
     let mut last_values: Option<(u8, u8)> = None;
 
-    while time <= stop_time + f64::EPSILON {
+    while time <= stop_time + VIBRATO_TIME_LOOP_EPSILON {
         let progress = ((time - start_time) / (stop_time - start_time)).clamp(0.0, 1.0);
         let (kc, kf) = midi_note_with_offset_to_kc_kf(prev_note, delta_cents * progress);
         let values = (kc, kf);
@@ -154,28 +160,36 @@ fn append_portamento_glide(
 fn append_vibrato_for_segment(
     segment: &NoteSegment,
     stop_time: f64,
+    config: &DelayVibratoDefinition,
     events: &mut EventAccumulator,
 ) {
-    let vibrato_start = segment.start_time + DELAY_VIBRATO_DELAY_SECONDS;
+    if config.rate_hz <= 0.0 || config.depth_cents.abs() < f64::EPSILON {
+        return;
+    }
+
+    let vibrato_start = segment.start_time + config.delay_seconds;
     if stop_time <= vibrato_start {
         return;
     }
 
-    let freq = midi_note_to_frequency(segment.note);
-    if freq <= f64::EPSILON {
+    let time_step = delay_vibrato_time_step(config);
+    if !time_step.is_finite() {
         return;
     }
 
-    let time_step = 1.0 / freq;
     let mut time = vibrato_start;
     let mut last_values: Option<(u8, u8)> = None;
 
-    while time <= stop_time {
+    while time <= stop_time + f64::EPSILON {
         let elapsed_from_delay = time - vibrato_start;
-        let depth_ratio = (elapsed_from_delay / DELAY_VIBRATO_ATTACK_SECONDS).clamp(0.0, 1.0);
-        let phase = (elapsed_from_delay * DELAY_VIBRATO_RATE_HZ) % 1.0;
-        let waveform = triangle_wave(phase);
-        let offset_cents = DELAY_VIBRATO_DEPTH_CENTS * depth_ratio * waveform;
+        let depth_ratio = if config.attack_seconds <= 0.0 {
+            1.0
+        } else {
+            (elapsed_from_delay / config.attack_seconds).clamp(0.0, 1.0)
+        };
+        let phase = (elapsed_from_delay * config.rate_hz) % 1.0;
+        let waveform = lfo_waveform_value(config.waveform, phase);
+        let offset_cents = config.depth_cents * depth_ratio * waveform;
         let (kc, kf) = midi_note_with_offset_to_kc_kf(segment.note, offset_cents);
         let values = (kc, kf);
 
@@ -196,4 +210,16 @@ fn append_vibrato_for_segment(
 
         time += time_step;
     }
+}
+
+fn delay_vibrato_time_step(config: &DelayVibratoDefinition) -> f64 {
+    let period = 1.0 / config.rate_hz.max(MIN_VIBRATO_RATE_HZ);
+    // A triangle vibrato reaches its maximum slope by traversing the full depth
+    // over a quarter-period, so 4×depth gives roughly 1 cent of change per sample
+    // before the max-samples-per-second cap is applied.
+    let samples_per_period = (DEPTH_TO_SAMPLES_MULTIPLIER * config.depth_cents.abs())
+        .max(MIN_VIBRATO_SAMPLES_PER_PERIOD)
+        .ceil();
+    let uncapped_step = period / samples_per_period;
+    uncapped_step.max(1.0 / MAX_VIBRATO_SAMPLES_PER_SECOND)
 }

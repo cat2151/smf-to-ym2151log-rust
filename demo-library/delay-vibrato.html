@@ -9,7 +9,7 @@
   <a class="nav-link" href="./index.html">← ライブラリデモに戻る</a>
   <h1>Delay Vibrato デモ（別ページ）</h1>
   <p class="lead">
-    SMF をアップロードし、添付 JSON で <code>DelayVibrato</code> を切り替えて YM2151 出力を確認するデモです。
+    SMF をアップロードし、添付 JSON で <code>DelayVibrato</code> の delay / attack / depth / rate / waveform を編集して YM2151 出力を確認するデモです。
     テキストエリアの JSON はデバウンス更新され、web-ym2151 ライブラリで再生できます。
   </p>
 
@@ -25,9 +25,9 @@
 
   <section class="demo-section">
     <h2>2. Delay Vibrato 添付 JSON を編集</h2>
-    <p class="note">JSON を編集すると 400ms デバウンス後に自動で再変換されます。</p>
+    <p class="note">JSON を編集すると 400ms デバウンス後に自動で再変換されます。<code>Waveform</code> は <code>triangle</code> と <code>sine</code> を指定できます。</p>
     <label for="attachment-json">Delay Vibrato 添付 JSON 入力</label>
-    <textarea id="attachment-json" class="code-input" rows="6" spellcheck="false"></textarea>
+    <textarea id="attachment-json" class="code-input" rows="10" spellcheck="false"></textarea>
     <div class="actions">
       <button id="random-tone" type="button">ランダム音色</button>
     </div>

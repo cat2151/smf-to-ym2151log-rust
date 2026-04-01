@@ -45,7 +45,7 @@ pub mod wasm;
 // Re-export commonly used types
 use crate::ym2151::ToneDefinition;
 pub use error::{Error, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use std::collections::HashMap;
 
 /// Per-program attachment entry used in the new array format.
@@ -69,8 +69,12 @@ pub struct ProgramAttachment {
     #[serde(rename = "ProgramChange")]
     pub program_change: u8,
     /// Enable delayed vibrato for this program
-    #[serde(rename = "DelayVibrato", default)]
-    pub delay_vibrato: bool,
+    #[serde(
+        rename = "DelayVibrato",
+        default,
+        deserialize_with = "deserialize_delay_vibrato"
+    )]
+    pub delay_vibrato: Option<DelayVibratoDefinition>,
     /// Enable portamento glides between consecutive notes for this program
     #[serde(rename = "Portamento", default)]
     pub portamento: bool,
@@ -102,8 +106,12 @@ pub struct ProgramAttachment {
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct ConversionOptions {
     /// Enable delayed vibrato generation in the YM2151 log output
-    #[serde(rename = "DelayVibrato", default)]
-    pub delay_vibrato: bool,
+    #[serde(
+        rename = "DelayVibrato",
+        default,
+        deserialize_with = "deserialize_delay_vibrato"
+    )]
+    pub delay_vibrato: Option<DelayVibratoDefinition>,
     /// Enable portamento glides between consecutive notes
     #[serde(rename = "Portamento", default)]
     pub portamento: bool,
@@ -153,6 +161,27 @@ pub struct RegisterLfoDefinition {
     pub key_on_sync: bool,
 }
 
+/// Defines a pitch vibrato applied after note-on with configurable depth and waveform
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(rename_all = "PascalCase")]
+pub struct DelayVibratoDefinition {
+    /// Delay before the vibrato starts from note-on
+    #[serde(default = "default_delay_vibrato_delay_seconds")]
+    pub delay_seconds: f64,
+    /// Attack time before reaching full depth
+    #[serde(default = "default_delay_vibrato_attack_seconds")]
+    pub attack_seconds: f64,
+    /// Peak modulation amount in cents
+    #[serde(default = "default_delay_vibrato_depth_cents")]
+    pub depth_cents: f64,
+    /// Oscillation rate in Hz
+    #[serde(default = "default_delay_vibrato_rate_hz")]
+    pub rate_hz: f64,
+    /// Waveform shape
+    #[serde(default = "default_lfo_waveform")]
+    pub waveform: LfoWaveform,
+}
+
 /// Register override applied before a note-on to soften envelope transitions
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -183,6 +212,7 @@ pub struct PopNoiseEnvelope {
 #[serde(rename_all = "lowercase")]
 pub enum LfoWaveform {
     Triangle,
+    Sine,
 }
 
 fn default_lfo_waveform() -> LfoWaveform {
@@ -193,12 +223,61 @@ fn default_key_on_sync() -> bool {
     true
 }
 
+fn default_delay_vibrato_delay_seconds() -> f64 {
+    0.2
+}
+
+fn default_delay_vibrato_attack_seconds() -> f64 {
+    0.3
+}
+
+fn default_delay_vibrato_depth_cents() -> f64 {
+    100.0
+}
+
+fn default_delay_vibrato_rate_hz() -> f64 {
+    6.0
+}
+
 fn default_change_to_next_tone_time() -> f64 {
     5.0
 }
 
 fn default_pre_note_offset() -> f64 {
     0.001
+}
+
+impl Default for DelayVibratoDefinition {
+    fn default() -> Self {
+        Self {
+            delay_seconds: default_delay_vibrato_delay_seconds(),
+            attack_seconds: default_delay_vibrato_attack_seconds(),
+            depth_cents: default_delay_vibrato_depth_cents(),
+            rate_hz: default_delay_vibrato_rate_hz(),
+            waveform: default_lfo_waveform(),
+        }
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum DelayVibratoValue {
+    Enabled(bool),
+    Definition(DelayVibratoDefinition),
+}
+
+fn deserialize_delay_vibrato<'de, D>(
+    deserializer: D,
+) -> std::result::Result<Option<DelayVibratoDefinition>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = Option::<DelayVibratoValue>::deserialize(deserializer)?;
+    Ok(match value {
+        Some(DelayVibratoValue::Enabled(true)) => Some(DelayVibratoDefinition::default()),
+        Some(DelayVibratoValue::Enabled(false)) | None => None,
+        Some(DelayVibratoValue::Definition(definition)) => Some(definition),
+    })
 }
 
 impl ConversionOptions {
@@ -305,7 +384,7 @@ mod tests {
     #[test]
     fn test_from_attachment_bytes_empty() {
         let opts = ConversionOptions::from_attachment_bytes(None).unwrap();
-        assert!(!opts.delay_vibrato);
+        assert!(opts.delay_vibrato.is_none());
         assert!(opts.program_attachments.is_empty());
     }
 
@@ -313,7 +392,7 @@ mod tests {
     fn test_from_attachment_bytes_legacy_flat_object() {
         let json = br#"{"DelayVibrato": true, "Portamento": false}"#;
         let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
-        assert!(opts.delay_vibrato);
+        assert_eq!(opts.delay_vibrato, Some(DelayVibratoDefinition::default()));
         assert!(!opts.portamento);
         assert!(opts.program_attachments.is_empty());
     }
@@ -326,13 +405,68 @@ mod tests {
         ]"#;
         let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
         // Global flags not set; per-program attachments populated
-        assert!(!opts.delay_vibrato);
+        assert!(opts.delay_vibrato.is_none());
         assert!(!opts.portamento);
         assert_eq!(opts.program_attachments.len(), 2);
         assert_eq!(opts.program_attachments[0].program_change, 0);
-        assert!(opts.program_attachments[0].delay_vibrato);
+        assert_eq!(
+            opts.program_attachments[0].delay_vibrato,
+            Some(DelayVibratoDefinition::default())
+        );
         assert_eq!(opts.program_attachments[1].program_change, 1);
         assert!(opts.program_attachments[1].portamento);
+    }
+
+    #[test]
+    fn test_from_attachment_bytes_delay_vibrato_object_with_sine_waveform() {
+        let json = br#"{
+          "DelayVibrato": {
+            "DelaySeconds": 0.05,
+            "AttackSeconds": 0.1,
+            "DepthCents": 25.0,
+            "RateHz": 5.0,
+            "Waveform": "sine"
+          }
+        }"#;
+        let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
+        assert_eq!(
+            opts.delay_vibrato,
+            Some(DelayVibratoDefinition {
+                delay_seconds: 0.05,
+                attack_seconds: 0.1,
+                depth_cents: 25.0,
+                rate_hz: 5.0,
+                waveform: LfoWaveform::Sine,
+            })
+        );
+    }
+
+    #[test]
+    fn test_from_attachment_bytes_array_delay_vibrato_object() {
+        let json = br#"[
+          {
+            "ProgramChange": 0,
+            "DelayVibrato": {
+              "DelaySeconds": 0.05,
+              "AttackSeconds": 0.1,
+              "DepthCents": 25.0,
+              "RateHz": 5.0,
+              "Waveform": "sine"
+            }
+          }
+        ]"#;
+        let opts = ConversionOptions::from_attachment_bytes(Some(json)).unwrap();
+        assert_eq!(opts.program_attachments.len(), 1);
+        assert_eq!(
+            opts.program_attachments[0].delay_vibrato,
+            Some(DelayVibratoDefinition {
+                delay_seconds: 0.05,
+                attack_seconds: 0.1,
+                depth_cents: 25.0,
+                rate_hz: 5.0,
+                waveform: LfoWaveform::Sine,
+            })
+        );
     }
 
     #[test]

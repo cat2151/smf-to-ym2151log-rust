@@ -131,12 +131,12 @@ pub fn convert_to_ym2151_log_with_options(
     let mut active_notes: HashSet<(u8, u8)> = HashSet::new();
 
     // Optional note tracking for vibrato/portamento
-    let need_note_segments = options.delay_vibrato
+    let need_note_segments = options.delay_vibrato.is_some()
         || options.portamento
         || !options.software_lfo.is_empty()
         || options.pop_noise_envelope.is_some()
         || options.program_attachments.iter().any(|pa| {
-            pa.delay_vibrato
+            pa.delay_vibrato.is_some()
                 || pa.portamento
                 || !pa.software_lfo.is_empty()
                 || pa.pop_noise_envelope.is_some()
@@ -192,8 +192,8 @@ pub fn convert_to_ym2151_log_with_options(
         }
     }
 
-    if options.delay_vibrato {
-        append_delay_vibrato_events(&vibrato_segments, &mut acc);
+    if let Some(config) = &options.delay_vibrato {
+        append_delay_vibrato_events(&vibrato_segments, config, &mut acc);
     }
 
     if options.portamento {
@@ -221,7 +221,7 @@ pub fn convert_to_ym2151_log_with_options(
     // Apply per-program effects from new array format.
     // Pre-group note segments by program once to avoid O(attachments × segments) scanning.
     let needs_per_program_effects = options.program_attachments.iter().any(|pa| {
-        pa.delay_vibrato
+        pa.delay_vibrato.is_some()
             || pa.portamento
             || !pa.software_lfo.is_empty()
             || pa.pop_noise_envelope.is_some()
@@ -250,7 +250,7 @@ pub fn convert_to_ym2151_log_with_options(
 
     for pa in &options.program_attachments {
         // Skip attachments that have no effects enabled (e.g., tone-only entries)
-        let has_effects = pa.delay_vibrato
+        let has_effects = pa.delay_vibrato.is_some()
             || pa.portamento
             || !pa.software_lfo.is_empty()
             || pa.pop_noise_envelope.is_some();
@@ -263,8 +263,8 @@ pub fn convert_to_ym2151_log_with_options(
             _ => continue,
         };
 
-        if pa.delay_vibrato {
-            append_delay_vibrato_events(program_segments, &mut acc);
+        if let Some(config) = &pa.delay_vibrato {
+            append_delay_vibrato_events(program_segments, config, &mut acc);
         }
 
         if pa.portamento {
