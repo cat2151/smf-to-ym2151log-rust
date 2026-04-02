@@ -1,4 +1,4 @@
-Last updated: 2026-04-02
+Last updated: 2026-04-03
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -394,8 +394,7 @@ cargo audit
   📖 201.md
   📖 211.md
   📖 22.md
-  📖 234.md
-  📖 235.md
+  📖 238.md
   📖 45.md
   📖 47.md
   📖 66-resolution.md
@@ -417,7 +416,11 @@ cargo audit
     📄 parser.rs
     📄 utils.rs
     📄 utils_tests.rs
-  📄 options.rs
+  📁 options/
+    📄 attachments.rs
+    📄 effects.rs
+    📄 mod.rs
+    📄 tests.rs
   📄 wasm.rs
   📁 ym2151/
     📄 channel_allocation.rs
@@ -436,7 +439,11 @@ cargo audit
     📄 converter.rs
     📁 converter_tests/
       📄 attachments.rs
-      📄 attachments_change_to_next_tone.rs
+      📁 attachments_change_to_next_tone/
+        📄 guards.rs
+        📄 interpolation.rs
+        📄 keep_fields.rs
+        📄 mod.rs
       📄 attachments_program_effects.rs
       📄 basic.rs
       📄 channels.rs
@@ -533,7 +540,7 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/random-tone.ts** (159行, 4933バイト)
+**demo-library/random-tone.ts** (161行, 5027バイト)
   - 関数: getToneEditorGenerator, generateRandomToneRegisters, generateRandomInterpolationPairRegisters, parseAttachmentEntries, validateRandomToneAttachment, upsertEntryRegisters, upsertAttachmentRegisters, upsertInterpolationAttachmentRegisters, buildRandomInterpolationAttachment, if, catch
   - インポート: なし
 
@@ -545,7 +552,7 @@ cargo audit
   - 関数: なし
   - インポート: なし
 
-**demo-library/tone-interpolation-demo.ts** (358行, 9129バイト)
+**demo-library/tone-interpolation-demo.ts** (359行, 9179バイト)
   - 関数: nextRequestId, isLatestRequest, updateOutputWithState, updatePlayButtonState, initializeWasm, readAttachmentBytes, runConversion, handlePlay, setupAttachmentEditor, applyRandomToneToAttachment, setupRandomToneButton, setupMmlInput, setupMidiInput, bootstrapWebYm, main, if, catch
   - インポート: smf-to-ym2151log-rust/pkg/smf_to_ym2151log.js, ./tone-json-attachment, ./mml-support
 
@@ -739,4 +746,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-04-02 07:16:40 JST
+Generated at: 2026-04-03 07:15:01 JST

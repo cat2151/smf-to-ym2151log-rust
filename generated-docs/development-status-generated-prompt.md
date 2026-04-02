@@ -1,4 +1,4 @@
-Last updated: 2026-04-02
+Last updated: 2026-04-03
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -287,8 +287,7 @@ Last updated: 2026-04-02
 - issue-notes/201.md
 - issue-notes/211.md
 - issue-notes/22.md
-- issue-notes/234.md
-- issue-notes/235.md
+- issue-notes/238.md
 - issue-notes/45.md
 - issue-notes/47.md
 - issue-notes/66-resolution.md
@@ -308,7 +307,10 @@ Last updated: 2026-04-02
 - src/midi/parser.rs
 - src/midi/utils.rs
 - src/midi/utils_tests.rs
-- src/options.rs
+- src/options/attachments.rs
+- src/options/effects.rs
+- src/options/mod.rs
+- src/options/tests.rs
 - src/wasm.rs
 - src/ym2151/channel_allocation.rs
 - src/ym2151/converter/event_accumulator.rs
@@ -323,7 +325,10 @@ Last updated: 2026-04-02
 - src/ym2151/converter/waveform.rs
 - src/ym2151/converter.rs
 - src/ym2151/converter_tests/attachments.rs
-- src/ym2151/converter_tests/attachments_change_to_next_tone.rs
+- src/ym2151/converter_tests/attachments_change_to_next_tone/guards.rs
+- src/ym2151/converter_tests/attachments_change_to_next_tone/interpolation.rs
+- src/ym2151/converter_tests/attachments_change_to_next_tone/keep_fields.rs
+- src/ym2151/converter_tests/attachments_change_to_next_tone/mod.rs
 - src/ym2151/converter_tests/attachments_program_effects.rs
 - src/ym2151/converter_tests/basic.rs
 - src/ym2151/converter_tests/channels.rs
@@ -357,21 +362,6 @@ Last updated: 2026-04-02
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #234](../issue-notes/234.md): 隣接音色線形補間デモのランダム音色は、registersそのものはランダム音色生成関数の生成のままにして、添付JSON側でMUL維持on/offなどを個別にeditできるようにする
-[issue-notes/234.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/234.md)
-
-...
-ラベル: 
---- issue-notes/234.md の内容 ---
-
-```markdown
-# issue 隣接音色線形補間デモのランダム音色は、registersそのものはランダム音色生成関数の生成のままにして、添付JSON側でMUL維持on/offなどを個別にeditできるようにする #234
-[issues #234](https://github.com/cat2151/smf-to-ym2151log-rust/issues/234)
-
-
-
-```
-
 ## [Issue #177](../issue-notes/177.md): （人力）添付JSONまわりのドッグフーディングをする
 [issue-notes/177.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/177.md)
 
@@ -729,152 +719,6 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
-### .github/actions-tmp/issue-notes/4.md
-```md
-{% raw %}
-# issue GitHub Actions「project概要生成」を共通ワークフロー化する #4
-[issues #4](https://github.com/cat2151/github-actions/issues/4)
-
-# prompt
-```
-あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
-このymlファイルを、以下の2つのファイルに分割してください。
-1. 共通ワークフロー       cat2151/github-actions/.github/workflows/daily-project-summary.yml
-2. 呼び出し元ワークフロー cat2151/github-actions/.github/workflows/call-daily-project-summary.yml
-まずplanしてください
-```
-
-# 結果、あちこちハルシネーションのあるymlが生成された
-- agentの挙動があからさまにハルシネーション
-    - インデントが修正できない、「失敗した」という
-    - 構文誤りを認識できない
-- 人力で修正した
-
-# このagentによるセルフレビューが信頼できないため、別のLLMによるセカンドオピニオンを試す
-```
-あなたはGitHub Actionsと共通ワークフローのスペシャリストです。
-以下の2つのファイルをレビューしてください。最優先で、エラーが発生するかどうかだけレビューてください。エラー以外の改善事項のチェックをするかわりに、エラー発生有無チェックに最大限注力してください。
-
---- 呼び出し元
-
-name: Call Daily Project Summary
-
-on:
-  schedule:
-    # 日本時間 07:00 (UTC 22:00 前日)
-    - cron: '0 22 * * *'
-  workflow_dispatch:
-
-jobs:
-  call-daily-project-summary:
-    uses: cat2151/github-actions/.github/workflows/daily-project-summary.yml
-    secrets:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
---- 共通ワークフロー
-name: Daily Project Summary
-on:
-  workflow_call:
-
-jobs:
-  generate-summary:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-      issues: read
-      pull-requests: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # 履歴を取得するため
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: |
-          # 一時的なディレクトリで依存関係をインストール
-          mkdir -p /tmp/summary-deps
-          cd /tmp/summary-deps
-          npm init -y
-          npm install @google/generative-ai @octokit/rest
-          # generated-docsディレクトリを作成
-          mkdir -p $GITHUB_WORKSPACE/generated-docs
-
-      - name: Generate project summary
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          NODE_PATH: /tmp/summary-deps/node_modules
-        run: |
-          node .github/scripts/generate-project-summary.cjs
-
-      - name: Check for generated summaries
-        id: check_summaries
-        run: |
-          if [ -f "generated-docs/project-overview.md" ] && [ -f "generated-docs/development-status.md" ]; then
-            echo "summaries_generated=true" >> $GITHUB_OUTPUT
-          else
-            echo "summaries_generated=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Commit and push summaries
-        if: steps.check_summaries.outputs.summaries_generated == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          # package.jsonの変更のみリセット（generated-docsは保持）
-          git restore package.json 2>/dev/null || true
-          # サマリーファイルのみを追加
-          git add generated-docs/project-overview.md
-          git add generated-docs/development-status.md
-          git commit -m "Update project summaries (overview & development status)"
-          git push
-
-      - name: Summary generation result
-        run: |
-          if [ "${{ steps.check_summaries.outputs.summaries_generated }}" == "true" ]; then
-            echo "✅ Project summaries updated successfully"
-            echo "📊 Generated: project-overview.md & development-status.md"
-          else
-            echo "ℹ️ No summaries generated (likely no user commits in the last 24 hours)"
-          fi
-```
-
-# 上記promptで、2つのLLMにレビューさせ、合格した
-
-# 細部を、先行する2つのymlを参照に手直しした
-
-# ローカルtestをしてからcommitできるとよい。方法を検討する
-- ローカルtestのメリット
-    - 素早く修正のサイクルをまわせる
-    - ムダにgit historyを汚さない
-        - これまでの事例：「実装したつもり」「エラー。修正したつもり」「エラー。修正したつもり」...（以降エラー多数）
-- 方法
-    - ※検討、WSL + act を環境構築済みである。test可能であると判断する
-    - 呼び出し元のURLをコメントアウトし、相対パス記述にする
-    - ※備考、テスト成功すると結果がcommit pushされる。それでよしとする
-- 結果
-    - OK
-    - secretsを簡略化できるか試した、できなかった、現状のsecrets記述が今わかっている範囲でベストと判断する
-    - OK
-
-# test green
-
-# commit用に、yml 呼び出し元 uses をlocal用から本番用に書き換える
-
-# closeとする
-
-{% endraw %}
-```
-
 ### .github/actions-tmp/issue-notes/7.md
 ```md
 {% raw %}
@@ -892,17 +736,6 @@ jobs:
 {% raw %}
 # issue （人力）添付JSONまわりのドッグフーディングをする #177
 [issues #177](https://github.com/cat2151/smf-to-ym2151log-rust/issues/177)
-
-
-
-{% endraw %}
-```
-
-### issue-notes/234.md
-```md
-{% raw %}
-# issue 隣接音色線形補間デモのランダム音色は、registersそのものはランダム音色生成関数の生成のままにして、添付JSON側でMUL維持on/offなどを個別にeditできるようにする #234
-[issues #234](https://github.com/cat2151/smf-to-ym2151log-rust/issues/234)
 
 
 
@@ -1070,42 +903,50 @@ jobs:
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-58b0ae1 Merge pull request #236 from cat2151/copilot/split-file-for-single-responsibility
-d425f06 refactor: split lib responsibilities into modules
-459f145 Add issue note for #235 [auto]
-c08081d Initial plan
-9bef0d6 Merge pull request #233 from cat2151/copilot/add-json-editing-for-vibrato
-7b9af3f Update copilot instructions with PR guidelines
-da1fc1c chore: use explicit vibrato loop constants
-61b596e chore: polish delay vibrato sampling helper
-7be3e0e fix: address delay vibrato review followups
-a561a1b feat: add configurable delay vibrato JSON settings
+bbc37b1 Merge pull request #239 from cat2151/copilot/split-large-source-files
+62985fa refactor: split large options and change-to-next-tone modules
+ad8eb27 Add issue note for #238 [auto]
+6be1197 Initial plan
+4614cb3 Merge pull request #237 from cat2151/copilot/edit-json-mul-settings
+e8cc6bc test: keep-fieldsテストの時刻判定を明確化
+7525966 fix: reviewコメントの重複定義とテスト閾値を解消
+d155352 feat: ChangeToNextToneの保持フィールドをJSON指定可能にする
+ea0b110 Initial plan
+460c431 Update project summaries (overview & development status) [auto]
 
 ### 変更されたファイル:
-.github/copilot-instructions.md
 demo-library/delay-vibrato-demo.ts
 demo-library/delay-vibrato.html
-issue-notes/230.md
+demo-library/random-tone.ts
+demo-library/tone-interpolation-demo.ts
+generated-docs/development-status-generated-prompt.md
+generated-docs/development-status.md
+generated-docs/project-overview-generated-prompt.md
+generated-docs/project-overview.md
+issue-notes/232.md
 issue-notes/234.md
-issue-notes/235.md
+issue-notes/238.md
 src/api.rs
 src/lib.rs
-src/options.rs
+src/options/attachments.rs
+src/options/effects.rs
+src/options/mod.rs
+src/options/tests.rs
 src/ym2151/converter.rs
 src/ym2151/converter/pitch_effects.rs
-src/ym2151/converter/register_effects.rs
-src/ym2151/converter/register_effects/common.rs
-src/ym2151/converter/register_effects/mod.rs
-src/ym2151/converter/register_effects/pop_noise.rs
-src/ym2151/converter/register_effects/register_lfo.rs
-src/ym2151/converter/register_effects/state_cache.rs
 src/ym2151/converter/register_effects/tone_interpolation.rs
+src/ym2151/converter/register_fields.rs
 src/ym2151/converter/waveform.rs
 src/ym2151/converter_tests.rs
+src/ym2151/converter_tests/attachments.rs
+src/ym2151/converter_tests/attachments_change_to_next_tone/guards.rs
+src/ym2151/converter_tests/attachments_change_to_next_tone/interpolation.rs
+src/ym2151/converter_tests/attachments_change_to_next_tone/keep_fields.rs
+src/ym2151/converter_tests/attachments_change_to_next_tone/mod.rs
 src/ym2151/converter_tests/attachments_program_effects.rs
 src/ym2151/converter_tests/effects.rs
 tests/integration_public_api.rs
 
 
 ---
-Generated at: 2026-04-02 07:16:40 JST
+Generated at: 2026-04-03 07:15:01 JST
