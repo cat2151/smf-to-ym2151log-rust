@@ -55,6 +55,11 @@ pub struct ProgramAttachment {
         default = "default_change_to_next_tone_time"
     )]
     pub change_to_next_tone_time: f64,
+    /// Optional list of packed YM2151 fields to keep from the current tone while
+    /// interpolating toward the next tone. This lets the attachment JSON preserve
+    /// parameters such as MUL or ALG/CON without mutating the source `registers`.
+    #[serde(rename = "ChangeToNextToneKeepFields", default)]
+    pub change_to_next_tone_keep_fields: Vec<ChangeToNextToneKeepField>,
 }
 
 /// Optional conversion options supplied via attachment JSON
@@ -168,6 +173,31 @@ pub struct PopNoiseEnvelope {
 pub enum LfoWaveform {
     Triangle,
     Sine,
+}
+
+/// Packed YM2151 fields that can be preserved from the current tone during
+/// ChangeToNextTone interpolation.
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "PascalCase")]
+pub enum ChangeToNextToneKeepField {
+    #[serde(alias = "Con", alias = "Connection")]
+    Alg,
+    Fb,
+    Rl,
+    Mul,
+    Dt1,
+    Tl,
+    Ks,
+    Ar,
+    #[serde(alias = "AmsEnable")]
+    AmsEn,
+    D1r,
+    Dt2,
+    D2r,
+    D1l,
+    Rr,
+    Pms,
+    Ams,
 }
 
 fn default_lfo_waveform() -> LfoWaveform {
@@ -399,6 +429,7 @@ mod tests {
             "ProgramChange": 0,
             "ChangeToNextTone": true,
             "ChangeToNextToneTime": 3.5,
+            "ChangeToNextToneKeepFields": ["Mul", "Alg"],
             "Tone": { "events": [] }
           },
           {
@@ -410,6 +441,13 @@ mod tests {
         assert_eq!(opts.program_attachments.len(), 2);
         assert!(opts.program_attachments[0].change_to_next_tone);
         assert!((opts.program_attachments[0].change_to_next_tone_time - 3.5).abs() < 1e-9);
+        assert_eq!(
+            opts.program_attachments[0].change_to_next_tone_keep_fields,
+            vec![
+                ChangeToNextToneKeepField::Mul,
+                ChangeToNextToneKeepField::Alg
+            ]
+        );
         assert!(!opts.program_attachments[1].change_to_next_tone);
         assert!((opts.program_attachments[1].change_to_next_tone_time - 5.0).abs() < 1e-9);
     }

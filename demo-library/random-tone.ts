@@ -128,6 +128,7 @@ export function upsertInterpolationAttachmentRegisters(
 		ProgramChange: 0,
 		ChangeToNextTone: true,
 		ChangeToNextToneTime: 10,
+		ChangeToNextToneKeepFields: ["Mul", "Alg"],
 	});
 	upsertEntryRegisters(entries, secondRegisters, 1, 1, {
 		ProgramChange: 1,
@@ -145,6 +146,7 @@ export async function buildRandomInterpolationAttachment(): Promise<string> {
 				ProgramChange: 0,
 				ChangeToNextTone: true,
 				ChangeToNextToneTime: 10,
+				ChangeToNextToneKeepFields: ["Mul", "Alg"],
 				registers: generate(seed, DEFAULT_MIDI_NOTE_FOR_RANDOM),
 			},
 			{

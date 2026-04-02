@@ -5,6 +5,8 @@
 //! This module defines those sub-fields so that linear interpolation can operate
 //! on each parameter independently, rather than blending the raw byte value.
 
+use crate::ChangeToNextToneKeepField;
+
 /// A single parameter packed into a YM2151 register byte.
 pub(super) struct RegisterFieldDef {
     /// Bitmask of this field's bits in their original register-byte position.
@@ -132,6 +134,33 @@ pub(super) fn get_register_fields(addr: u8) -> &'static [RegisterFieldDef] {
         0xC0..=0xDF => &DT2_D2R_FIELDS,
         0xE0..=0xFF => &D1L_RR_FIELDS,
         _ => &GENERIC_FIELDS,
+    }
+}
+
+fn get_field_mask(fields: &'static [RegisterFieldDef], index: usize) -> Option<u8> {
+    fields.get(index).map(|field| field.mask)
+}
+
+/// Returns the bitmask for a keep-field setting on the given YM2151 register, if compatible.
+pub(super) fn get_keep_field_mask(addr: u8, keep_field: ChangeToNextToneKeepField) -> Option<u8> {
+    match (addr, keep_field) {
+        (0x20..=0x27, ChangeToNextToneKeepField::Alg) => get_field_mask(&RL_FB_CON_FIELDS, 0),
+        (0x20..=0x27, ChangeToNextToneKeepField::Fb) => get_field_mask(&RL_FB_CON_FIELDS, 1),
+        (0x20..=0x27, ChangeToNextToneKeepField::Rl) => get_field_mask(&RL_FB_CON_FIELDS, 2),
+        (0x38..=0x3F, ChangeToNextToneKeepField::Ams) => get_field_mask(&PMS_AMS_FIELDS, 0),
+        (0x38..=0x3F, ChangeToNextToneKeepField::Pms) => get_field_mask(&PMS_AMS_FIELDS, 1),
+        (0x40..=0x5F, ChangeToNextToneKeepField::Mul) => get_field_mask(&DT1_MUL_FIELDS, 0),
+        (0x40..=0x5F, ChangeToNextToneKeepField::Dt1) => get_field_mask(&DT1_MUL_FIELDS, 1),
+        (0x60..=0x7F, ChangeToNextToneKeepField::Tl) => get_field_mask(&TL_FIELDS, 0),
+        (0x80..=0x9F, ChangeToNextToneKeepField::Ar) => get_field_mask(&KS_AR_FIELDS, 0),
+        (0x80..=0x9F, ChangeToNextToneKeepField::Ks) => get_field_mask(&KS_AR_FIELDS, 1),
+        (0xA0..=0xBF, ChangeToNextToneKeepField::D1r) => get_field_mask(&AMSEN_D1R_FIELDS, 0),
+        (0xA0..=0xBF, ChangeToNextToneKeepField::AmsEn) => get_field_mask(&AMSEN_D1R_FIELDS, 1),
+        (0xC0..=0xDF, ChangeToNextToneKeepField::D2r) => get_field_mask(&DT2_D2R_FIELDS, 0),
+        (0xC0..=0xDF, ChangeToNextToneKeepField::Dt2) => get_field_mask(&DT2_D2R_FIELDS, 1),
+        (0xE0..=0xFF, ChangeToNextToneKeepField::Rr) => get_field_mask(&D1L_RR_FIELDS, 0),
+        (0xE0..=0xFF, ChangeToNextToneKeepField::D1l) => get_field_mask(&D1L_RR_FIELDS, 1),
+        _ => None,
     }
 }
 
@@ -273,5 +302,21 @@ mod tests {
                                                 // D1L: 0→15 (15 steps), RR: 15→0 (15 steps) → max = 15
         let steps = max_steps_for_fields(0x0F, 0xF0, fields);
         assert_eq!(steps, 15);
+    }
+
+    #[test]
+    fn test_get_keep_field_mask_reuses_existing_field_masks() {
+        assert_eq!(
+            get_keep_field_mask(0x20, ChangeToNextToneKeepField::Alg),
+            Some(RL_FB_CON_FIELDS[0].mask)
+        );
+        assert_eq!(
+            get_keep_field_mask(0x40, ChangeToNextToneKeepField::Mul),
+            Some(DT1_MUL_FIELDS[0].mask)
+        );
+        assert_eq!(
+            get_keep_field_mask(0xE0, ChangeToNextToneKeepField::D1l),
+            Some(D1L_RR_FIELDS[1].mask)
+        );
     }
 }

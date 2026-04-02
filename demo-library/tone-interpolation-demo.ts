@@ -22,6 +22,7 @@ const DEFAULT_COMPACT_ATTACHMENT = `[
     "ProgramChange": 0,
     "ChangeToNextTone": true,
     "ChangeToNextToneTime": 10,
+    "ChangeToNextToneKeepFields": ["Mul", "Alg"],
     "registers": "20C760006810801F881FE00FE80F"
   },
   {
