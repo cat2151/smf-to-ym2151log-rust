@@ -1,51 +1,51 @@
-Last updated: 2026-04-03
+Last updated: 2026-04-19
 
 # Development Status
 
 ## 現在のIssues
-- [Issue #177](../issue-notes/177.md) は、添付JSON機能全般の実際の利用と検証（ドッグフーディング）を通じて、その振る舞いを深く理解し、改善点を見つけることに重点を置いています。
-- [Issue #83](../issue-notes/83.md) は、デフォルト音色データ（0-127）の未整備状態を解消し、音色データの管理と利用方法を整理することを目的としています。
-- [Issue #22](../issue-notes/22.md) は、`ym2151-tone-editor` を活用し、`tones/` ディレクトリに具体的なデフォルト音色JSONファイル（000.json～127.json）を配置する作業を進めます。
+- CIのClippyエラー [Issue #240](../issue-notes/240.md) が発生しており、早急な修正が必要です。
+- 音色データの扱いについて、添付JSONのドッグフーディング [Issue #177](../issue-notes/177.md) と、デフォルト音色データの整理・配置 [Issue #83](../issue-notes/83.md), [Issue #22](../issue-notes/22.md) が主要な課題として残っています。
+- 特に、`tones/000.json` 以外のデフォルト音色データ (`001.json`～`127.json`) の準備が進行中です。
 
 ## 次の一手候補
-1. デフォルト音色JSONファイルの雛形生成 [Issue #22](../issue-notes/22.md)
-   - 最初の小さな一歩: 既存の `tones/000.json` の構造を分析し、他のデフォルト音色（001-127）の空のJSONファイルの雛形を生成する。
+1. CI Clippyエラーの修正 [Issue #240](../issue-notes/240.md)
+   - 最初の小さな一歩: CIの失敗ログを確認し、Clippyが指摘する具体的なエラー箇所と原因を特定する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `tones/000.json`, `src/options/attachments.rs`
+     対象ファイル: src/ディレクトリ内のRustファイル、Cargo.toml
 
-     実行内容: `tones/000.json` のJSONスキーマ（主要なキーと値の型）を分析し、その構造に基づいた `tones/001.json`, `tones/002.json`, `tones/003.json` の3つの空のJSONファイルを生成してください。`type` と `events` フィールドを持つ基本的な構造を維持してください。
+     実行内容: GitHub Actionsのワークフローログ (https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/24604563507) を分析し、Clippyが指摘するエラーの具体的なファイルと行番号、エラーメッセージを特定し、その原因を推測してください。
 
-     確認事項: 生成されるJSONファイルが `src/options/attachments.rs` でパース可能であるか、および基本的な構造が `tones/000.json` と整合しているかを確認してください。
+     確認事項: Clippyの出力はRustのコードスタイルや潜在的なバグを示唆しているため、変更がロジックに影響を与えないことを確認する必要があります。
 
-     期待する出力: 生成された `tones/001.json`, `tones/002.json`, `tones/003.json` の内容をMarkdownのコードブロックで出力してください。
+     期待する出力: Clippyエラーの具体的な内容（ファイルパス、行番号、エラーコード、メッセージ）と、考えられる原因、および修正方針のサマリーをMarkdown形式で出力してください。
      ```
 
-2. 音色データ読み込み・適用フローの分析 [Issue #83](../issue-notes/83.md)
-   - 最初の小さな一歩: `tones/` ディレクトリの音色JSONファイルが、アプリケーションのどのコードパスで読み込まれ、YM2151のレジスタ設定として適用されるかを分析する。
+2. デフォルト音色データ `tones/001.json` のテンプレート作成 [Issue #22](../issue-notes/22.md)
+   - 最初の小さな一歩: `tones/000.json`の内容を分析し、YM2151の基本的な音色設定として利用可能な汎用的なテンプレートを作成し、`tones/001.json`としてダミーファイルを生成する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `src/api.rs`, `src/options/attachments.rs`, `src/ym2151/converter.rs`, `src/ym2151/tone.rs`, `src/ym2151/events.rs`, `src/ym2151/init.rs`
+     対象ファイル: tones/000.json
 
-     実行内容: `tones/` ディレクトリに配置されたJSON形式の音色データが、アプリケーション起動時またはMIDIイベント処理時にどのように読み込まれ、`src/ym2151/converter.rs` でYM2151のレジスタ設定として適用されるか、その主要なコードパスとデータフローを分析し、Markdown形式で説明してください。
+     実行内容: `tones/000.json`の内容を分析し、YM2151の基本的な音色設定（例：単純なサイン波や矩形波のバリエーション）を作成するためのテンプレートJSON構造を特定してください。その後、そのテンプレートに基づいて、`tones/001.json`として利用できるダミーの音色JSONファイルを作成してください。内容は`000.json`を参考にしつつ、少しだけ異なるパラメーター（例：アタックやディケイ、合計レベルなどを微調整）を設定してください。
 
-     確認事項: `src/options/attachments.rs` の `Attachment` 構造体がJSONパースにどのように関与しているか、`Tone` 構造体と `ToneEvent` がどのように変換されるかを特に注目してください。
+     確認事項: YM2151のレジスタ設定の基本を理解し、無効な値や意味のない組み合わせを生成しないように注意してください。`tones/000.json`の構造を厳密に踏襲してください。
 
-     期待する出力: 音色データ読み込みからレジスタ適用までのデータフローを簡潔に説明したMarkdownドキュメント。
+     期待する出力: `tones/001.json`というファイル名で、指定された内容を持つJSONファイルを生成してください。
      ```
 
-3. `ChangeToNextTone` 保持フィールド機能の検証準備 [Issue #177](../issue-notes/177.md)
-   - 最初の小さな一歩: 最近追加された `ChangeToNextTone` 機能の「保持フィールドのJSON指定」について、簡単な検証シナリオと必要な添付JSON設定例を考案する。
+3. 添付JSON処理フローの初期調査 [Issue #177](../issue-notes/177.md)
+   - 最初の小さな一歩: 添付JSONがどのように処理されているか、関連する主要なコード（`src/options/attachments.rs` や `src/ym2151/converter_tests/attachments.rs` など）を確認し、基本的なデータフローを理解する。
    - Agent実行プロンプト:
      ```
-     対象ファイル: `src/options/attachments.rs`, `src/ym2151/converter_tests/attachments_change_to_next_tone/keep_fields.rs`, `src/ym2151/converter/register_effects/tone_interpolation.rs`
+     対象ファイル: src/options/attachments.rs, src/options/mod.rs, src/ym2151/converter.rs, src/ym2151/converter_tests/attachments.rs, src/ym2151/converter_tests/attachments_change_to_next_tone/
 
-     実行内容: コミット `d155352` で追加された `ChangeToNextTone` 機能における「保持フィールドのJSON指定」の動作を理解するため、関連するコードと既存のテストケースを分析してください。この機能の具体的な利用方法を示す簡単な検証シナリオと、それに必要な添付JSONの設定例をMarkdown形式で提案してください。
+     実行内容: 添付JSON (`src/options/attachments.rs` で定義される構造) が、Midiイベント変換 (`src/ym2151/converter.rs` など) においてどのように読み込まれ、処理され、最終的にYM2151のレジスタ値に影響を与えるか、その主要なデータフローを分析してください。特にテストコード (`src/ym2151/converter_tests/attachments.rs` およびそのサブディレクトリ内) を参照し、テストされている主なシナリオを特定してください。
 
-     確認事項: 提案するシナリオは、実際にコードで表現可能であり、かつ、`ChangeToNextTone` の保持フィールド機能の効果が明確に確認できるものであることを確認してください。
+     確認事項: `src/options/attachments.rs` の構造と、それが実際に`src/ym2151/converter/`内の処理でどのように利用されているかを詳細に追跡してください。
 
-     期待する出力: `ChangeToNextTone` の保持フィールド設定に関する機能説明、検証用の添付JSON設定例、および期待される動作の簡潔な説明を記述したMarkdownドキュメント。
+     期待する出力: 添付JSONの処理フローの概要と、関連する主要なファイルおよび関数、そして既存のテストがカバーしている基本的なシナリオをMarkdown形式で説明してください。
      ```
 
 ---
-Generated at: 2026-04-03 07:15:22 JST
+Generated at: 2026-04-19 07:13:04 JST

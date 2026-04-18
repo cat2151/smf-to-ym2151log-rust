@@ -1,4 +1,4 @@
-Last updated: 2026-04-03
+Last updated: 2026-04-19
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -103,6 +103,8 @@ Last updated: 2026-04-03
 - Issue番号を記載する際は、必ず [Issue #番号](../issue-notes/番号.md) の形式でMarkdownリンクとして記載してください。
 
 ## プロジェクトのファイル一覧
+- .gitattributes
+- .github/actions-tmp/.gitattributes
 - .github/actions-tmp/.github/workflows/call-callgraph.yml
 - .github/actions-tmp/.github/workflows/call-check-large-files.yml
 - .github/actions-tmp/.github/workflows/call-daily-project-summary.yml
@@ -362,6 +364,22 @@ Last updated: 2026-04-03
 - tones/README.md
 
 ## 現在のオープンIssues
+## [Issue #240](../issue-notes/240.md): CI clippy failed
+## CI clippy failed
+
+**Workflow run:** https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/24604563507
+**Branch:** main
+**Commit:** 03120f82376da6cf8a2f8a7f22692ca38a608ce8
+**Triggered by:** push
+
+Please investigate the workflow logs for details....
+ラベル: ci-clippy-failure
+--- issue-notes/240.md の内容 ---
+
+```markdown
+
+```
+
 ## [Issue #177](../issue-notes/177.md): （人力）添付JSONまわりのドッグフーディングをする
 [issue-notes/177.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/177.md)
 
@@ -719,6 +737,21 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
+### .github/actions-tmp/issue-notes/40.md
+```md
+{% raw %}
+# issue 巨大コードの検知のワークフローの対象に、テストコードも含むようにする #40
+[issues #40](https://github.com/cat2151/github-actions/issues/40)
+
+- あわせて、issueのプロンプトに以下を含むようにせよ
+    - リファクタリングするときは、事前と事後にtestし、エラー件数（test red件数）を事前と事後で報告してください
+    - リファクタリング前後でtest redがあった場合は、userに「まず別issueでtest greenにしてからリファクタリングしてください」を報告してください
+
+- あわせて、cat2151の直近の20のリポジトリを調査し、それらのリポジトリでのワークフロー設定tomlの変更の要否と、このワークフロー適用漏れのリポジトリの有無を、報告せよ
+
+{% endraw %}
+```
+
 ### .github/actions-tmp/issue-notes/7.md
 ```md
 {% raw %}
@@ -903,50 +936,36 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-bbc37b1 Merge pull request #239 from cat2151/copilot/split-large-source-files
-62985fa refactor: split large options and change-to-next-tone modules
-ad8eb27 Add issue note for #238 [auto]
-6be1197 Initial plan
-4614cb3 Merge pull request #237 from cat2151/copilot/edit-json-mul-settings
-e8cc6bc test: keep-fieldsテストの時刻判定を明確化
-7525966 fix: reviewコメントの重複定義とテスト閾値を解消
-d155352 feat: ChangeToNextToneの保持フィールドをJSON指定可能にする
-ea0b110 Initial plan
-460c431 Update project summaries (overview & development status) [auto]
+03120f8 下流リポジトリがここを利用したときにpostinstall 503で落ちることがあり、その防止のためretryを入れた
+eb71ef8 agent改行破壊対策
 
 ### 変更されたファイル:
-demo-library/delay-vibrato-demo.ts
-demo-library/delay-vibrato.html
+.gitattributes
 demo-library/random-tone.ts
 demo-library/tone-interpolation-demo.ts
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
-issue-notes/232.md
 issue-notes/234.md
+issue-notes/235.md
 issue-notes/238.md
-src/api.rs
+package.json
 src/lib.rs
+src/options.rs
 src/options/attachments.rs
 src/options/effects.rs
 src/options/mod.rs
 src/options/tests.rs
-src/ym2151/converter.rs
-src/ym2151/converter/pitch_effects.rs
 src/ym2151/converter/register_effects/tone_interpolation.rs
 src/ym2151/converter/register_fields.rs
-src/ym2151/converter/waveform.rs
 src/ym2151/converter_tests.rs
 src/ym2151/converter_tests/attachments.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/guards.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/interpolation.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/keep_fields.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/mod.rs
-src/ym2151/converter_tests/attachments_program_effects.rs
-src/ym2151/converter_tests/effects.rs
-tests/integration_public_api.rs
 
 
 ---
-Generated at: 2026-04-03 07:15:01 JST
+Generated at: 2026-04-19 07:12:49 JST

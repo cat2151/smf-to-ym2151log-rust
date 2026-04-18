@@ -1,4 +1,4 @@
-Last updated: 2026-04-03
+Last updated: 2026-04-19
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -325,6 +325,7 @@ cargo audit
 }
 
 ## ファイル階層ツリー
+📄 .gitattributes
 📄 .gitignore
 📄 Cargo.lock
 📄 Cargo.toml
@@ -746,4 +747,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-04-03 07:15:01 JST
+Generated at: 2026-04-19 07:12:49 JST
