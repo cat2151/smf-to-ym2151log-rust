@@ -1,4 +1,4 @@
-Last updated: 2026-04-19
+Last updated: 2026-04-20
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -142,6 +142,7 @@ Last updated: 2026-04-19
 - .github/actions-tmp/.github_automation/check-large-files/README.md
 - .github/actions-tmp/.github_automation/check-large-files/check-large-files.toml.default
 - .github/actions-tmp/.github_automation/check-large-files/scripts/check_large_files.py
+- .github/actions-tmp/.github_automation/check-large-files/scripts/test_check_large_files.py
 - .github/actions-tmp/.github_automation/check_recent_human_commit/scripts/check-recent-human-commit.cjs
 - .github/actions-tmp/.github_automation/project_summary/docs/daily-summary-setup.md
 - .github/actions-tmp/.github_automation/project_summary/prompts/development-status-prompt.md
@@ -205,7 +206,7 @@ Last updated: 2026-04-19
 - .github/actions-tmp/issue-notes/40.md
 - .github/actions-tmp/issue-notes/44.md
 - .github/actions-tmp/issue-notes/57.md
-- .github/actions-tmp/issue-notes/67.md
+- .github/actions-tmp/issue-notes/69.md
 - .github/actions-tmp/issue-notes/7.md
 - .github/actions-tmp/issue-notes/8.md
 - .github/actions-tmp/issue-notes/9.md
@@ -364,22 +365,6 @@ Last updated: 2026-04-19
 - tones/README.md
 
 ## 現在のオープンIssues
-## [Issue #240](../issue-notes/240.md): CI clippy failed
-## CI clippy failed
-
-**Workflow run:** https://github.com/cat2151/smf-to-ym2151log-rust/actions/runs/24604563507
-**Branch:** main
-**Commit:** 03120f82376da6cf8a2f8a7f22692ca38a608ce8
-**Triggered by:** push
-
-Please investigate the workflow logs for details....
-ラベル: ci-clippy-failure
---- issue-notes/240.md の内容 ---
-
-```markdown
-
-```
-
 ## [Issue #177](../issue-notes/177.md): （人力）添付JSONまわりのドッグフーディングをする
 [issue-notes/177.md](https://github.com/cat2151/smf-to-ym2151log-rust/blob/main/issue-notes/177.md)
 
@@ -737,21 +722,6 @@ env: で値を渡し、process.env で参照するのが正しい
 {% endraw %}
 ```
 
-### .github/actions-tmp/issue-notes/40.md
-```md
-{% raw %}
-# issue 巨大コードの検知のワークフローの対象に、テストコードも含むようにする #40
-[issues #40](https://github.com/cat2151/github-actions/issues/40)
-
-- あわせて、issueのプロンプトに以下を含むようにせよ
-    - リファクタリングするときは、事前と事後にtestし、エラー件数（test red件数）を事前と事後で報告してください
-    - リファクタリング前後でtest redがあった場合は、userに「まず別issueでtest greenにしてからリファクタリングしてください」を報告してください
-
-- あわせて、cat2151の直近の20のリポジトリを調査し、それらのリポジトリでのワークフロー設定tomlの変更の要否と、このワークフロー適用漏れのリポジトリの有無を、報告せよ
-
-{% endraw %}
-```
-
 ### .github/actions-tmp/issue-notes/7.md
 ```md
 {% raw %}
@@ -936,13 +906,17 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+3ff7e14 Merge pull request #241 from cat2151/copilot/investigate-ci-clippy-failure
+937dec4 chore: test名を簡潔化
+02a2c68 fix: release active notes on zero velocity note on
+9502d45 fix: clippy collapsible match in channel allocation
+2549038 Initial plan
+f215220 Update project summaries (overview & development status) [auto]
 03120f8 下流リポジトリがここを利用したときにpostinstall 503で落ちることがあり、その防止のためretryを入れた
 eb71ef8 agent改行破壊対策
 
 ### 変更されたファイル:
 .gitattributes
-demo-library/random-tone.ts
-demo-library/tone-interpolation-demo.ts
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
@@ -951,16 +925,14 @@ issue-notes/234.md
 issue-notes/235.md
 issue-notes/238.md
 package.json
-src/lib.rs
 src/options.rs
 src/options/attachments.rs
 src/options/effects.rs
 src/options/mod.rs
 src/options/tests.rs
-src/ym2151/converter/register_effects/tone_interpolation.rs
-src/ym2151/converter/register_fields.rs
-src/ym2151/converter_tests.rs
+src/ym2151/channel_allocation.rs
 src/ym2151/converter_tests/attachments.rs
+src/ym2151/converter_tests/attachments_change_to_next_tone.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/guards.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/interpolation.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/keep_fields.rs
@@ -968,4 +940,4 @@ src/ym2151/converter_tests/attachments_change_to_next_tone/mod.rs
 
 
 ---
-Generated at: 2026-04-19 07:12:49 JST
+Generated at: 2026-04-20 07:13:48 JST

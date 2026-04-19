@@ -1,4 +1,4 @@
-Last updated: 2026-04-19
+Last updated: 2026-04-20
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -747,4 +747,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-04-19 07:12:49 JST
+Generated at: 2026-04-20 07:13:48 JST
