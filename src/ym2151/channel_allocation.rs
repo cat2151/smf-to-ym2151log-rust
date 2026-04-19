@@ -48,15 +48,13 @@ pub fn analyze_polyphony(midi_data: &MidiData) -> HashMap<u8, usize> {
                 note,
                 velocity,
                 ..
-            } => {
-                if *velocity > 0 {
-                    active_notes.entry(*channel).or_default().insert(*note);
-                    let current_poly = active_notes[channel].len();
-                    max_polyphony
-                        .entry(*channel)
-                        .and_modify(|max| *max = (*max).max(current_poly))
-                        .or_insert(current_poly);
-                }
+            } if *velocity > 0 => {
+                active_notes.entry(*channel).or_default().insert(*note);
+                let current_poly = active_notes[channel].len();
+                max_polyphony
+                    .entry(*channel)
+                    .and_modify(|max| *max = (*max).max(current_poly))
+                    .or_insert(current_poly);
             }
             MidiEvent::NoteOff { channel, note, .. } => {
                 if let Some(notes) = active_notes.get_mut(channel) {
@@ -217,6 +215,23 @@ mod tests {
 
         let polyphony = analyze_polyphony(&midi_data);
         assert_eq!(polyphony.get(&0), Some(&3));
+    }
+
+    #[test]
+    fn test_analyze_polyphony_ignores_zero_velocity_note_on() {
+        let midi_data = MidiData {
+            ticks_per_beat: 480,
+            tempo_bpm: 120.0,
+            events: vec![MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 0,
+            }],
+        };
+
+        let polyphony = analyze_polyphony(&midi_data);
+        assert_eq!(polyphony.get(&0), None);
     }
 
     #[test]
