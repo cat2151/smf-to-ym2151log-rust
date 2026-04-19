@@ -19,6 +19,10 @@ pub struct ChannelAllocation {
 /// Measures the maximum number of simultaneous notes per MIDI channel
 /// by tracking note on/off events.
 ///
+/// `NoteOn` events with velocity 0 are treated as `NoteOff` so callers that
+/// construct `MidiData` directly still get MIDI-spec-compatible polyphony
+/// analysis even without parser-side normalization.
+///
 /// # Arguments
 /// * `midi_data` - MIDI data containing events to analyze
 ///
@@ -56,7 +60,13 @@ pub fn analyze_polyphony(midi_data: &MidiData) -> HashMap<u8, usize> {
                     .and_modify(|max| *max = (*max).max(current_poly))
                     .or_insert(current_poly);
             }
-            MidiEvent::NoteOff { channel, note, .. } => {
+            MidiEvent::NoteOn {
+                channel,
+                note,
+                velocity: 0,
+                ..
+            }
+            | MidiEvent::NoteOff { channel, note, .. } => {
                 if let Some(notes) = active_notes.get_mut(channel) {
                     notes.remove(note);
                 }
@@ -218,20 +228,34 @@ mod tests {
     }
 
     #[test]
-    fn test_analyze_polyphony_ignores_zero_velocity_note_on() {
+    fn test_analyze_polyphony_zero_velocity_note_on_releases_active_note() {
         let midi_data = MidiData {
             ticks_per_beat: 480,
             tempo_bpm: 120.0,
-            events: vec![MidiEvent::NoteOn {
-                ticks: 0,
-                channel: 0,
-                note: 60,
-                velocity: 0,
-            }],
+            events: vec![
+                MidiEvent::NoteOn {
+                    ticks: 0,
+                    channel: 0,
+                    note: 60,
+                    velocity: 100,
+                },
+                MidiEvent::NoteOn {
+                    ticks: 240,
+                    channel: 0,
+                    note: 60,
+                    velocity: 0,
+                },
+                MidiEvent::NoteOn {
+                    ticks: 480,
+                    channel: 0,
+                    note: 64,
+                    velocity: 100,
+                },
+            ],
         };
 
         let polyphony = analyze_polyphony(&midi_data);
-        assert_eq!(polyphony.get(&0), None);
+        assert_eq!(polyphony.get(&0), Some(&1));
     }
 
     #[test]
