@@ -228,7 +228,7 @@ mod tests {
     }
 
     #[test]
-    fn test_analyze_polyphony_zero_velocity_note_on_releases_active_note() {
+    fn test_analyze_polyphony_zero_vel_releases_note() {
         let midi_data = MidiData {
             ticks_per_beat: 480,
             tempo_bpm: 120.0,
