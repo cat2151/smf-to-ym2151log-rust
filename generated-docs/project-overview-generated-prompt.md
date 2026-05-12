@@ -1,4 +1,4 @@
-Last updated: 2026-04-20
+Last updated: 2026-05-13
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -505,7 +505,7 @@ cargo audit
   - 関数: resolveRegisterForChannel, collectLfoEvents, renderLfoLane, if, for
   - インポート: なし
 
-**demo-library/log-visualizer-note-segments.ts** (203行, 5759バイト)
+**demo-library/log-visualizer-note-segments.ts** (204行, 5788バイト)
   - 関数: buildNoteSegments, notePitch, computePitchRange, noteYPosition, for, if
   - インポート: なし
 
@@ -747,4 +747,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-04-20 07:13:48 JST
+Generated at: 2026-05-13 07:32:01 JST

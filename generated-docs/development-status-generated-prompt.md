@@ -1,4 +1,4 @@
-Last updated: 2026-04-20
+Last updated: 2026-05-13
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -906,38 +906,23 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
-3ff7e14 Merge pull request #241 from cat2151/copilot/investigate-ci-clippy-failure
-937dec4 chore: test名を簡潔化
-02a2c68 fix: release active notes on zero velocity note on
-9502d45 fix: clippy collapsible match in channel allocation
-2549038 Initial plan
-f215220 Update project summaries (overview & development status) [auto]
-03120f8 下流リポジトリがここを利用したときにpostinstall 503で落ちることがあり、その防止のためretryを入れた
-eb71ef8 agent改行破壊対策
+6953e19 fix: ビブラートのpitch誤りを修正、そのためKFは上位6bitを読み書きするよう修正
 
 ### 変更されたファイル:
 .gitattributes
+demo-library/log-visualizer-note-segments.ts
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
-issue-notes/234.md
-issue-notes/235.md
-issue-notes/238.md
 package.json
-src/options.rs
-src/options/attachments.rs
-src/options/effects.rs
-src/options/mod.rs
-src/options/tests.rs
+src/midi/utils.rs
+src/midi/utils_tests.rs
 src/ym2151/channel_allocation.rs
-src/ym2151/converter_tests/attachments.rs
-src/ym2151/converter_tests/attachments_change_to_next_tone.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/guards.rs
-src/ym2151/converter_tests/attachments_change_to_next_tone/interpolation.rs
-src/ym2151/converter_tests/attachments_change_to_next_tone/keep_fields.rs
-src/ym2151/converter_tests/attachments_change_to_next_tone/mod.rs
+src/ym2151/converter_tests/effects.rs
+tones/README.md
 
 
 ---
-Generated at: 2026-04-20 07:13:48 JST
+Generated at: 2026-05-13 07:32:01 JST
