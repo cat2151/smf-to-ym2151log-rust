@@ -52,6 +52,64 @@ fn test_delay_vibrato_generates_additional_pitch_events() {
 }
 
 #[test]
+fn test_delay_vibrato_writes_kf_in_upper_six_bits() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 1920,
+                channel: 0,
+                note: 60,
+            },
+        ],
+    };
+
+    let options = ConversionOptions {
+        delay_vibrato: Some(DelayVibratoDefinition {
+            delay_seconds: 0.0,
+            attack_seconds: 0.0,
+            depth_cents: 50.0,
+            rate_hz: 1.0,
+            waveform: LfoWaveform::Sine,
+        }),
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    let has_event_in_window = |addr: &str, data: &str, start: f64, end: f64| {
+        result
+            .events
+            .iter()
+            .any(|e| e.addr == addr && e.data == data && e.time >= start && e.time <= end)
+    };
+
+    assert!(
+        has_event_in_window("0x28", "0x2E", 0.2, 0.3),
+        "+50 cent peak should keep the base C KC"
+    );
+    assert!(
+        has_event_in_window("0x30", "0x80", 0.2, 0.3),
+        "+50 cent peak should write KF step 32 as raw register 0x80"
+    );
+    assert!(
+        has_event_in_window("0x28", "0x2D", 0.7, 0.8),
+        "-50 cent peak should use the lower B KC"
+    );
+    assert!(
+        has_event_in_window("0x30", "0x80", 0.7, 0.8),
+        "-50 cent peak should write KF step 32 as raw register 0x80"
+    );
+}
+
+#[test]
 fn test_delay_vibrato_custom_parameters_can_start_before_default_delay() {
     let midi_data = MidiData {
         ticks_per_beat: 480,

@@ -9,7 +9,8 @@ pub fn midi_note_to_frequency(midi_note: u8) -> f64 {
     440.0 * 2_f64.powf((midi_note as f64 - 69.0) / 12.0)
 }
 
-/// Convert MIDI note with a cent offset to YM2151 KC (Key Code) and KF (Key Fraction)
+/// Convert MIDI note with a cent offset to YM2151 KC (Key Code) and KF (Key Fraction).
+/// KF is returned as the raw YM2151 register byte, with the 6-bit fraction in bits 7..2.
 pub fn midi_note_with_offset_to_kc_kf(midi_note: u8, cents_offset: f64) -> (u8, u8) {
     // Convert cents to fractional MIDI note offset
     let target_note = (midi_note as f64) + cents_offset / 100.0;
@@ -25,8 +26,9 @@ pub fn midi_note_with_offset_to_kc_kf(midi_note: u8, cents_offset: f64) -> (u8, 
     let ym_note = NOTE_TABLE[note_in_octave];
     let kc = (ym_octave << 4) | ym_note;
 
-    // KF steps are 1/64 of a semitone on YM2151
-    let kf = (fractional * 64.0).round().clamp(0.0, 63.0) as u8;
+    // YM2151 stores the 6-bit KF step in bits 7..2 of the register byte.
+    let kf_step = (fractional * 64.0).round().clamp(0.0, 63.0) as u8;
+    let kf = kf_step << 2;
 
     (kc, kf)
 }
@@ -37,7 +39,7 @@ pub fn midi_note_with_offset_to_kc_kf(midi_note: u8, cents_offset: f64) -> (u8, 
 /// * `midi_note` - MIDI note number (0-127)
 ///
 /// # Returns
-/// Tuple of (KC, KF) where KC is the key code and KF is the key fraction
+/// Tuple of (KC, KF) where KC is the key code and KF is the raw key-fraction register byte
 ///
 /// # Example
 /// ```

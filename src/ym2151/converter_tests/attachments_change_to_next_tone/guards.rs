@@ -56,7 +56,7 @@ fn test_change_to_next_tone_skips_kc_kf_key_on_registers() {
     // Use different key-on values (0x78 vs 0x38) so the 0x08 register would have been
     // interpolated before the fix, verifying that is_note_register(0x08) is exercised.
     let tone0 = make_tone("0x10", "0x78", "0x4E", "0x00"); // TL=0x10, key-on=0x78, KC=A4, KF=0
-    let tone1 = make_tone("0x30", "0x38", "0x5E", "0x20"); // TL=0x30, key-on=0x38 (different!), KC different, KF different
+    let tone1 = make_tone("0x30", "0x38", "0x5E", "0x80"); // TL=0x30, key-on=0x38 (different!), KC different, KF different
 
     let options = ConversionOptions {
         program_attachments: vec![

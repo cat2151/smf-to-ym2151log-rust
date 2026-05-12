@@ -71,7 +71,8 @@ export function buildNoteSegments(
 			channelKC[ch] = newKC;
 		}
 
-		// KF register (0x30-0x37): fine pitch in 1/64 semitone steps.
+		// KF register (0x30-0x37): fine pitch is stored in bits 7..2
+		// as 1/64 semitone steps.
 		// Track changes alongside KC to show continuous vibrato motion.
 		if (addr >= KF_REGISTER_BASE && addr < KF_REGISTER_BASE + ymChannelCount) {
 			const ch = addr - KF_REGISTER_BASE;
@@ -161,16 +162,16 @@ export function buildNoteSegments(
  *   - high nibble: YM2151 octave (0–7); each octave starts at C#
  *   - low nibble: note code (from NOTE_TABLE), decoded via NOTE_CODE_TO_SEMITONE
  *
- * We decode KC into a linear semitone index and then add KF (fine pitch,
- * 1/64 semitone per step) so that the result is monotonic with actual pitch
- * and suitable for Y-axis placement.
+ * We decode KC into a linear semitone index and then add KF's upper 6 bits
+ * (fine pitch, 1/64 semitone per step) so that the result is monotonic with
+ * actual pitch and suitable for Y-axis placement.
  */
 export function notePitch(kc: number, kf: number): number {
 	const octave = (kc >> 4) & 0x07;
 	const noteCode = kc & 0x0f;
 	const semitone = NOTE_CODE_TO_SEMITONE[noteCode] ?? noteCode;
 	const linearSemitone = octave * 12 + semitone;
-	const fine = kf & 0x3f; // KF is 6-bit, 0-63
+	const fine = (kf >> 2) & 0x3f;
 	return linearSemitone * 64 + fine;
 }
 

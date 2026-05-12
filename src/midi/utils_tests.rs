@@ -111,11 +111,26 @@ fn test_midi_note_with_offset_zero_matches_base() {
 fn test_midi_note_with_offset_positive_and_negative() {
     let up = midi_note_with_offset_to_kc_kf(60, 100.0);
     let up_expected = midi_to_kc_kf(61);
-    assert_eq!(up.0, up_expected.0);
+    assert_eq!(up, up_expected);
 
     let down = midi_note_with_offset_to_kc_kf(60, -100.0);
     let down_expected = midi_to_kc_kf(59);
-    assert_eq!(down.0, down_expected.0);
+    assert_eq!(down, down_expected);
+}
+
+#[test]
+fn test_midi_note_with_offset_uses_ym2151_kf_upper_bits() {
+    let up_half = midi_note_with_offset_to_kc_kf(60, 50.0);
+    let base = midi_to_kc_kf(60);
+    assert_eq!(up_half.0, base.0);
+    assert_eq!(up_half.1, 0x80);
+    assert_eq!(up_half.1 & 0x03, 0);
+
+    let down_half = midi_note_with_offset_to_kc_kf(60, -50.0);
+    let down_base = midi_to_kc_kf(59);
+    assert_eq!(down_half.0, down_base.0);
+    assert_eq!(down_half.1, 0x80);
+    assert_eq!(down_half.1 & 0x03, 0);
 }
 
 // Timing conversion tests

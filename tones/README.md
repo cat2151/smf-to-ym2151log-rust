@@ -83,7 +83,7 @@ When this tone is applied to channel 3, the converter automatically adjusts it t
 Do not include the following in tone definitions, as they are set dynamically during playback:
 - `0x08` - Key ON/OFF
 - `0x28-0x2F` - KC: Key Code (note pitch)
-- `0x30-0x37` - KF: Key Fraction (fine pitch)
+- `0x30-0x37` - KF: Key Fraction (fine pitch in bits 7..2)
 
 ## Usage
 
