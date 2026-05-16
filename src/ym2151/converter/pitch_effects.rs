@@ -25,6 +25,31 @@ pub(super) fn append_delay_vibrato_events(
     config: &DelayVibratoDefinition,
     events: &mut EventAccumulator,
 ) {
+    append_delay_vibrato_events_matching(segments, config, |_| true, events);
+}
+
+pub(super) fn append_delay_vibrato_events_for_program(
+    segments: &[NoteSegment],
+    program: u8,
+    config: &DelayVibratoDefinition,
+    events: &mut EventAccumulator,
+) {
+    append_delay_vibrato_events_matching(
+        segments,
+        config,
+        |segment| segment.program == program,
+        events,
+    );
+}
+
+fn append_delay_vibrato_events_matching<F>(
+    segments: &[NoteSegment],
+    config: &DelayVibratoDefinition,
+    should_apply: F,
+    events: &mut EventAccumulator,
+) where
+    F: Fn(&NoteSegment) -> bool,
+{
     if segments.is_empty() {
         return;
     }
@@ -47,14 +72,17 @@ pub(super) fn append_delay_vibrato_events(
 
     for segment_list in segments_by_channel.values() {
         for (idx, segment) in segment_list.iter().enumerate() {
+            if !should_apply(segment) {
+                continue;
+            }
+
             let next_start = segment_list.get(idx + 1).map(|s| s.start_time);
-            let natural_end = segment.end_time + VIBRATO_RELEASE_TAIL_SECONDS;
-            let stop_time = match next_start {
-                Some(next) => natural_end.min(next),
-                None => natural_end,
+            let (stop_time, include_stop_time) = match next_start {
+                Some(next) => (next, false),
+                None => (segment.end_time + VIBRATO_RELEASE_TAIL_SECONDS, true),
             };
 
-            append_vibrato_for_segment(segment, stop_time, config, events);
+            append_vibrato_for_segment(segment, stop_time, include_stop_time, config, events);
         }
     }
 }
@@ -160,6 +188,7 @@ fn append_portamento_glide(
 fn append_vibrato_for_segment(
     segment: &NoteSegment,
     stop_time: f64,
+    include_stop_time: bool,
     config: &DelayVibratoDefinition,
     events: &mut EventAccumulator,
 ) {
@@ -180,7 +209,7 @@ fn append_vibrato_for_segment(
     let mut time = vibrato_start;
     let mut last_values: Option<(u8, u8)> = None;
 
-    while time <= stop_time + f64::EPSILON {
+    while is_vibrato_time_before_stop(time, stop_time, include_stop_time) {
         let elapsed_from_delay = time - vibrato_start;
         let depth_ratio = if config.attack_seconds <= 0.0 {
             1.0
@@ -209,6 +238,14 @@ fn append_vibrato_for_segment(
         }
 
         time += time_step;
+    }
+}
+
+fn is_vibrato_time_before_stop(time: f64, stop_time: f64, include_stop_time: bool) -> bool {
+    if include_stop_time {
+        time <= stop_time + VIBRATO_TIME_LOOP_EPSILON
+    } else {
+        time < stop_time - VIBRATO_TIME_LOOP_EPSILON
     }
 }
 

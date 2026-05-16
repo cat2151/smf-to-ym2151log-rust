@@ -10,7 +10,13 @@ import {
 	MIN_NOTE_WIDTH,
 } from "./ym2151-utils";
 
-export type NoteOnState = { time: number; kc: number; kf: number };
+export type NoteOnState = {
+	time: number;
+	kc: number;
+	kf: number;
+	releasedAt: number | null;
+	hasReleasePitchEvents: boolean;
+};
 
 export type NoteSegment = {
 	startTime: number;
@@ -24,6 +30,11 @@ export type NoteSegment = {
 // Segments shorter than one pixel at the current scale are coalesced into their successor.
 const MIN_SEGMENT_SECONDS = MIN_NOTE_WIDTH / PIXELS_PER_SECOND;
 const UNCLOSED_NOTE_EXTENSION_S = 0.1;
+const TIME_EPSILON = 1e-9;
+
+function keyOnTimeKey(ch: number, time: number): string {
+	return `${ch}:${time}`;
+}
 
 export function buildNoteSegments(
 	events: { time: number; addr: string; data: string }[],
@@ -36,6 +47,44 @@ export function buildNoteSegments(
 	const channelNoteOn: Array<NoteOnState | null> =
 		Array(channelCount).fill(null);
 	const segments: NoteSegment[] = [];
+	const keyOnTimes = new Set<string>();
+	const pushSegment = (
+		ch: number,
+		noteOn: NoteOnState,
+		endTime: number,
+	): void => {
+		if (endTime - noteOn.time >= MIN_SEGMENT_SECONDS) {
+			segments.push({
+				startTime: noteOn.time,
+				endTime,
+				kc: noteOn.kc,
+				kf: noteOn.kf,
+				ch,
+			});
+		}
+	};
+	const closeForNextKeyOn = (
+		ch: number,
+		noteOn: NoteOnState,
+		nextKeyOnTime: number,
+	): void => {
+		const endTime =
+			noteOn.releasedAt !== null && !noteOn.hasReleasePitchEvents
+				? noteOn.releasedAt
+				: nextKeyOnTime;
+		pushSegment(ch, noteOn, endTime);
+	};
+
+	for (const event of events) {
+		const addr = parseHexByte(event.addr);
+		const data = parseHexByte(event.data);
+		if (addr !== 0x08 || data === null) continue;
+		const ch = data & 0x07;
+		const operators = (data >> 3) & 0x0f;
+		if (operators !== 0 && ch >= 0 && ch < channelCount) {
+			keyOnTimes.add(keyOnTimeKey(ch, event.time));
+		}
+	}
 
 	for (const event of events) {
 		const addr = parseHexByte(event.addr);
@@ -49,23 +98,47 @@ export function buildNoteSegments(
 			// open a new one with the updated pitch (handles portamento/vibrato).
 			if (channelNoteOn[ch] && channelKC[ch] !== newKC) {
 				const noteOn = channelNoteOn[ch] as NoteOnState;
+				if (
+					noteOn.releasedAt !== null &&
+					keyOnTimes.has(keyOnTimeKey(ch, event.time))
+				) {
+					closeForNextKeyOn(ch, noteOn, event.time);
+					channelNoteOn[ch] = null;
+					channelKC[ch] = newKC;
+					continue;
+				}
+				if (
+					noteOn.releasedAt !== null &&
+					event.time <= noteOn.releasedAt + TIME_EPSILON
+				) {
+					pushSegment(ch, noteOn, noteOn.releasedAt);
+					channelNoteOn[ch] = null;
+					channelKC[ch] = newKC;
+					continue;
+				}
 				const duration = event.time - noteOn.time;
+				const isReleasePitchEvent =
+					noteOn.releasedAt !== null &&
+					event.time > noteOn.releasedAt + TIME_EPSILON;
 				if (duration >= MIN_SEGMENT_SECONDS) {
-					segments.push({
-						startTime: noteOn.time,
-						endTime: event.time,
-						kc: noteOn.kc,
-						kf: noteOn.kf,
-						ch,
-					});
+					pushSegment(ch, noteOn, event.time);
 					channelNoteOn[ch] = {
 						time: event.time,
 						kc: newKC,
 						kf: channelKF[ch],
+						releasedAt: noteOn.releasedAt,
+						hasReleasePitchEvents:
+							noteOn.hasReleasePitchEvents || isReleasePitchEvent,
 					};
 				} else {
 					// Too short to be individually visible; update pitch without splitting.
-					channelNoteOn[ch] = { ...noteOn, kc: newKC, kf: channelKF[ch] };
+					channelNoteOn[ch] = {
+						...noteOn,
+						kc: newKC,
+						kf: channelKF[ch],
+						hasReleasePitchEvents:
+							noteOn.hasReleasePitchEvents || isReleasePitchEvent,
+					};
 				}
 			}
 			channelKC[ch] = newKC;
@@ -79,28 +152,51 @@ export function buildNoteSegments(
 			const newKF = data;
 			if (channelNoteOn[ch] && channelKF[ch] !== newKF) {
 				const noteOn = channelNoteOn[ch] as NoteOnState;
+				if (
+					noteOn.releasedAt !== null &&
+					keyOnTimes.has(keyOnTimeKey(ch, event.time))
+				) {
+					closeForNextKeyOn(ch, noteOn, event.time);
+					channelNoteOn[ch] = null;
+					channelKF[ch] = newKF;
+					continue;
+				}
+				if (
+					noteOn.releasedAt !== null &&
+					event.time <= noteOn.releasedAt + TIME_EPSILON
+				) {
+					pushSegment(ch, noteOn, noteOn.releasedAt);
+					channelNoteOn[ch] = null;
+					channelKF[ch] = newKF;
+					continue;
+				}
 				// Avoid creating a zero-duration segment when KC and KF updates
 				// occur at the same timestamp (the converter emits them as a pair).
 				// Also skip splitting when the accumulated segment is too short to render.
+				const isReleasePitchEvent =
+					noteOn.releasedAt !== null &&
+					event.time > noteOn.releasedAt + TIME_EPSILON;
 				if (
 					noteOn.time !== event.time &&
 					event.time - noteOn.time >= MIN_SEGMENT_SECONDS
 				) {
-					segments.push({
-						startTime: noteOn.time,
-						endTime: event.time,
-						kc: noteOn.kc,
-						kf: noteOn.kf,
-						ch,
-					});
+					pushSegment(ch, noteOn, event.time);
 					channelNoteOn[ch] = {
 						time: event.time,
 						kc: channelKC[ch],
 						kf: newKF,
+						releasedAt: noteOn.releasedAt,
+						hasReleasePitchEvents:
+							noteOn.hasReleasePitchEvents || isReleasePitchEvent,
 					};
 				} else {
 					// Coalesce into the current segment (same-timestamp or sub-pixel).
-					channelNoteOn[ch] = { ...noteOn, kf: newKF };
+					channelNoteOn[ch] = {
+						...noteOn,
+						kf: newKF,
+						hasReleasePitchEvents:
+							noteOn.hasReleasePitchEvents || isReleasePitchEvent,
+					};
 				}
 			}
 			channelKF[ch] = newKF;
@@ -111,24 +207,24 @@ export function buildNoteSegments(
 			const operators = (data >> 3) & 0x0f;
 			if (ch >= 0 && ch < channelCount) {
 				if (operators !== 0) {
-					if (!channelNoteOn[ch]) {
-						channelNoteOn[ch] = {
-							time: event.time,
-							kc: channelKC[ch],
-							kf: channelKF[ch],
-						};
+					const previous = channelNoteOn[ch];
+					if (previous) {
+						closeForNextKeyOn(ch, previous, event.time);
 					}
+					channelNoteOn[ch] = {
+						time: event.time,
+						kc: channelKC[ch],
+						kf: channelKF[ch],
+						releasedAt: null,
+						hasReleasePitchEvents: false,
+					};
 				} else {
 					const noteOn = channelNoteOn[ch];
 					if (noteOn) {
-						segments.push({
-							startTime: noteOn.time,
-							endTime: event.time,
-							kc: noteOn.kc,
-							kf: noteOn.kf,
-							ch,
-						});
-						channelNoteOn[ch] = null;
+						channelNoteOn[ch] =
+							noteOn.releasedAt === null
+								? { ...noteOn, releasedAt: event.time }
+								: noteOn;
 					}
 				}
 			}
@@ -142,13 +238,11 @@ export function buildNoteSegments(
 	for (let ch = 0; ch < channelCount; ch++) {
 		const noteOn = channelNoteOn[ch];
 		if (noteOn) {
-			segments.push({
-				startTime: noteOn.time,
-				endTime: lastTime,
-				kc: noteOn.kc,
-				kf: noteOn.kf,
-				ch,
-			});
+			const endTime =
+				noteOn.releasedAt !== null && !noteOn.hasReleasePitchEvents
+					? noteOn.releasedAt
+					: lastTime;
+			pushSegment(ch, noteOn, endTime);
 		}
 	}
 

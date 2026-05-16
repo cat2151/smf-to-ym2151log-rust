@@ -82,6 +82,92 @@ fn test_program_attachment_delay_vibrato_applies_only_to_matching_program() {
 }
 
 #[test]
+fn test_program_attachment_delay_vibrato_release_uses_next_key_on_boundary() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::ProgramChange {
+                ticks: 0,
+                channel: 0,
+                program: 0,
+            },
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480, // 0.5s
+                channel: 0,
+                note: 60,
+            },
+            MidiEvent::ProgramChange {
+                ticks: 1920,
+                channel: 0,
+                program: 1,
+            },
+            MidiEvent::NoteOn {
+                ticks: 1920, // 2.0s
+                channel: 0,
+                note: 64,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 2400,
+                channel: 0,
+                note: 64,
+            },
+        ],
+    };
+    let (next_kc, next_kf) = midi_to_kc_kf(64);
+    let next_kc_hex = format!("0x{:02X}", next_kc);
+    let next_kf_hex = format!("0x{:02X}", next_kf);
+
+    let options = ConversionOptions {
+        program_attachments: vec![ProgramAttachment {
+            program_change: 0,
+            delay_vibrato: Some(DelayVibratoDefinition {
+                delay_seconds: 0.0,
+                attack_seconds: 0.0,
+                depth_cents: 100.0,
+                rate_hz: 1.25,
+                waveform: LfoWaveform::Triangle,
+            }),
+            ..ProgramAttachment::default()
+        }],
+        ..ConversionOptions::default()
+    };
+
+    let result = convert_to_ym2151_log_with_options(&midi_data, &options).unwrap();
+
+    let release_pitch_events: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| (e.addr == "0x28" || e.addr == "0x30") && e.time > 1.0 && e.time < 2.0)
+        .collect();
+    assert!(
+        !release_pitch_events.is_empty(),
+        "Program-scoped delay vibrato should continue through the release gap"
+    );
+
+    let non_next_pitch_at_next_key_on: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| {
+            (e.time - 2.0_f64).abs() < 1e-9
+                && ((e.addr == "0x28" && e.data.as_str() != next_kc_hex.as_str())
+                    || (e.addr == "0x30" && e.data.as_str() != next_kf_hex.as_str()))
+        })
+        .collect();
+    assert!(
+        non_next_pitch_at_next_key_on.is_empty(),
+        "Program 0 vibrato must not write over the Program 1 key-on timestamp"
+    );
+}
+
+#[test]
 fn test_program_attachment_no_effects_entry_produces_no_extra_events() {
     // A ProgramAttachment with no effect-related fields enabled must
     // not crash and must not generate any vibrato/LFO/etc events.
