@@ -1,4 +1,4 @@
-Last updated: 2026-05-13
+Last updated: 2026-05-17
 
 
 # プロジェクト概要生成プロンプト（来訪者向け）
@@ -505,8 +505,8 @@ cargo audit
   - 関数: resolveRegisterForChannel, collectLfoEvents, renderLfoLane, if, for
   - インポート: なし
 
-**demo-library/log-visualizer-note-segments.ts** (204行, 5788バイト)
-  - 関数: buildNoteSegments, notePitch, computePitchRange, noteYPosition, for, if
+**demo-library/log-visualizer-note-segments.ts** (298行, 8451バイト)
+  - 関数: keyOnTimeKey, buildNoteSegments, notePitch, computePitchRange, noteYPosition, if, for
   - インポート: なし
 
 **demo-library/log-visualizer-pitch-canvas.ts** (107行, 3228バイト)
@@ -656,8 +656,9 @@ cargo audit
       - renderLfoLane ()
       - createLane ()
       - parseHexByte ()
-  - buildNoteSegments (demo-library/log-visualizer-note-segments.ts)
-    - notePitch ()
+  - keyOnTimeKey (demo-library/log-visualizer-note-segments.ts)
+    - buildNoteSegments ()
+      - notePitch ()
       - computePitchRange ()
       - noteYPosition ()
   - renderPitchCanvas (demo-library/log-visualizer-pitch-canvas.ts)
@@ -747,4 +748,4 @@ googled947dc864c270e07.html
 
 
 ---
-Generated at: 2026-05-13 07:32:01 JST
+Generated at: 2026-05-17 07:20:45 JST

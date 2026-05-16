@@ -1,41 +1,43 @@
-Last updated: 2026-05-13
+Last updated: 2026-05-17
 
 # Project Overview
 
 ## プロジェクト概要
-- Standard MIDI Files (SMF) をYM2151 FM音源チップのレジスタ書き込みログ（JSON形式）に変換するRust製ツールです。
-- ネイティブアプリケーションとWebAssembly（ブラウザ）環境の両方で、FM音源の音を制御するための強力なライブラリとして機能します。
-- 高度なチャンネル割り当て戦略とプログラムチェンジ対応により、MIDIデータのYM2151向け変換を効率的かつ正確に行います。
+- Standard MIDIファイルをYM2151 FM音源チップのレジスタ書き込みログ（JSON形式）に変換するRust製のツールおよびライブラリです。
+- ネイティブアプリケーションとして利用できる他、WebAssemblyとしてWebブラウザ上で動作させることも可能です。
+- MIDIチャンネルの和音数に応じたYM2151チャンネル割り当てや、外部定義によるプログラムチェンジ（音色切り替え）に対応しています。
 
 ## 技術スタック
-- フロントエンド:
-    - **HTML/CSS/TypeScript**: デモライブラリのウェブUIとロジックを構築するための基本技術。
-    - **Vite**: デモライブラリの高速な開発体験と最適化されたビルドを提供するフロントエンドビルドツール。
-    - **WebAssembly (WASM)**: Rustで書かれた変換ロジックをウェブブラウザ上で実行可能にする技術。
-- 音楽・オーディオ:
-    - **Standard MIDI Files (SMF)**: プロジェクトの入力フォーマットとして、標準的なMIDIデータを扱います。
-    - **YM2151**: ターゲットとなるFM音源チップ。そのレジスタ設定をJSON形式で出力します。
-    - **JSON**: YM2151レジスタ書き込みログの出力形式、およびカスタム音色定義ファイルの形式として使用されます。
-- 開発ツール:
-    - **Rust**: メインの開発言語であり、型安全性と高性能を特徴とします。
-    - **Cargo**: Rustの公式なビルドシステムおよびパッケージマネージャー。依存関係管理、ビルド、テスト、ドキュメント生成などを行います。
-    - **wasm-pack**: RustコードをWebAssemblyにコンパイルし、JavaScriptとの連携を容易にするためのツール。
-    - **Biome**: デモライブラリのTypeScript/JavaScriptコードに対して、フォーマットとリンティングを適用し、コード品質を統一します。
-- テスト:
-    - **`cargo test`**: Rustに組み込まれた単体テストおよび統合テストの実行フレームワーク。
-    - **`cargo tarpaulin`**: Rustコードのテストカバレッジを測定し、レポートを生成するツール。
-- ビルドツール:
-    - **Cargo**: Rustプロジェクト全体のビルドを管理します。
-    - **wasm-pack**: WebAssemblyモジュールをビルドします。
-    - **Vite**: デモライブラリ（JavaScript/TypeScript）のビルドと開発サーバーを提供します。
-- 言語機能:
-    - **Rust**: 高いパフォーマンス、メモリ安全性、並行性を保証するシステムプログラミング言語。その堅牢な型システムがプロジェクトの信頼性を高めます。
-- 自動化・CI/CD:
-    - (特筆すべき自動化・CI/CDツールは明示されていません)
-- 開発標準:
-    - **`cargo fmt`**: Rustコードの自動フォーマッター。コードの一貫性を保ちます。
-    - **`cargo clippy`**: Rustのリンター。一般的なエラーや非効率なコードパターンを指摘し、品質向上を支援します。
-    - **`cargo audit`**: Rustプロジェクトの依存関係における既知のセキュリティ脆弱性をチェックします。
+- フロントエンド: 
+  - **TypeScript**: WebAssemblyデモのロジック開発に使用されています。
+  - **HTML**: WebAssemblyデモのユーザーインターフェース構造を定義しています。
+  - **CSS**: WebAssemblyデモのスタイルを定義しています。
+  - **JavaScript**: WebAssemblyモジュールの読み込みと連携、オーディオ再生関連（WASMデモ）に使用されます。
+  - **Vite**: WebAssemblyデモの高速な開発サーバーおよびビルドツールとして使用されています。
+- 音楽・オーディオ: 
+  - **Standard MIDI Files (SMF)**: プロジェクトの入力となる音楽データ形式です。
+  - **YM2151 FM音源**: プロジェクトの出力ターゲットとなる音源チップです。
+- 開発ツール: 
+  - **Rust**: プロジェクトの主要なプログラミング言語です。
+  - **Cargo**: Rustプロジェクトのビルド、依存関係管理、テスト実行に使用される標準ツールです。
+  - **wasm-pack**: RustコードをWebAssemblyにコンパイルし、JavaScriptから利用可能なパッケージを生成するために使用されます。
+  - **Git**: バージョン管理システムとして使用されています。
+- テスト: 
+  - **Cargo test**: Rustの組み込みテストフレームワークにより、ユニットテストと統合テストが実行されます。
+  - **Cargo tarpaulin**: テストカバレッジの測定に使用されます。
+- ビルドツール: 
+  - **Cargo**: Rustプロジェクトのネイティブビルドを管理します。
+  - **wasm-pack**: WebAssemblyモジュールのビルドを管理します。
+  - **Vite**: WebAssemblyデモのフロントエンドビルドを管理します。
+- 言語機能: 
+  - **Rustの型システム**: コードの堅牢性と安全性を保証するために活用されています。
+- 自動化・CI/CD: 
+  - (特になし。プロジェクト情報からは読み取れません)
+- 開発標準: 
+  - **Cargo fmt**: Rustコードの自動フォーマットに使用され、コードスタイルの一貫性を保ちます。
+  - **Cargo clippy**: RustコードのLintチェックに使用され、潜在的なバグや非効率なコードを検出します。
+  - **Cargo audit**: 依存関係のセキュリティ脆弱性をチェックします。
+  - **Biome**: `demo-library`ディレクトリにおけるTypeScript/JavaScriptコードのフォーマットとリンティングに使用されます。
 
 ## ファイル階層ツリー
 ```
@@ -196,327 +198,321 @@ Last updated: 2026-05-13
 ```
 
 ## ファイル詳細説明
-- **`.gitattributes`**: Gitリポジトリで特定のファイルタイプに対する属性（例: 改行コードの扱い）を定義するファイルです。
-- **`.gitignore`**: Gitがバージョン管理の対象外とするファイルやディレクトリを指定するファイルです。
-- **`Cargo.lock`**: RustのパッケージマネージャーCargoが、ビルドに使用される依存クレートの正確なバージョンとチェックサムを記録するファイルです。
-- **`Cargo.toml`**: Rustプロジェクトのビルド設定、メタデータ、および依存関係を定義するマニフェストファイルです。
-- **`LICENSE`**: プロジェクトのライセンス情報が記述されています。
-- **`README.ja.md`**: プロジェクトの日本語での概要と使用方法を説明するドキュメントです。
-- **`README.md`**: プロジェクトの英語での概要と使用方法を説明するドキュメントです。
-- **`WASM_USAGE.md`**: WebAssembly (WASM) としてこのライブラリを使用する方法に関する詳細な説明ドキュメントです。
-- **`_config.yml`**: GitHub Pagesのサイト設定ファイルで、デモページの生成に使用されます。
-- **`demo-library/`**: WebAssemblyで変換されたYM2151ログをブラウザで視覚化・再生するためのデモコードを格納するディレクトリです。
-    - **`biome.json`**: TypeScript/JavaScriptコードのフォーマットとリンティングルールを定義する設定ファイルです。
-    - **`delay-vibrato-demo.ts`**: ディレイビブラート機能の動作を示すデモロジックを実装したTypeScriptファイルです。
-    - **`delay-vibrato.html`**: ディレイビブラートデモのユーザーインターフェースを提供するウェブページです。
-    - **`globals.d.ts`**: デモで使用されるグローバルな型定義（例: WebオーディオAPI関連）を宣言するファイルです。
-    - **`index.html`**: メインのライブラリデモのウェブページです。MIDIファイル入力からYM2151ログへの変換、可視化までを体験できます。
-    - **`library-demo.ts`**: メインライブラリデモのJavaScriptロジックで、ファイル入力の処理、WASMモジュールの初期化、結果の表示を担当します。
-    - **`log-visualizer-lfo.ts`**: YM2151ログ内のLFO（低周波発振器）イベントを抽出し、可視化するためのロジックを提供します。
-    - **`log-visualizer-note-segments.ts`**: MIDIノートイベントからYM2151のピッチ情報を分析し、ノートの表示セグメントを構築するロジックです。
-    - **`log-visualizer-pitch-canvas.ts`**: ピッチ情報をグラフィカルに描画するためのキャンバスレンダリングロジックです。
-    - **`log-visualizer.ts`**: YM2151レジスタ書き込みログを視覚的に表示するメインの可視化ロジックが含まれています。
-    - **`mml-support.ts`**: MML（Music Macro Language）形式の入力をStandard MIDI File（SMF）に変換する機能をサポートするためのコードです。
-    - **`package-lock.json`**: Node.jsプロジェクトの依存関係ツリーとバージョンを正確に記録するファイルです。
-    - **`package.json`**: Node.jsプロジェクトのメタデータ、依存関係、スクリプトを定義するマニフェストファイルです。
-    - **`pop-noise-demo.ts`**: ポップノイズ検出と対策に関するデモのロジックを実装したTypeScriptファイルです。
-    - **`pop-noise-detector.ts`**: YM2151ログイベントからオーディオのポップノイズを引き起こす可能性のあるパターンを検出するロジックです。
-    - **`pop-noise.html`**: ポップノイズデモのユーザーインターフェースを提供するウェブページです。
-    - **`portamento-soft-lfo-demo.ts`**: ポルタメントソフトLFO（滑らかなピッチ変化とLFO）機能のデモロジックを実装したTypeScriptファイルです。
-    - **`portamento-soft-lfo.html`**: ポルタメントソフトLFOデモのユーザーインターフェースを提供するウェブページです。
-    - **`random-tone.ts`**: ランダムなYM2151音色を生成し、デモに適用するためのロジックを提供します。
-    - **`shared-demo.ts`**: 複数のデモページ間で共有されるユーティリティ関数やWASMモジュールの初期化ロジックなどを集約したファイルです。
-    - **`style.css`**: デモページの全体的なレイアウトとデザインを定義するスタイルシートです。
-    - **`tone-interpolation-demo.ts`**: YM2151音色の補間機能の動作を示すデモロジックを実装したTypeScriptファイルです。
-    - **`tone-interpolation.html`**: 音色補間デモのユーザーインターフェースを提供するウェブページです。
-    - **`tone-json-attachment.ts`**: コンパクトなJSON形式の音色定義をYM2151レジスタイベントに変換したり、シリアライズしたりするロジックです。
-    - **`tone-json-demo.ts`**: JSON形式の音色定義を扱うデモのロジックを実装したTypeScriptファイルです。
-    - **`tone-json-mml.ts`**: MMLからJSON形式の音色定義を生成するためのパーサー関連ロジックです。
-    - **`tone-json.html`**: JSON音色デモのユーザーインターフェースを提供するウェブページです。
-    - **`tsconfig.json`**: TypeScriptコンパイラのオプションとプロジェクトの設定を定義するファイルです。
-    - **`vite.config.ts`**: Viteビルドツール専用の設定ファイルで、デモプロジェクトのビルド挙動を制御します。
-    - **`wav-exporter.ts`**: 生成されたYM2151オーディオデータをWAVファイル形式にエンコードし、ダウンロードするためのロジックです。
-    - **`waveform-canvas.ts`**: 音声波形をHTML Canvas要素に描画するための低レベルなロジックを提供します。
-    - **`waveform-viewer.ts`**: 合成されたYM2151オーディオの波形を表示するための高レベルなビューアコンポーネントを実装しています。
-    - **`ym2151-utils.ts`**: YM2151関連の一般的なユーティリティ関数（例: 16進数文字列のパース）を定義します。
-- **`generated-docs/`**: `cargo doc`コマンドによって生成されたAPIドキュメントなどが格納されるディレクトリです。
-- **`googled947dc864c270e07.html`**: Googleサイト認証のために使用されるファイルです。
-- **`issue-notes/`**: プロジェクト開発中に検討された課題や技術的なメモが記録されているディレクトリです。
-- **`src/`**: Rustのソースコードが格納されている主要なディレクトリです。
-    - **`api.rs`**: このライブラリの公開APIインターフェースを定義するファイルです。
-    - **`error.rs`**: プロジェクト内で使用されるカスタムエラータイプを定義します。
-    - **`lib.rs`**: Rustライブラリクレートのエントリポイントで、モジュールの宣言や公開アイテムを管理します。
-    - **`main.rs`**: コマンドラインアプリケーションとしての実行エントリポイントです。
-    - **`midi/`**: MIDIファイルのパースと処理に関連するモジュールです。
-        - **`events.rs`**: MIDIイベントのデータ構造（ノートオン/オフ、テンポチェンジなど）を定義します。
-        - **`mod.rs`**: `midi`モジュールのルートファイルです。
-        - **`parser.rs`**: Standard MIDI Files (SMF) を読み込み、その内容を内部表現にパースするロジックを含みます。
-        - **`utils.rs`**: MIDIデータ処理に役立つ各種ユーティリティ関数を提供します。
-        - **`utils_tests.rs`**: `midi/utils.rs`で定義されたユーティリティ関数の単体テストコードです。
-    - **`options/`**: YM2151変換のオプションやエフェクト定義に関連するモジュールです。
-        - **`attachments.rs`**: 外部ファイルから提供されるカスタム音色データなどの「添付」情報を処理するロジックです。
-        - **`effects.rs`**: YM2151ログ変換中に適用されるLFOやポルタメントなどのエフェクトの定義を含みます。
-        - **`mod.rs`**: `options`モジュールのルートファイルです。
-        - **`tests.rs`**: `options`モジュール内の機能の単体テストコードです。
-    - **`wasm.rs`**: WebAssembly (WASM) バインディングを実装しており、Rustの関数をJavaScriptから呼び出せるようにします。
-    - **`ym2151/`**: YM2151 FM音源チップ固有のロジック、変換、および関連イベントを管理するモジュールです。
-        - **`channel_allocation.rs`**: YM2151の限られた8チャンネルをMIDIチャンネルの和音数に基づいて割り当てるための複雑な戦略を実装します。
-        - **`converter/`**: MIDIイベントをYM2151レジスタ書き込みログに変換する中核ロジックです。
-            - **`event_accumulator.rs`**: MIDIイベントをタイムラインに沿って蓄積し、YM2151イベントに変換するための中間データ構造を扱います。
-            - **`pitch_effects.rs`**: ピッチベンドやLFOによるピッチ調整など、YM2151のピッチ関連レジスタに影響を与えるエフェクトを処理します。
-            - **`register_effects/`**: YM2151の特定レジスタに作用する低レベルなエフェクトロジックを格納します。
-                - **`common.rs`**: レジスタエフェクトで共通して使用されるユーティリティ関数を提供します。
-                - **`mod.rs`**: `register_effects`モジュールのルートファイルです。
-                - **`pop_noise.rs`**: 音切れ時などに発生しうるポップノイズを軽減するためのレジスタ操作ロジックを含みます。
-                - **`register_lfo.rs`**: YM2151のLFOレジスタを制御し、ビブラートなどの効果を生成するロジックです。
-                - **`state_cache.rs`**: YM2151のレジスタ値をキャッシュし、不要なレジスタ書き込みを省略して効率化を図ります。
-                - **`tone_interpolation.rs`**: 2つのYM2151音色間でパラメータを補間し、滑らかな音色変化を実現するロジックです。
-            - **`register_fields.rs`**: YM2151の各レジスタフィールドのビット構成と意味を定義し、読み書きを抽象化します。
-            - **`waveform.rs`**: YM2151の波形生成に関連するロジックです。
-        - **`converter.rs`**: YM2151ログへの変換処理の中心となるファイルで、全体のワークフローを調整します。
-        - **`converter_tests/`**: YM2151コンバータの機能に関する詳細な単体テストが格納されています。
-            - **`attachments.rs`**: 音色アタッチメント機能に関するテストです。
-            - **`attachments_change_to_next_tone/`**: 音色変更時のアタッチメント挙動に関するテストのサブディレクトリです。
-                - **`guards.rs`**: 音色変更時のガードロジックのテストです。
-                - **`interpolation.rs`**: 音色補間に関するテストです。
-                - **`keep_fields.rs`**: 音色変更時に特定のフィールドが保持されるかのテストです。
-                - **`mod.rs`**: `attachments_change_to_next_tone`モジュールのルートファイルです。
-            - **`attachments_program_effects.rs`**: プログラムチェンジとエフェクトのアタッチメントテストです。
-            - **`basic.rs`**: コンバータの基本的な変換ロジックに関するテストです。
-            - **`channels.rs`**: チャンネル割り当て戦略に関するテストです。
-            - **`drums.rs`**: ドラムチャンネルの優先割り当てなど、ドラム関連のテストです。
-            - **`effects.rs`**: 各種YM2151エフェクトの適用に関するテストです。
-            - **`lfo.rs`**: LFO（低周波発振器）機能に関するテストです。
-            - **`portamento.rs`**: ポルタメント（滑らかなピッチ移動）機能に関するテストです。
-            - **`programs.rs`**: MIDIプログラムチェンジイベントによる音色切り替えに関するテストです。
-        - **`converter_tests.rs`**: `ym2151`モジュール全体のコンバータテストを統合するファイルです。
-        - **`event_processor.rs`**: YM2151のレジスタ書き込みイベントを処理し、YM2151チップの状態をシミュレートするロジックです。
-        - **`event_processor_tests.rs`**: `event_processor.rs`の単体テストコードです。
-        - **`events.rs`**: YM2151のレジスタイベントや関連するデータ構造を定義します。
-        - **`init.rs`**: YM2151チップの初期状態設定に関するロジックです。
-        - **`mod.rs`**: `ym2151`モジュールのルートファイルです。
-        - **`note_table.rs`**: MIDIノート番号とYM2151の周波数設定値（FN/BLOCK）のマッピングテーブルを定義します。
-        - **`tempo_map.rs`**: MIDIファイル内のテンポイベントを管理し、イベント時刻をティックから実時間へ変換する機能を提供します。
-        - **`tone.rs`**: YM2151の音色データ構造とその処理ロジックを定義します。
-- **`tests/`**: プロジェクト全体の統合テストが格納されているディレクトリです。
-    - **`create_test_midi.py`**: 統合テストで使用するためのテスト用MIDIファイルを生成するPythonスクリプトです。
-    - **`integration_conversion.rs`**: MIDIからYM2151ログへの変換プロセス全体の統合テストです。
-    - **`integration_midi.rs`**: MIDIファイルパーシング機能の統合テストです。
-    - **`integration_multichannel.rs`**: マルチチャンネルMIDI入力が正しく処理されるかを確認する統合テストです。
-    - **`integration_program_change.rs`**: プログラムチェンジ機能が統合された状態で正しく動作するかを確認するテストです。
-    - **`integration_public_api.rs`**: ライブラリの公開APIが期待通りに機能するかを確認する統合テストです。
-    - **`integration_wasm.rs`**: WebAssemblyビルドが機能的に正しく動作するかを確認する統合テストです。
-    - **`test_data/`**: 統合テストで使用されるサンプルMIDIファイルなどのデータが格納されています。
-- **`tones/`**: カスタムYM2151音色定義をJSON形式で格納するディレクトリです。プログラムチェンジイベントでロードされます。
-    - **`000.json`**: プログラム番号0番に割り当てられたデフォルトのYM2151音色定義です。
-    - **`README.md`**: `tones`ディレクトリ内のJSON音色ファイルのフォーマットと使用方法について説明するドキュメントです。
+- **.gitattributes**: Gitがファイルをどのように扱うかを定義する設定ファイルです。
+- **.gitignore**: Gitが追跡しないファイルやディレクトリを指定する設定ファイルです。
+- **Cargo.lock**: Rustプロジェクトの依存関係の正確なバージョンを記録するファイルです。
+- **Cargo.toml**: Rustプロジェクトのメタデータ（名前、バージョン、依存関係など）を定義するマニフェストファイルです。
+- **LICENSE**: プロジェクトのライセンス情報が記載されています。
+- **README.ja.md**: プロジェクトの日本語での説明、使い方、特徴などが記載されています。
+- **README.md**: プロジェクトの英語での説明、使い方、特徴などが記載されています。
+- **WASM_USAGE.md**: WebAssembly (WASM) の使用方法に関する詳細なドキュメントです。
+- **_config.yml**: GitHub Pagesなどのサイト設定ファイルです。
+- **googled947dc864c270e07.html**: Googleサイト認証用のファイルです。
+- **package-lock.json**: Node.jsプロジェクトの依存関係の正確なバージョンを記録するファイルです。
+- **package.json**: Node.jsプロジェクトのメタデータと依存関係を定義するファイルです。
+- **demo-library/**: WebAssembly版のライブラリデモアプリケーションのソースコードと関連ファイルが格納されています。
+    - **.gitignore**: `demo-library`ディレクトリ内のGit追跡対象外ファイルを指定します。
+    - **biome.json**: Biome (JavaScript/TypeScriptのLinter/Formatter) の設定ファイルです。
+    - **delay-vibrato-demo.ts**: ディレイビブラートのデモロジックを実装したTypeScriptファイルです。
+    - **delay-vibrato.html**: ディレイビブラートのデモページのHTML構造を定義します。
+    - **globals.d.ts**: グローバルに定義される型宣言ファイルです。
+    - **index.html**: メインのライブラリデモページのHTML構造を定義します。
+    - **library-demo.ts**: ライブラリデモの主要なロジックを実装したTypeScriptファイルです。
+    - **log-visualizer-lfo.ts**: LFO（低周波発振器）イベントのログを可視化するロジックを実装しています。
+    - **log-visualizer-note-segments.ts**: ノートセグメント（音符の開始から終了まで）のログを可視化するロジックを実装しています。
+    - **log-visualizer-pitch-canvas.ts**: ピッチ情報のキャンバス描画ロジックを実装しています。
+    - **log-visualizer.ts**: YM2151レジスタ書き込みログ全体の可視化ロジックを実装しています。
+    - **mml-support.ts**: MML（Music Macro Language）関連のサポート機能を提供します。
+    - **package-lock.json**: Node.jsプロジェクトの依存関係の正確なバージョンを記録するファイルです。
+    - **package.json**: Node.jsプロジェクトのメタデータと依存関係を定義するファイルです。
+    - **pop-noise-demo.ts**: ポップノイズ対策のデモロジックを実装したTypeScriptファイルです。
+    - **pop-noise-detector.ts**: ポップノイズの検出ロジックを実装したTypeScriptファイルです。
+    - **pop-noise.html**: ポップノイズ対策のデモページのHTML構造を定義します。
+    - **portamento-soft-lfo-demo.ts**: ポルタメントとソフトLFOのデモロジックを実装したTypeScriptファイルです。
+    - **portamento-soft-lfo.html**: ポルタメントとソフトLFOのデモページのHTML構造を定義します。
+    - **random-tone.ts**: ランダムなYM2151音色を生成・操作するロジックを実装しています。
+    - **shared-demo.ts**: デモアプリケーション間で共有される共通のユーティリティ機能を提供します。
+    - **style.css**: デモページのスタイルシートです。
+    - **tone-interpolation-demo.ts**: 音色補間のデモロジックを実装したTypeScriptファイルです。
+    - **tone-interpolation.html**: 音色補間のデモページのHTML構造を定義します。
+    - **tone-json-attachment.ts**: 音色JSONの添付データ処理に関するロジックを実装しています。
+    - **tone-json-demo.ts**: 音色JSONの使用デモロジックを実装したTypeScriptファイルです。
+    - **tone-json-mml.ts**: 音色JSONとMMLの連携に関するロジックを実装しています。
+    - **tone-json.html**: 音色JSONの使用デモページのHTML構造を定義します。
+    - **tsconfig.json**: TypeScriptコンパイラの設定ファイルです。
+    - **vite.config.ts**: Viteビルドツールの設定ファイルです。
+    - **wav-exporter.ts**: WAVファイルをエクスポートするロジックを実装しています。
+    - **waveform-canvas.ts**: 波形描画キャンバスのロジックを実装しています。
+    - **waveform-viewer.ts**: 波形ビューアのロジックを実装しています。
+    - **ym2151-utils.ts**: YM2151関連のユーティリティ関数を提供します。
+- **generated-docs/**: rustdocによって生成されたAPIドキュメントなどが格納されるディレクトリです。
+- **issue-notes/**: 開発中の課題や検討事項に関するメモが格納されています。
+- **src/**: Rustの主要なソースコードが格納されているディレクトリです。
+    - **api.rs**: プロジェクトのパブリックAPIを定義しています。
+    - **error.rs**: カスタムエラー型とエラーハンドリングロジックを定義しています。
+    - **lib.rs**: Rustライブラリのエントリポイントであり、主要なモジュールを公開しています。
+    - **main.rs**: コマンドラインアプリケーションのエントリポイントです。
+    - **wasm.rs**: WebAssemblyにエクスポートされる関数とロジックを定義しています。
+    - **midi/**: MIDIファイル解析に関連するモジュール群です。
+        - **events.rs**: MIDIイベントのデータ構造を定義しています。
+        - **mod.rs**: `midi`モジュールの定義ファイルです。
+        - **parser.rs**: Standard MIDI Files (SMF) をパースするロジックを実装しています。
+        - **utils.rs**: MIDIデータ処理に関するユーティリティ関数を提供しています。
+        - **utils_tests.rs**: `midi/utils.rs`のテストコードです。
+    - **options/**: 変換オプションに関するモジュール群です。
+        - **attachments.rs**: カスタム音色などの添付データを処理するロジックを実装しています。
+        - **effects.rs**: 変換時に適用されるエフェクトに関連するオプションを定義しています。
+        - **mod.rs**: `options`モジュールの定義ファイルです。
+        - **tests.rs**: `options`モジュール内のテストコードです。
+    - **ym2151/**: YM2151レジスタログ変換に関連するモジュール群です。
+        - **channel_allocation.rs**: MIDIチャンネルからYM2151チャンネルへの割り当てロジックを実装しています。
+        - **converter.rs**: YM2151レジスタログへの変換を行う主要なロジックを実装しています。
+        - **event_processor.rs**: YM2151イベントを処理するロジックを実装しています。
+        - **events.rs**: YM2151関連のイベントデータ構造を定義しています。
+        - **init.rs**: YM2151の初期化設定に関するロジックを実装しています。
+        - **mod.rs**: `ym2151`モジュールの定義ファイルです。
+        - **note_table.rs**: YM2151のノート周波数テーブルを定義しています。
+        - **tempo_map.rs**: テンポ変更を含む時間管理ロジックを実装しています。
+        - **tone.rs**: YM2151音色のデータ構造と関連ロジックを定義しています。
+        - **converter/**: YM2151変換の詳細なサブモジュール群です。
+            - **event_accumulator.rs**: YM2151イベントの蓄積と処理に関するロジックを実装しています。
+            - **pitch_effects.rs**: ピッチ関連のエフェクト処理ロジックを実装しています。
+            - **register_fields.rs**: YM2151レジスタの各フィールド定義を扱っています。
+            - **waveform.rs**: YM2151の波形生成に関連するロジックです。
+            - **register_effects/**: YM2151レジスタへの様々なエフェクト適用ロジックです。
+                - **common.rs**: 共通のエフェクト処理を提供します。
+                - **mod.rs**: `register_effects`モジュールの定義ファイルです。
+                - **pop_noise.rs**: ポップノイズ対策のためのレジスタ操作ロジックです。
+                - **register_lfo.rs**: LFOレジスタの制御ロジックを実装しています。
+                - **state_cache.rs**: レジスタの状態キャッシュ管理ロジックです。
+                - **tone_interpolation.rs**: 音色補間に関するロジックです。
+        - **converter_tests/**: YM2151コンバータのテストケース群です。
+            - **attachments.rs**: 添付データ（カスタム音色など）に関するテストです。
+            - **attachments_change_to_next_tone/**: 複雑な添付データ変更に関するテストのサブディレクトリです。
+                - **guards.rs**: 添付データ変更時のガード条件に関するテストです。
+                - **interpolation.rs**: 添付データ変更時の補間に関するテストです。
+                - **keep_fields.rs**: 添付データ変更時にフィールドを保持する挙動に関するテストです。
+                - **mod.rs**: `attachments_change_to_next_tone`モジュールの定義ファイルです。
+            - **attachments_program_effects.rs**: プログラムチェンジとエフェクトに関するテストです。
+            - **basic.rs**: 基本的な変換機能のテストです。
+            - **channels.rs**: チャンネル割り当てに関するテストです。
+            - **drums.rs**: ドラムチャンネルの処理に関するテストです。
+            - **effects.rs**: 一般的なエフェクト処理に関するテストです。
+            - **lfo.rs**: LFO処理に関するテストです。
+            - **portamento.rs**: ポルタメント処理に関するテストです。
+            - **programs.rs**: プログラムチェンジ（音色切り替え）に関するテストです。
+        - **converter_tests.rs**: `ym2151`モジュールのコンバータの総合テストファイルです。
+        - **event_processor_tests.rs**: YM2151イベントプロセッサのテストコードです。
+- **tests/**: 統合テストとテストデータが格納されています。
+    - **create_test_midi.py**: テスト用のMIDIファイルを生成するためのPythonスクリプトです。
+    - **integration_conversion.rs**: 変換処理全体の統合テストです。
+    - **integration_midi.rs**: MIDIパーサーの統合テストです。
+    - **integration_multichannel.rs**: マルチチャンネルMIDIの統合テストです。
+    - **integration_program_change.rs**: プログラムチェンジ機能の統合テストです。
+    - **integration_public_api.rs**: 公開APIの統合テストです。
+    - **integration_wasm.rs**: WebAssembly版の統合テストです。
+    - **test_data/**: 統合テストで使用されるMIDIサンプルデータが格納されています。
+- **tones/**: カスタムYM2151音色定義のJSONファイルが格納されています。
+    - **000.json**: プログラム0番のデフォルト音色定義です。
+    - **README.md**: `tones`ディレクトリ内のカスタム音色ファイルのフォーマットに関する説明です。
 
 ## 関数詳細説明
-- **`computeHash(data: string)`**: (demo-library/delay-vibrato-demo.ts) 入力文字列のハッシュ値を計算します。主にリクエストの識別に使用されます。
-- **`nextRequestId()`**: (demo-library/delay-vibrato-demo.ts) デモ内で非同期リクエストを追跡するためのユニークなリクエストIDを生成します。
-- **`isLatestRequest(requestId: number)`**: (demo-library/delay-vibrato-demo.ts) 指定されたリクエストIDが現在アクティブな最新のリクエストであるかを判定します。
-- **`updateOutputWithState(state: any)`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) デモのUI出力領域を、現在の状態オブジェクトに基づいて更新します。
-- **`updatePlayButtonState(isPlaying: boolean)`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) UI上の再生ボタンの有効/無効状態や表示テキストを、オーディオ再生状況に応じて更新します。
-- **`initializeWasm()`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) WebAssemblyモジュールを非同期でロードし、初期化します。
-- **`readAttachmentBytes(attachmentId: string)`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) 指定されたIDの添付ファイル（音色データなど）の内容をバイト配列として読み込みます。
-- **`runConversion(midiBytes: Uint8Array, attachmentBytes: Uint8Array | null)`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) 提供されたMIDIバイトデータとオプションの添付ファイルバイトデータを使用して、YM2151レジスタログへの変換処理を実行します。
-- **`handlePlay()`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) UI上の再生ボタンが押された際に、MIDIデータの変換からYM2151ログの生成、そしてそのオーディオ再生までの一連の処理を調整します。
-- **`setupAttachmentEditor()`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) カスタム音色定義などの添付ファイルを編集するためのUI要素をセットアップします。
-- **`setupMmlInput()`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) MML（Music Macro Language）形式の音楽データを入力するためのUI要素をセットアップします。
-- **`setupMidiInput()`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) MIDIファイルをアップロードするためのUI要素とイベントハンドラをセットアップします。
-- **`bootstrapWebYm()`**: (demo-library/delay-vibrato-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) WebAssemblyで動作するYM2151サウンドエンジンを初期化し、デモページの起動に必要な処理を行います。
-- **`applyRandomToneToAttachment()`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) 添付ファイルエディタに、ランダムに生成されたYM2151音色（レジスタ設定）を適用します。
-- **`setupRandomToneButton()`**: (demo-library/delay-vibrato-demo.ts, pop-noise-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) ランダム音色生成ボタンのイベントリスナーを登録し、UIをセットアップします。
-- **`main()`**: (demo-library/delay-vibrato-demo.ts, portamento-soft-lfo-demo.ts, tone-interpolation-demo.ts, tone-json-demo.ts) 各デモページの主要なエントリポイントとなる関数で、初期化処理やイベントハンドラの登録を行います。
-- **`initWasm()`**: (demo-library/library-demo.ts) メインデモページでWebAssemblyモジュールを初期化する処理です。
-- **`displayResult(result: any)`**: (demo-library/library-demo.ts) 変換結果やYM2151ログをUIに表示します。
-- **`showError(error: Error)`**: (demo-library/library-demo.ts) UI上の指定された領域にエラーメッセージを表示します。
-- **`setupFileInput()`**: (demo-library/library-demo.ts) ファイル入力要素を設定し、ユーザーがMIDIファイルをアップロードした際の処理を定義します。
-- **`resolveRegisterForChannel(channel: number)`**: (demo-library/log-visualizer-lfo.ts) YM2151の指定されたチャンネルに対応するLFO関連レジスタアドレスを解決します。
-- **`collectLfoEvents(events: any[])`**: (demo-library/log-visualizer-lfo.ts) YM2151ログイベントの中からLFO（低周波発振器）に関するイベントを収集します。
-- **`renderLfoLane(context: CanvasRenderingContext2D, laneRect: DOMRect, lfoEvents: any[], maxTime: number)`**: (demo-library/log-visualizer-lfo.ts) LFOイベントのデータをキャンバス上に視覚的な「レーン」として描画します。
-- **`buildNoteSegments(logEvents: any[])`**: (demo-library/log-visualizer-note-segments.ts) YM2151ログイベントを解析し、各ノートの開始・終了時刻、ピッチなどの情報をまとめたセグメントを構築します。
-- **`notePitch(register: number, data: number)`**: (demo-library/log-visualizer-note-segments.ts) YM2151のレジスタアドレスとデータ値から、対応するノートのピッチ（MIDIノート番号相当）を計算します。
-- **`computePitchRange(segments: any[])`**: (demo-library/log-visualizer-note-segments.ts) ノートセグメントのリスト全体から、最低ピッチと最高ピッチを算出してピッチ範囲を決定します。
-- **`noteYPosition(pitch: number, minPitch: number, maxPitch: number, height: number)`**: (demo-library/log-visualizer-note-segments.ts) 指定されたピッチが、与えられたピッチ範囲と描画高さの中でどのY座標に位置するかを計算します。
-- **`renderPitchCanvas(canvas: HTMLCanvasElement, segments: any[], minPitch: number, maxPitch: number)`**: (demo-library/log-visualizer-pitch-canvas.ts) ノートセグメントのピッチ情報をHTML Canvas要素に描画し、視覚化します。
-- **`detectChannel(addr: number)`**: (demo-library/log-visualizer.ts) YM2151のレジスタアドレスから、それがどの音源チャンネル（オペレータ）に属するかを検出します。
-- **`normalizeEvents(events: any[])`**: (demo-library/log-visualizer.ts) YM2151ログイベントのデータを視覚化に適した形式に正規化します。
-- **`laneColor(channel: number)`**: (demo-library/log-visualizer.ts) 指定されたYM2151チャンネルに対応する、可視化用の色を返します。
-- **`createLane(width: number, height: number, backgroundColor: string)`**: (demo-library/log-visualizer.ts) ログ可視化のための単一の「レーン」（チャンネルごとの表示エリア）となるHTML要素を作成します。
-- **`computeTrackWidth(maxTime: number)`**: (demo-library/log-visualizer.ts) YM2151ログの総再生時間に基づいて、可視化トラックの最適な幅を計算します。
-- **`formatInactiveChannels(channels: Set<number>)`**: (demo-library/log-visualizer.ts) ログ中にイベントがない（非アクティブな）YM2151チャンネルのリストを整形して表示します。
-- **`createLogVisualizer(containerId: string)`**: (demo-library/log-visualizer.ts) 指定されたHTMLコンテナ内にYM2151ログ可視化ツールを初期化し、インスタンスを返します。
-- **`renderEmpty()`**: (demo-library/log-visualizer.ts) ログデータがない場合に、空の可視化ビューをレンダリングします。
-- **`renderFromJson(json: string, events?: any)`**: (demo-library/log-visualizer.ts, waveform-viewer.ts) JSON形式のYM2151ログデータを解析し、可視化または波形合成・描画を行います。
-- **`ensureGlobalLane(channel: number)`**: (demo-library/log-visualizer.ts) LFOなど、特定のチャンネルに紐づかないグローバルなイベント表示レーンが存在することを確認し、必要に応じて作成します。
-- **`setLfoRegisters(registers: string[])`**: (demo-library/log-visualizer.ts) 可視化ツールがLFOとして認識すべきレジスタアドレスのリストを設定します。
-- **`updateRegisterReflectionStatus(enabled: boolean)`**: (demo-library/pop-noise-demo.ts) UI上のレジスタ反映（ノーマライズ）機能の有効/無効状態を更新します。
-- **`countRegisterNormalizationTargets(attachmentText: string)`**: (demo-library/pop-noise-demo.ts) 添付ファイルテキスト内の、レジスタ正規化の対象となる設定の数をカウントします。
-- **`setupPlayButton()`**: (demo-library/pop-noise-demo.ts) ポップノイズデモページの再生ボタンのUIとイベントハンドラをセットアップします。
-- **`setupWavExportButton()`**: (demo-library/pop-noise-demo.ts) ポップノイズデモページのWAVエクスポートボタンのUIとイベントハンドラをセットアップします。
-- **`bootstrap()`**: (demo-library/pop-noise-demo.ts) ポップノイズデモページの起動時に必要な初期化処理全般を実行します。
-- **`detectPopNoise(events: any[], threshold: number)`**: (demo-library/pop-noise-detector.ts) YM2151ログイベントから、特定の閾値に基づいてポップノイズが発生しうる箇所を検出します。
-- **`extractLfoRegistersFromAttachment(attachmentBytes: Uint8Array)`**: (demo-library/portamento-soft-lfo-demo.ts) 添付ファイルからLFOに関連するレジスタ設定を抽出し、解析します。
-- **`syncLfoRegisters(lfoRegisters: string[])`**: (demo-library/portamento-soft-lfo-demo.ts) 抽出されたLFOレジスタの設定をデモの状態と同期させ、UIに反映します。
-- **`getToneEditorGenerator(attachmentText: string)`**: (demo-library/random-tone.ts) 添付ファイルテキストを基に、音色エディタ用のランダム音色生成ロジックを取得します。
-- **`generateRandomToneRegisters()`**: (demo-library/random-tone.ts) 新しいランダムなYM2151音色のレジスタ設定を生成します。
-- **`generateRandomInterpolationPairRegisters()`**: (demo-library/random-tone.ts) 音色補間デモのために、ランダムな開始・終了音色のレジスタペアを生成します。
-- **`parseAttachmentEntries(attachmentText: string)`**: (demo-library/random-tone.ts) 添付ファイルとして提供されるJSONテキストを解析し、音色のエントリーリストを構築します。
-- **`validateRandomToneAttachment(attachmentText: string)`**: (demo-library/random-tone.ts) ランダム音色添付ファイルのJSON構造が有効であるかを検証します。
-- **`upsertEntryRegisters(entries: any[], entryName: string, registers: any[])`**: (demo-library/random-tone.ts) 既存の音色エントリーリストに対して、指定されたエントリー名でレジスタ設定を挿入または更新します。
-- **`upsertAttachmentRegisters(attachmentText: string, toneId: string, registers: any[])`**: (demo-library/random-tone.ts) 添付ファイルのJSONテキスト内の特定の音色IDに対して、レジスタ設定を挿入または更新し、更新されたテキストを返します。
-- **`upsertInterpolationAttachmentRegisters(attachmentText: string, registers: any[])`**: (demo-library/random-tone.ts) 添付ファイルテキスト内の補間音色設定に対して、レジスタを挿入または更新します。
-- **`buildRandomInterpolationAttachment(attachmentText: string)`**: (demo-library/random-tone.ts) 既存の添付ファイルテキストにランダムな音色補間設定を組み込んで、新しい添付ファイルテキストを生成します。
-- **`ensureWasmInitialized()`**: (demo-library/shared-demo.ts) WebAssemblyモジュールがロードされ、初期化されていることを保証します。
-- **`setStatus(message: string)`**: (demo-library/shared-demo.ts) UI上のステータス表示領域にメッセージを設定します。
-- **`setEventCountDisplay(count: number)`**: (demo-library/shared-demo.ts) 処理されたYM2151イベントの数をUIに表示します。
-- **`ensureWebYm2151()`**: (demo-library/shared-demo.ts) WebYM2151サウンドエンジンが利用可能であり、初期化されていることを保証します。
-- **`clearWebYmAudioCache()`**: (demo-library/shared-demo.ts) WebYM2151サウンドエンジンが持つオーディオキャッシュをクリアします。
-- **`updateOutput(data: string)`**: (demo-library/shared-demo.ts) 一般的なUI出力領域を更新します。
-- **`parseAttachmentField(field: string)`**: (demo-library/shared-demo.ts) UI上の添付ファイル入力フィールドの値を解析します。
-- **`cleanup()`**: (demo-library/shared-demo.ts) デモの実行終了時や状態リセット時に、リソースの解放などを行うクリーンアップ処理です。
-- **`mod(n: number, m: number)`**: (demo-library/shared-demo.ts) JavaScriptの負の数にも対応したモジュロ演算（剰余計算）を行います。
-- **`buildEventsFromCompact(compactTone: string)`**: (demo-library/tone-json-attachment.ts) コンパクトなJSON形式の音色定義から、詳細なYM2151レジスタイベントのリストを構築します。
-- **`serializeWithStatus(data: any)`**: (demo-library/tone-json-attachment.ts) データをJSON文字列にシリアライズし、その処理の状態をUIに表示します。
-- **`normalizeAttachmentText(text: string)`**: (demo-library/tone-json-attachment.ts) 添付ファイルとして提供されるJSONテキストからコメントなどを除去し、正規化します。
-- **`convertMmlToSmf()`**: (demo-library/tone-json-demo.ts) MML入力データをStandard MIDI File (SMF) 形式に変換します。
-- **`getMmlParser()`**: (demo-library/tone-json-mml.ts) MML（Music Macro Language）のテキストを解析するためのパーサーインスタンスを取得します。
-- **`getParseTreeJsonToSmf()`**: (demo-library/tone-json-mml.ts) MMLのパースツリーからSMFを生成するためのロジックを取得します。
-- **`treeToJson(tree: any)`**: (demo-library/tone-json-mml.ts) MMLのパースツリーをJSON形式に変換します。
-- **`ensureMmlRuntime()`**: (demo-library/tone-json-mml.ts) MMLパーサーを実行するために必要なランタイム環境が準備されていることを保証します。
-- **`encodeWav(samples: Float32Array, sampleRate: number)`**: (demo-library/wav-exporter.ts) 浮動小数点形式の音声サンプルデータとサンプルレートから、WAVファイル形式のバイナリデータを生成します。
-- **`writeAscii(view: DataView, offset: number, s: string)`**: (demo-library/wav-exporter.ts) `DataView`オブジェクトの指定オフセットにASCII文字列を書き込みます。
-- **`downloadWav(buffer: ArrayBuffer, filename: string)`**: (demo-library/wav-exporter.ts) 生成されたWAVファイルの`ArrayBuffer`データを受け取り、指定されたファイル名でユーザーにダウンロードを促します。
-- **`drawEmpty(context: CanvasRenderingContext2D, width: number, height: number)`**: (demo-library/waveform-canvas.ts) HTML Canvasの指定されたコンテキストとサイズで、空の（初期状態の）波形キャンバスを描画します。
-- **`drawWaveform(context: CanvasRenderingContext2D, samples: Float32Array, width: number, height: number, color: string)`**: (demo-library/waveform-canvas.ts) 浮動小数点形式の音声サンプルデータから、HTML Canvas上に波形を実際の形状で描画します。
-- **`parseHexByte(hex: string)`**: (demo-library/ym2151-utils.ts) 2桁の16進数文字列（例: "C7"）をパースし、対応するバイト値（0-255）を返します。
-- **`extractNoteBoundaries(logEvents: any[])`**: (demo-library/waveform-viewer.ts) YM2151ログイベントから、各ノートの開始時刻と終了時刻を抽出し、境界データを生成します。
-- **`normalizeAmplitude(samples: Float32Array)`**: (demo-library/waveform-viewer.ts) 浮動小数点形式の音声サンプルデータの振幅を、可視化に適した範囲に正規化します。
-- **`createWaveformViewer(containerId: string)`**: (demo-library/waveform-viewer.ts) 指定されたHTMLコンテナ内に波形ビューアコンポーネントを初期化し、そのインスタンスを返します。
-- **`getWindowDurS(zoomLevel: number)`**: (demo-library/waveform-viewer.ts) 現在のズームレベルに基づいて、波形ビューアの表示ウィンドウの持続時間（秒単位）を計算します。
-- **`clampViewStart(viewStart: number)`**: (demo-library/waveform-viewer.ts) 波形ビューの開始位置が有効な範囲内（オーディオの先頭から末尾まで）に収まるように調整します。
-- **`updatePositionLabel(viewStartS: number, viewEndS: number)`**: (demo-library/waveform-viewer.ts) 波形ビューアの現在表示されている時間範囲を示すUIラベルを更新します。
-- **`render()`**: (demo-library/waveform-viewer.ts) 波形ビューアの現在の状態（ズーム、スクロール位置など）に基づいて、波形を再描画します。
-- **`updateBoundariesAndRender(logEvents: any[])`**: (demo-library/waveform-viewer.ts) 新しいYM2151ログイベントに基づいてノート境界を更新し、波形ビューアを再レンダリングします。
-- **`synthesizeAndRender(logEvents: any[])`**: (demo-library/waveform-viewer.ts) YM2151ログイベントからオーディオ波形を合成し、その結果を波形ビューアに描画します。
-- **`setZoom(zoomLevel: number)`**: (demo-library/waveform-viewer.ts) 波形ビューアのズームレベルを設定し、表示を更新します。
-- **`endDrag()`**: (demo-library/waveform-viewer.ts) 波形ビューア上でのドラッグ操作が終了した際に、位置の確定やUIの更新を行います。
+- **computeHash (demo-library/delay-vibrato-demo.ts)**: 入力データからハッシュ値を計算する機能を提供します。
+- **nextRequestId ()**: 次のリクエストIDを生成し、一意な操作を識別します。
+- **isLatestRequest ()**: 現在のリクエストが最新のものであるかを確認し、古いリクエストの結果が適用されないようにします。
+- **updateOutputWithState ()**: 現在の状態（変換結果など）に基づいてWeb UIの表示を更新します。
+- **updatePlayButtonState ()**: 再生ボタンの有効/無効状態や表示テキストを更新します。
+- **initializeWasm ()**: WebAssemblyモジュールを初期化し、Rustで書かれた機能をJavaScriptから利用できるようにします。
+- **readAttachmentBytes ()**: UIから提供された添付ファイル（例: カスタム音色JSON）のデータをバイト列として読み込みます。
+- **runConversion ()**: MIDIファイルをYM2151レジスタログに変換するコア処理を実行します。
+- **handlePlay ()**: UIからの再生イベントを処理し、変換結果のオーディオ再生を開始します。
+- **setupAttachmentEditor ()**: 添付データ（音色JSONなど）を編集するためのUIコンポーネントを初期化・設定します。
+- **setupMmlInput ()**: MML（Music Macro Language）を入力するためのUIフィールドを初期化・設定します。
+- **setupMidiInput ()**: MIDIファイルをアップロードするためのUI入力要素を初期化・設定します。
+- **bootstrapWebYm ()**: WebAssemblyベースのYM2151関連機能（オーディオエンジンなど）を起動します。
+- **applyRandomToneToAttachment ()**: ランダムに生成された音色パラメータを添付データに適用します。
+- **setupRandomToneButton ()**: ランダム音色生成ボタンのUIを初期化・設定します。
+- **main ()**: デモアプリケーションの主要なエントリポイントとして、初期設定やイベントハンドラを設定します。
+- **playAudioWithOverlay (globals.d.ts)**: オーバーレイ表示を伴いながらオーディオを再生する機能を提供します。
+- **clearAudioCache (globals.d.ts)**: 再生用にキャッシュされたオーディオデータをクリアします。
+- **generateAudioFromJson (globals.d.ts)**: YM2151レジスタログのJSONデータからオーディオ波形を生成します。
+- **initWasm (demo-library/library-demo.ts)**: WebAssemblyモジュールの初期化を行います。
+- **displayResult (demo-library/library-demo.ts)**: 変換や処理の結果をWeb UIに表示します。
+- **showError (demo-library/library-demo.ts)**: エラーメッセージをWeb UIに表示します。
+- **setupFileInput (demo-library/library-demo.ts)**: ファイル入力（`input type="file"`）要素のイベントハンドラを設定します。
+- **resolveRegisterForChannel (demo-library/log-visualizer-lfo.ts)**: 特定のYM2151チャンネルに対応するレジスタアドレスを解決します。
+- **collectLfoEvents (demo-library/log-visualizer-lfo.ts)**: YM2151ログからLFO（低周波発振器）関連のイベントを収集します。
+- **renderLfoLane (demo-library/log-visualizer-lfo.ts)**: ログビジュアライザー内でLFOの活動を示すレーンを描画します。
+- **keyOnTimeKey (demo-library/log-visualizer-note-segments.ts)**: ノートオンイベントの時間に基づいたキーを生成します。
+- **buildNoteSegments (demo-library/log-visualizer-note-segments.ts)**: 音楽的なノートの開始と終了を示すセグメントを構築します。
+- **notePitch (demo-library/log-visualizer-note-segments.ts)**: ノートのピッチ情報を取得します。
+- **computePitchRange (demo-library/log-visualizer-note-segments.ts)**: 表示するピッチの範囲を計算します。
+- **noteYPosition (demo-library/log-visualizer-note-segments.ts)**: ノートの表示Y座標を計算します。
+- **renderPitchCanvas (demo-library/log-visualizer-pitch-canvas.ts)**: ピッチ情報をグラフィカルに表示するためのキャンバスを描画します。
+- **detectChannel (demo-library/log-visualizer.ts)**: YM2151ログイベントから使用されているチャンネルを検出します。
+- **normalizeEvents (demo-library/log-visualizer.ts)**: イベントデータを可視化に適した形式に正規化します。
+- **laneColor (demo-library/log-visualizer.ts)**: 各レーン（チャンネル）に対応する色を決定します。
+- **createLane (demo-library/log-visualizer.ts)**: ログビジュアライザー内の個々のレーンを作成します。
+- **computeTrackWidth (demo-library/log-visualizer.ts)**: 可視化トラック全体の幅を計算します。
+- **formatInactiveChannels (demo-library/log-visualizer.ts)**: 非アクティブなチャンネルの表示をフォーマットします。
+- **createLogVisualizer (demo-library/log-visualizer.ts)**: YM2151レジスタログを視覚的に表示するコンポーネントを生成します。
+- **renderEmpty (demo-library/log-visualizer.ts)**: 空のログビジュアライザーを描画します。
+- **renderFromJson (demo-library/log-visualizer.ts)**: YM2151ログのJSONデータからビジュアライザーを描画します。
+- **ensureGlobalLane (demo-library/log-visualizer.ts)**: グローバルな可視化レーンが確実に存在するようにします。
+- **setLfoRegisters (demo-library/log-visualizer.ts)**: LFOに関連するレジスタの値を設定します。
+- **setupMmlToSmf (demo-library/mml-support.ts)**: MMLをSMFに変換する機能のセットアップを行います。
+- **updateRegisterReflectionStatus (demo-library/pop-noise-demo.ts)**: レジスタ反映のステータス表示を更新します。
+- **countRegisterNormalizationTargets (demo-library/pop-noise-demo.ts)**: レジスタ正規化の対象となる数をカウントします。
+- **setupPlayButton (demo-library/pop-noise-demo.ts)**: 再生ボタンのUIとイベントハンドラを設定します。
+- **setupWavExportButton (demo-library/pop-noise-demo.ts)**: WAVエクスポートボタンのUIとイベントハンドラを設定します。
+- **bootstrap (demo-library/pop-noise-demo.ts)**: アプリケーションの初期起動と主要なコンポーネントのセットアップを行います。
+- **detectPopNoise (demo-library/pop-noise-detector.ts)**: 生成された波形データからポップノイズの発生を検出します。
+- **extractLfoRegistersFromAttachment (demo-library/portamento-soft-lfo-demo.ts)**: 添付データからLFOレジスタの設定を抽出します。
+- **syncLfoRegisters (demo-library/portamento-soft-lfo-demo.ts)**: 複数のLFOレジスタ設定を同期させます。
+- **getToneEditorGenerator (demo-library/random-tone.ts)**: 音色エディタ用のランダム音色生成機能を提供します。
+- **generateRandomToneRegisters (demo-library/random-tone.ts)**: YM2151のランダムな音色レジスタ設定を生成します。
+- **generateRandomInterpolationPairRegisters (demo-library/random-tone.ts)**: 音色補間用のランダムなレジスタペアを生成します。
+- **parseAttachmentEntries (demo-library/random-tone.ts)**: 添付データ内のエントリをパース（解析）します。
+- **validateRandomToneAttachment (demo-library/random-tone.ts)**: ランダム音色添付データの有効性を検証します。
+- **upsertEntryRegisters (demo-library/random-tone.ts)**: 特定のエントリのレジスタ設定を挿入または更新します。
+- **upsertAttachmentRegisters (demo-library/random-tone.ts)**: 添付データ全体にレジスタ設定を挿入または更新します。
+- **upsertInterpolationAttachmentRegisters (demo-library/random-tone.ts)**: 補間添付データにレジスタ設定を挿入または更新します。
+- **buildRandomInterpolationAttachment (demo-library/random-tone.ts)**: ランダムな音色補間添付データを構築します。
+- **ensureWasmInitialized (demo-library/shared-demo.ts)**: WebAssemblyモジュールが初期化されていることを確認し、必要に応じて初期化します。
+- **setStatus (demo-library/shared-demo.ts)**: アプリケーションのステータスメッセージを更新します。
+- **setEventCountDisplay (demo-library/shared-demo.ts)**: 処理されたイベントの数を表示するUIを更新します。
+- **ensureWebYm2151 (demo-library/shared-demo.ts)**: WebYM2151のインスタンスが利用可能であることを確認し、必要に応じて準備します。
+- **clearWebYmAudioCache (demo-library/shared-demo.ts)**: WebYM2151のオーディオ再生キャッシュをクリアします。
+- **updateOutput (demo-library/shared-demo.ts)**: 変換結果やログなどの出力エリアを更新します。
+- **parseAttachmentField (demo-library/shared-demo.ts)**: UI上の添付データ入力フィールドの内容を解析します。
+- **cleanup (demo-library/shared-demo.ts)**: リソースの解放など、クリーンアップ処理を実行します。
+- **mod (demo-library/shared-demo.ts)**: モジュロ演算（剰余計算）を行います。
+- **buildEventsFromCompact (demo-library/tone-json-attachment.ts)**: コンパクトな形式のJSONデータからYM2151イベントを構築します。
+- **serializeWithStatus (demo-library/tone-json-attachment.ts)**: 現在のステータス情報を含めてデータをシリアライズ（直列化）します。
+- **normalizeAttachmentText (demo-library/tone-json-attachment.ts)**: 添付テキストの形式を正規化します。
+- **convertMmlToSmf (demo-library/tone-json-demo.ts)**: MMLデータをStandard MIDI File (SMF) に変換します。
+- **getMmlParser (demo-library/tone-json-mml.ts)**: MMLパーサーのインスタンスを取得します。
+- **getParseTreeJsonToSmf (demo-library/tone-json-mml.ts)**: パースツリーのJSONからSMFへの変換ロジックを取得します。
+- **treeToJson (demo-library/tone-json-mml.ts)**: MMLのパースツリーをJSON形式に変換します。
+- **ensureMmlRuntime (demo-library/tone-json-mml.ts)**: MMLランタイムが利用可能であることを確認し、必要に応じてロードします。
+- **encodeWav (demo-library/wav-exporter.ts)**: 生のオーディオデータをWAVファイル形式にエンコードします。
+- **writeAscii (demo-library/wav-exporter.ts)**: ASCII文字列をバイナリデータとして書き込みます。
+- **downloadWav (demo-library/wav-exporter.ts)**: 生成されたWAVファイルをユーザーのデバイスにダウンロードします。
+- **drawEmpty (demo-library/waveform-canvas.ts)**: 波形表示キャンバスに何も表示されていない状態を描画します。
+- **drawWaveform (demo-library/waveform-canvas.ts)**: オーディオ波形データをキャンバスに描画します。
+- **parseHexByte (demo-library/ym2151-utils.ts)**: 16進数文字列をバイト値にパースします。
+- **extractNoteBoundaries (demo-library/waveform-viewer.ts)**: 波形データからノートの開始と終了の境界を抽出します。
+- **normalizeAmplitude (demo-library/waveform-viewer.ts)**: 波形の振幅を正規化し、表示に適した範囲に調整します。
+- **createWaveformViewer (demo-library/waveform-viewer.ts)**: オーディオ波形を視覚的に表示するビューアコンポーネントを生成します。
+- **getWindowDurS (demo-library/waveform-viewer.ts)**: 現在表示されているウィンドウの持続時間を秒単位で取得します。
+- **clampViewStart (demo-library/waveform-viewer.ts)**: 表示開始位置が有効な範囲に収まるように調整（クランプ）します。
+- **updatePositionLabel (demo-library/waveform-viewer.ts)**: 波形ビューアの現在位置を示すラベルを更新します。
+- **render (demo-library/waveform-viewer.ts)**: 波形ビューアの現在の状態を描画します。
+- **updateBoundariesAndRender (demo-library/waveform-viewer.ts)**: 境界情報を更新し、それに基づいて波形ビューアを再描画します。
+- **synthesizeAndRender (demo-library/waveform-viewer.ts)**: 音声を合成し、その結果を波形ビューアに描画します。
+- **setZoom (demo-library/waveform-viewer.ts)**: 波形ビューアのズームレベルを設定します。
+- **endDrag (demo-library/waveform-viewer.ts)**: 波形ビューアでのドラッグ操作が終了した際の処理を行います。
+- **exportWav (demo-library/waveform-viewer.ts)**: 現在表示されている波形データをWAVファイルとしてエクスポートします。
 
 ## 関数呼び出し階層ツリー
 ```
-- main() (demo-library/delay-vibrato-demo.ts, demo-library/portamento-soft-lfo-demo.ts, demo-library/tone-interpolation-demo.ts, demo-library/tone-json-demo.ts)
-    - initializeWasm()
-    - setupMmlInput()
-        - setupMmlToSmf() (demo-library/mml-support.ts)
-    - setupMidiInput()
-    - setupAttachmentEditor()
-    - setupRandomToneButton()
-        - applyRandomToneToAttachment()
-            - generateRandomToneRegisters() (demo-library/random-tone.ts)
-            - upsertAttachmentRegisters() (demo-library/random-tone.ts)
-            - generateRandomInterpolationPairRegisters() (demo-library/random-tone.ts)
-            - upsertInterpolationAttachmentRegisters() (demo-library/random-tone.ts)
-            - buildRandomInterpolationAttachment() (demo-library/random-tone.ts)
-    - bootstrapWebYm()
-        - ensureWasmInitialized() (demo-library/shared-demo.ts)
-        - ensureWebYm2151() (demo-library/shared-demo.ts)
-    - handlePlay()
-        - nextRequestId()
-        - isLatestRequest()
-        - readAttachmentBytes()
-        - runConversion()
-        - updateOutputWithState()
-        - updatePlayButtonState()
-        - playAudioWithOverlay() (globals.d.ts)
-        - createLogVisualizer() (demo-library/log-visualizer.ts)
-            - renderFromJson() (demo-library/log-visualizer.ts)
-                - normalizeEvents()
-                - laneColor()
-                - createLane()
-                - computeTrackWidth()
-                - formatInactiveChannels()
-                - renderEmpty()
-                - ensureGlobalLane()
-                - setLfoRegisters()
-        - clearWebYmAudioCache() (demo-library/shared-demo.ts)
-        - parseAttachmentField() (demo-library/shared-demo.ts)
-        - cleanup() (demo-library/shared-demo.ts)
-
-- initWasm() (demo-library/library-demo.ts)
-    - displayResult()
-        - showError()
-    - setupFileInput()
-        - clear() (demo-library/waveform-viewer.ts)
-
-- resolveRegisterForChannel() (demo-library/log-visualizer-lfo.ts)
-    - collectLfoEvents()
-        - renderLfoLane()
-        - createLane()
-        - parseHexByte() (demo-library/ym2151-utils.ts)
-
-- buildNoteSegments() (demo-library/log-visualizer-note-segments.ts)
-    - notePitch()
-    - computePitchRange()
-    - noteYPosition()
-
-- renderPitchCanvas() (demo-library/log-visualizer-pitch-canvas.ts)
-
-- detectChannel() (demo-library/log-visualizer.ts)
-
-- bootstrap() (demo-library/pop-noise-demo.ts)
-    - initializeWasm()
-    - setupMmlInput()
-    - setupMidiInput()
-    - setupAttachmentEditor()
-    - setupRandomToneButton()
-    - setupPlayButton()
-    - setupWavExportButton()
-    - updateRegisterReflectionStatus()
-    - countRegisterNormalizationTargets()
-    - validateRandomToneAttachment()
-    - createWaveformViewer()
-        - renderFromJson()
-        - clear()
-        - exportWav()
-            - downloadWav()
-                - encodeWav() (demo-library/wav-exporter.ts)
-                    - writeAscii() (demo-library/wav-exporter.ts)
-
-- detectPopNoise() (demo-library/pop-noise-detector.ts)
-
-- extractLfoRegistersFromAttachment() (demo-library/portamento-soft-lfo-demo.ts)
-- syncLfoRegisters() (demo-library/portamento-soft-lfo-demo.ts)
-
-- getToneEditorGenerator() (demo-library/random-tone.ts)
-    - parseAttachmentEntries()
-        - upsertEntryRegisters()
-
-- getMmlParser() (demo-library/tone-json-mml.ts)
-    - getParseTreeJsonToSmf()
-        - treeToJson()
-        - ensureMmlRuntime()
-
-- buildEventsFromCompact() (demo-library/tone-json-attachment.ts)
-    - serializeWithStatus()
-
-- convertMmlToSmf() (demo-library/tone-json-demo.ts)
-
-- drawEmpty() (demo-library/waveform-canvas.ts)
-    - drawWaveform()
-
-- extractNoteBoundaries() (demo-library/waveform-viewer.ts)
-    - normalizeAmplitude()
-    - getWindowDurS()
-    - clampViewStart()
-    - updatePositionLabel()
-    - render()
-    - updateBoundariesAndRender()
-    - synthesizeAndRender()
-    - setZoom()
-    - endDrag()
-
-- mod() (demo-library/shared-demo.ts)
+- computeHash (demo-library/delay-vibrato-demo.ts)
+  - nextRequestId ()
+    - isLatestRequest ()
+    - updateOutputWithState ()
+    - updatePlayButtonState ()
+    - initializeWasm ()
+    - readAttachmentBytes ()
+    - runConversion ()
+    - handlePlay ()
+    - setupAttachmentEditor ()
+    - setupMmlInput ()
+    - setupMidiInput ()
+    - bootstrapWebYm ()
+    - applyRandomToneToAttachment ()
+    - setupRandomToneButton ()
+    - main ()
+    - playAudioWithOverlay ()
+    - createLogVisualizer ()
+    - renderFromJson ()
+    - setupMmlToSmf ()
+    - generateRandomToneRegisters ()
+    - upsertAttachmentRegisters ()
+    - ensureWasmInitialized ()
+    - setStatus ()
+    - setEventCountDisplay ()
+    - ensureWebYm2151 ()
+    - updateOutput ()
+    - normalizeAttachmentText ()
+    - updateRegisterReflectionStatus ()
+    - countRegisterNormalizationTargets ()
+    - setupPlayButton ()
+    - setupWavExportButton ()
+    - bootstrap ()
+    - validateRandomToneAttachment ()
+    - createWaveformViewer ()
+    - exportWav ()
+    - setLfoRegisters (demo-library/log-visualizer.ts)
+    - extractLfoRegistersFromAttachment ()
+    - syncLfoRegisters ()
+    - generateRandomInterpolationPairRegisters ()
+    - upsertInterpolationAttachmentRegisters ()
+    - buildRandomInterpolationAttachment ()
+- initWasm (demo-library/library-demo.ts)
+  - displayResult ()
+    - showError ()
+    - setupFileInput ()
+    - clear ()
+- resolveRegisterForChannel (demo-library/log-visualizer-lfo.ts)
+  - collectLfoEvents ()
+    - renderLfoLane ()
+    - createLane ()
+    - parseHexByte ()
+- keyOnTimeKey (demo-library/log-visualizer-note-segments.ts)
+  - buildNoteSegments ()
+    - notePitch ()
+    - computePitchRange ()
+    - noteYPosition ()
+- renderPitchCanvas (demo-library/log-visualizer-pitch-canvas.ts)
+- detectChannel (demo-library/log-visualizer.ts)
+  - normalizeEvents ()
+    - laneColor ()
+    - computeTrackWidth ()
+    - formatInactiveChannels ()
+    - renderEmpty ()
+    - ensureGlobalLane ()
+- getMmlParser ()
+  - getParseTreeJsonToSmf ()
+    - treeToJson ()
+    - ensureMmlRuntime ()
+- detectPopNoise (demo-library/pop-noise-detector.ts)
+- getToneEditorGenerator (demo-library/random-tone.ts)
+  - parseAttachmentEntries ()
+    - upsertEntryRegisters ()
+- clearAudioCache ()
+  - generateAudioFromJson ()
+- clearWebYmAudioCache ()
+  - parseAttachmentField ()
+    - cleanup ()
+- buildEventsFromCompact (demo-library/tone-json-attachment.ts)
+  - serializeWithStatus ()
+- convertMmlToSmf ()
+- drawEmpty (demo-library/waveform-canvas.ts)
+  - drawWaveform ()
+- downloadWav ()
+  - encodeWav (demo-library/wav-exporter.ts)
+    - writeAscii ()
+- extractNoteBoundaries (demo-library/waveform-viewer.ts)
+  - normalizeAmplitude ()
+    - getWindowDurS ()
+    - clampViewStart ()
+    - updatePositionLabel ()
+    - render ()
+    - updateBoundariesAndRender ()
+    - synthesizeAndRender ()
+    - setZoom ()
+- mod (demo-library/shared-demo.ts)
+- endDrag (demo-library/waveform-viewer.ts)
 
 ---
-Generated at: 2026-05-13 07:33:26 JST
+Generated at: 2026-05-17 07:21:43 JST

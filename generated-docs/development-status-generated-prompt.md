@@ -1,4 +1,4 @@
-Last updated: 2026-05-13
+Last updated: 2026-05-17
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -906,10 +906,11 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+114375e fix: ディレイビブラートをrelease中も次key-onまで継続
+0a9d3bb Update project summaries (overview & development status) [auto]
 6953e19 fix: ビブラートのpitch誤りを修正、そのためKFは上位6bitを読み書きするよう修正
 
 ### 変更されたファイル:
-.gitattributes
 demo-library/log-visualizer-note-segments.ts
 generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
@@ -919,10 +920,13 @@ package.json
 src/midi/utils.rs
 src/midi/utils_tests.rs
 src/ym2151/channel_allocation.rs
+src/ym2151/converter.rs
+src/ym2151/converter/pitch_effects.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/guards.rs
+src/ym2151/converter_tests/attachments_program_effects.rs
 src/ym2151/converter_tests/effects.rs
 tones/README.md
 
 
 ---
-Generated at: 2026-05-13 07:32:01 JST
+Generated at: 2026-05-17 07:20:46 JST
