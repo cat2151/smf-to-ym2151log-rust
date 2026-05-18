@@ -1,4 +1,4 @@
-Last updated: 2026-05-17
+Last updated: 2026-05-19
 
 # 開発状況生成プロンプト（開発者向け）
 
@@ -906,6 +906,8 @@ env: で値を渡し、process.env で参照するのが正しい
 
 ## 最近の変更（過去7日間）
 ### コミット履歴:
+a34383d fix: ディレイビブラートdemoで、ランダム音色でリリースが長くても最後までビブラートできるよう修正
+1bd4f47 Update project summaries (overview & development status) [auto]
 114375e fix: ディレイビブラートをrelease中も次key-onまで継続
 0a9d3bb Update project summaries (overview & development status) [auto]
 6953e19 fix: ビブラートのpitch誤りを修正、そのためKFは上位6bitを読み書きするよう修正
@@ -916,7 +918,6 @@ generated-docs/development-status-generated-prompt.md
 generated-docs/development-status.md
 generated-docs/project-overview-generated-prompt.md
 generated-docs/project-overview.md
-package.json
 src/midi/utils.rs
 src/midi/utils_tests.rs
 src/ym2151/channel_allocation.rs
@@ -924,9 +925,12 @@ src/ym2151/converter.rs
 src/ym2151/converter/pitch_effects.rs
 src/ym2151/converter_tests/attachments_change_to_next_tone/guards.rs
 src/ym2151/converter_tests/attachments_program_effects.rs
+src/ym2151/converter_tests/basic.rs
 src/ym2151/converter_tests/effects.rs
+src/ym2151/events.rs
+tests/integration_conversion.rs
 tones/README.md
 
 
 ---
-Generated at: 2026-05-17 07:20:46 JST
+Generated at: 2026-05-19 07:26:16 JST
