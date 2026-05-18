@@ -18,6 +18,8 @@ pub struct Ym2151Event {
 pub struct Ym2151Log {
     /// Number of events
     pub event_count: usize,
+    /// Duration in seconds that consumers should render this log
+    pub render_duration_seconds: f64,
     /// List of YM2151 register write events
     pub events: Vec<Ym2151Event>,
 }

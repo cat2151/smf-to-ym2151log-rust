@@ -14,6 +14,7 @@ fn test_convert_empty_midi() {
     // Should have only 8 KEY OFF events (no channels used, so no channel init)
     assert_eq!(result.event_count, 8);
     assert_eq!(result.events.len(), 8);
+    assert_eq!(result.render_duration_seconds, 1.0);
 }
 
 #[test]
@@ -40,6 +41,7 @@ fn test_convert_single_note() {
 
     // Initialization (34) + Note On (3: KC, KF, KEY ON) + Note Off (1: KEY OFF) = 38
     assert_eq!(result.event_count, 38);
+    assert_eq!(result.render_duration_seconds, 1.5);
 
     // Find the KC register write for Note On
     // MIDI channel 0 with polyphony 1 gets YM2151 channel 0 (no drum channel present)

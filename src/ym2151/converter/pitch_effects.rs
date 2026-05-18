@@ -12,7 +12,6 @@ use crate::DelayVibratoDefinition;
 use super::event_accumulator::EventAccumulator;
 use super::waveform::lfo_waveform_value;
 
-const VIBRATO_RELEASE_TAIL_SECONDS: f64 = 0.5;
 const PORTAMENTO_TIME_SECONDS: f64 = 0.1;
 const MIN_VIBRATO_SAMPLES_PER_PERIOD: f64 = 16.0;
 const MAX_VIBRATO_SAMPLES_PER_SECOND: f64 = 512.0;
@@ -23,20 +22,29 @@ const VIBRATO_TIME_LOOP_EPSILON: f64 = 1e-9;
 pub(super) fn append_delay_vibrato_events(
     segments: &[NoteSegment],
     config: &DelayVibratoDefinition,
+    render_duration_seconds: f64,
     events: &mut EventAccumulator,
 ) {
-    append_delay_vibrato_events_matching(segments, config, |_| true, events);
+    append_delay_vibrato_events_matching(
+        segments,
+        config,
+        render_duration_seconds,
+        |_| true,
+        events,
+    );
 }
 
 pub(super) fn append_delay_vibrato_events_for_program(
     segments: &[NoteSegment],
     program: u8,
     config: &DelayVibratoDefinition,
+    render_duration_seconds: f64,
     events: &mut EventAccumulator,
 ) {
     append_delay_vibrato_events_matching(
         segments,
         config,
+        render_duration_seconds,
         |segment| segment.program == program,
         events,
     );
@@ -45,6 +53,7 @@ pub(super) fn append_delay_vibrato_events_for_program(
 fn append_delay_vibrato_events_matching<F>(
     segments: &[NoteSegment],
     config: &DelayVibratoDefinition,
+    render_duration_seconds: f64,
     should_apply: F,
     events: &mut EventAccumulator,
 ) where
@@ -79,7 +88,7 @@ fn append_delay_vibrato_events_matching<F>(
             let next_start = segment_list.get(idx + 1).map(|s| s.start_time);
             let (stop_time, include_stop_time) = match next_start {
                 Some(next) => (next, false),
-                None => (segment.end_time + VIBRATO_RELEASE_TAIL_SECONDS, true),
+                None => (render_duration_seconds, false),
             };
 
             append_vibrato_for_segment(segment, stop_time, include_stop_time, config, events);

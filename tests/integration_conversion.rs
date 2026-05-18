@@ -45,6 +45,7 @@ fn test_end_to_end_simple_melody() {
         serde_json::from_str(&json_content).expect("Invalid JSON format");
 
     assert!(parsed.get("event_count").is_some());
+    assert!(parsed.get("render_duration_seconds").is_some());
     assert!(parsed.get("events").is_some());
 
     // Verify events array structure
@@ -323,6 +324,10 @@ fn test_convert_smf_to_ym2151_log_convenience_function() {
     assert!(
         parsed.get("event_count").is_some(),
         "Should have event_count field"
+    );
+    assert!(
+        parsed.get("render_duration_seconds").is_some(),
+        "Should have render_duration_seconds field"
     );
     assert!(parsed.get("events").is_some(), "Should have events field");
 

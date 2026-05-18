@@ -168,6 +168,67 @@ fn test_program_attachment_delay_vibrato_release_uses_next_key_on_boundary() {
 }
 
 #[test]
+fn test_program_attachment_delay_vibrato_continues_to_render_duration_for_final_note() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::ProgramChange {
+                ticks: 0,
+                channel: 0,
+                program: 3,
+            },
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480, // 0.5s
+                channel: 0,
+                note: 60,
+            },
+        ],
+    };
+
+    let result = convert_to_ym2151_log_with_options(
+        &midi_data,
+        &ConversionOptions {
+            program_attachments: vec![ProgramAttachment {
+                program_change: 3,
+                delay_vibrato: Some(DelayVibratoDefinition {
+                    delay_seconds: 0.0,
+                    attack_seconds: 0.0,
+                    depth_cents: 100.0,
+                    rate_hz: 1.25,
+                    waveform: LfoWaveform::Triangle,
+                }),
+                ..ProgramAttachment::default()
+            }],
+            ..ConversionOptions::default()
+        },
+    )
+    .unwrap();
+
+    assert_eq!(result.render_duration_seconds, 1.5);
+
+    let pitch_events_after_old_tail: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| {
+            (e.addr == "0x28" || e.addr == "0x30")
+                && e.time > 1.0
+                && e.time < result.render_duration_seconds
+        })
+        .collect();
+    assert!(
+        !pitch_events_after_old_tail.is_empty(),
+        "Program-scoped final-note delay vibrato should continue to render duration"
+    );
+}
+
+#[test]
 fn test_program_attachment_no_effects_entry_produces_no_extra_events() {
     // A ProgramAttachment with no effect-related fields enabled must
     // not crash and must not generate any vibrato/LFO/etc events.

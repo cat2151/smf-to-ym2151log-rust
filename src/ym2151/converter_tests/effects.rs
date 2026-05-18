@@ -248,6 +248,58 @@ fn test_delay_vibrato_continues_after_key_off_until_next_key_on() {
 }
 
 #[test]
+fn test_delay_vibrato_continues_to_render_duration_for_final_note() {
+    let midi_data = MidiData {
+        ticks_per_beat: 480,
+        tempo_bpm: 120.0,
+        events: vec![
+            MidiEvent::NoteOn {
+                ticks: 0,
+                channel: 0,
+                note: 60,
+                velocity: 100,
+            },
+            MidiEvent::NoteOff {
+                ticks: 480, // 0.5s
+                channel: 0,
+                note: 60,
+            },
+        ],
+    };
+
+    let result = convert_to_ym2151_log_with_options(
+        &midi_data,
+        &ConversionOptions {
+            delay_vibrato: Some(DelayVibratoDefinition {
+                delay_seconds: 0.0,
+                attack_seconds: 0.0,
+                depth_cents: 100.0,
+                rate_hz: 1.25,
+                waveform: LfoWaveform::Triangle,
+            }),
+            ..ConversionOptions::default()
+        },
+    )
+    .unwrap();
+
+    assert_eq!(result.render_duration_seconds, 1.5);
+
+    let pitch_events_after_old_tail: Vec<_> = result
+        .events
+        .iter()
+        .filter(|e| {
+            (e.addr == "0x28" || e.addr == "0x30")
+                && e.time > 1.0
+                && e.time < result.render_duration_seconds
+        })
+        .collect();
+    assert!(
+        !pitch_events_after_old_tail.is_empty(),
+        "Final-note delay vibrato should continue beyond the old note_off + 0.5s tail"
+    );
+}
+
+#[test]
 fn test_pop_noise_envelope_adds_pre_note_overrides() {
     // Use back-to-back notes so that the key-off for note 1 is at the same
     // time as the key-on for note 2 (t=0.5s).  PopNoiseEnvelope should move

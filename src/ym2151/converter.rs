@@ -9,7 +9,7 @@ mod register_fields;
 mod waveform;
 
 use crate::error::Result;
-use crate::midi::{ticks_to_seconds_with_tempo_map, MidiData};
+use crate::midi::{ticks_to_seconds_with_tempo_map, MidiData, TempoChange};
 use crate::ym2151::{
     allocate_channels, analyze_polyphony, apply_tone_to_channel, build_tempo_map,
     initialize_channel_events, process_event, EventProcessorContext, NoteSegment, Ym2151Event,
@@ -66,17 +66,9 @@ pub fn convert_to_ym2151_log_with_options(
 
     // Build tempo map from MIDI events
     let tempo_map = build_tempo_map(midi_data);
-    let last_tick = midi_data
-        .events
-        .iter()
-        .map(|event| match event {
-            crate::midi::MidiEvent::NoteOn { ticks, .. } => *ticks,
-            crate::midi::MidiEvent::NoteOff { ticks, .. } => *ticks,
-            crate::midi::MidiEvent::Tempo { ticks, .. } => *ticks,
-            crate::midi::MidiEvent::ProgramChange { ticks, .. } => *ticks,
-        })
-        .max()
-        .unwrap_or(0);
+    let last_tick = midi_last_tick(midi_data);
+    let song_end_time = song_end_time_seconds(last_tick, ticks_per_beat, &tempo_map);
+    let render_duration_seconds = song_end_time + 1.0;
 
     // Initialize all channels at time 0
     // Register 0x08 is the Key ON/OFF register
@@ -179,7 +171,6 @@ pub fn convert_to_ym2151_log_with_options(
 
     if need_note_segments {
         if let Some(active_map) = vibrato_active_notes {
-            let end_time = ticks_to_seconds_with_tempo_map(last_tick, ticks_per_beat, &tempo_map);
             for ((ym_ch, note), note_on) in active_map.into_iter() {
                 vibrato_segments.push(NoteSegment {
                     ym2151_channel: ym_ch,
@@ -187,7 +178,7 @@ pub fn convert_to_ym2151_log_with_options(
                     start_tick: note_on.start_tick,
                     end_tick: last_tick,
                     start_time: note_on.start_time,
-                    end_time,
+                    end_time: song_end_time,
                     program: note_on.program,
                 });
             }
@@ -195,7 +186,7 @@ pub fn convert_to_ym2151_log_with_options(
     }
 
     if let Some(config) = &options.delay_vibrato {
-        append_delay_vibrato_events(&vibrato_segments, config, &mut acc);
+        append_delay_vibrato_events(&vibrato_segments, config, render_duration_seconds, &mut acc);
     }
 
     if options.portamento {
@@ -270,6 +261,7 @@ pub fn convert_to_ym2151_log_with_options(
                 &vibrato_segments,
                 pa.program_change,
                 config,
+                render_duration_seconds,
                 &mut acc,
             );
         }
@@ -296,7 +288,6 @@ pub fn convert_to_ym2151_log_with_options(
         .iter()
         .any(|pa| pa.change_to_next_tone);
     if has_change_to_next_tone && !options.tones.is_empty() {
-        let song_end_time = ticks_to_seconds_with_tempo_map(last_tick, ticks_per_beat, &tempo_map);
         append_change_to_next_tone_events(
             &options.program_attachments,
             &options.tones,
@@ -308,8 +299,27 @@ pub fn convert_to_ym2151_log_with_options(
 
     Ok(Ym2151Log {
         event_count: acc.iter().count(),
+        render_duration_seconds,
         events: acc.into_vec(),
     })
+}
+
+fn midi_last_tick(midi_data: &MidiData) -> u32 {
+    midi_data
+        .events
+        .iter()
+        .map(|event| match event {
+            crate::midi::MidiEvent::NoteOn { ticks, .. } => *ticks,
+            crate::midi::MidiEvent::NoteOff { ticks, .. } => *ticks,
+            crate::midi::MidiEvent::Tempo { ticks, .. } => *ticks,
+            crate::midi::MidiEvent::ProgramChange { ticks, .. } => *ticks,
+        })
+        .max()
+        .unwrap_or(0)
+}
+
+fn song_end_time_seconds(last_tick: u32, ticks_per_beat: u16, tempo_map: &[TempoChange]) -> f64 {
+    ticks_to_seconds_with_tempo_map(last_tick, ticks_per_beat, tempo_map)
 }
 
 /// Save YM2151 log to JSON file
